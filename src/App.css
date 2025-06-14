@@ -15,6 +15,22 @@ body {
   min-height: 100vh;
   padding: 2vw;
   overflow: hidden;
+  position: relative;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: url('/img/bg01.png');
+  background-repeat: repeat;
+  background-size: auto;
+  opacity: 0.2;
+  pointer-events: none;
+  z-index: -2;
 }
 
 .sequencer-container {

@@ -156,14 +156,14 @@ const useAppStore = create((set, get) => ({
 
     // Try to load saved state first
     const savedState = loadAppState()
-    
+
     if (savedState && savedState.tracks && savedState.tracks.length > 0) {
       // Restore saved state
       // Re-add all saved sounds to DrumSoundsAPI
       for (const track of savedState.tracks) {
         await drumSoundsInstance.addSound(track)
       }
-      
+
       set({
         tracks: savedState.tracks,
         pattern: savedState.pattern,
@@ -171,7 +171,7 @@ const useAppStore = create((set, get) => ({
         masterVolume: savedState.masterVolume || 80,
         masterMuted: savedState.masterMuted || false,
       })
-      
+
       return
     }
 
@@ -253,7 +253,7 @@ const useAppStore = create((set, get) => ({
       tracks: initialTracks,
       pattern: defaultPattern,
     })
-    
+
     // Save the initial state
     get().saveState()
   },

@@ -18,13 +18,16 @@ app.use(express.json())
 
 // Serve static audio files with proper MIME types
 const audioPath = join(__dirname, '..', 'public', 'audio')
-app.use('/audio', express.static(audioPath, {
-  setHeaders: (res, path) => {
-    if (path.endsWith('.mp3')) {
-      res.setHeader('Content-Type', 'audio/mpeg')
-    }
-  }
-}))
+app.use(
+  '/audio',
+  express.static(audioPath, {
+    setHeaders: (res, path) => {
+      if (path.endsWith('.mp3')) {
+        res.setHeader('Content-Type', 'audio/mpeg')
+      }
+    },
+  })
+)
 
 // Initialize sound generation service
 let soundGenerationService
