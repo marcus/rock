@@ -17,6 +17,13 @@ const PORT = process.env.PORT || 3001
 app.use(cors())
 app.use(express.json())
 
+// Serve static files (React build and audio files)
+// In production, serve the React build
+if (process.env.NODE_ENV === 'production') {
+  const distPath = join(__dirname, '..', 'dist')
+  app.use(express.static(distPath))
+}
+
 // Serve static audio files with proper MIME types
 const audioPath = join(__dirname, '..', 'public', 'audio')
 app.use(
@@ -319,6 +326,13 @@ app.post('/api/sounds/generate', async (req, res) => {
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() })
 })
+
+// Catch-all handler for React Router (must be last)
+if (process.env.NODE_ENV === 'production') {
+  app.get('*', (req, res) => {
+    res.sendFile(join(__dirname, '..', 'dist', 'index.html'))
+  })
+}
 
 // Start server
 initializeServer().then(() => {
