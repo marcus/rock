@@ -94,7 +94,7 @@ function App() {
 
   const togglePlayback = async () => {
     if (!audioContextRef.current) {
-      const { audioContext, masterGain } = initAudio()
+      const { audioContext, masterGain } = await initAudio()
       audioContextRef.current = audioContext
       masterGainRef.current = masterGain
       masterGain.gain.value = masterVolume / 100
