@@ -6,6 +6,8 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
+public/audio/generated_*.mp3
+
 # Database
 server/db/roysrock.db
 server/db/*.db

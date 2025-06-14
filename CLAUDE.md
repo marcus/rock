@@ -49,6 +49,7 @@ The audio architecture uses Tone.js for cross-browser compatibility and precise 
 - **Sample Integration**: File paths for audio samples stored in database with automatic loading
 - **Default Pack**: System includes a default synthesis pack with standard drum sounds
 - **Dynamic Loading**: New sounds can be added at runtime via `DrumSoundsAPI.addSound()`
+- **AI Sound Generation**: ElevenLabs integration for creating custom drum sounds via text prompts
 
 ### State Management
 - **Dynamic Pattern State**: Variable-length arrays for step programming, volumes, and mute states
@@ -75,6 +76,7 @@ Sound management is fully API-driven:
 - **Dynamic Addition**: `DrumSoundsAPI.addSound(soundData)` adds new sounds at runtime
 - **Playback**: `drumSoundsInstance.playSoundScheduled(soundKey, volume, time)` handles both synthesis and sample playback
 - **Unique Keys**: Dynamic sounds use `drum_type_id` format for unique identification
+- **Sound Generation**: `POST /api/sounds/generate` creates AI-generated sounds via ElevenLabs API
 
 ### Key Implementation Details
 - **Scheduling**: `setupToneSequence()` creates a repeating 16-step sequence using `Tone.Sequence`
@@ -97,13 +99,24 @@ Sound management is fully API-driven:
 - Fetches available sounds from `/api/sounds`
 - Filters out sounds already in use
 - Category-based filtering (kick, snare, hihat, etc.)
+- AI-generated sound filtering and creation
 - Clean, accessible UI with keyboard navigation
+
+#### SoundGenerationModal
+- AI-powered sound creation interface using ElevenLabs API
+- Prompt input with 300-character limit and real-time validation
+- Duration slider (0.5-1.5 seconds) for sound length control
+- Audio preview and accept/reject workflow
+- Integration with existing sound pack system
 
 ### Database Schema
 The application uses SQLite with the following key tables:
-- `sounds`: Individual drum sounds with synthesis parameters or sample paths
+- `sounds`: Individual drum sounds with synthesis parameters or sample paths, includes `is_generated` and `prompt` fields for AI-generated sounds
 - `sound_packs`: Collections of sounds (default pack system)
-- `sound_packs_sounds`: Many-to-many relationship between packs and sounds
+- `sound_packs_sounds`: Many-to-many relationship between packs and sounds (NO sound_pack_id column in sounds table)
+- `categories`: Sound categorization including "Generated" category for AI-created sounds
+
+**IMPORTANT**: The `sounds` table does NOT have a `sound_pack_id` column. Sound pack relationships are managed via the `sound_packs_sounds` join table.
 
 ### Performance Considerations
 - **Lazy Loading**: Sounds are only loaded when added to the sequencer

@@ -1,0 +1,186 @@
+import { useState } from 'react'
+import PromptInput from './sound-generation/PromptInput'
+import DurationSlider from './sound-generation/DurationSlider'
+import SubmitButton from './sound-generation/SubmitButton'
+import AudioPreview from './sound-generation/AudioPreview'
+import AcceptRejectControls from './sound-generation/AcceptRejectControls'
+import './SoundGenerationModal.css'
+
+const DRUM_TYPES = [
+  { value: 'kick', label: 'Kick' },
+  { value: 'snare', label: 'Snare' },
+  { value: 'hihat_closed', label: 'Hi-Hat (Closed)' },
+  { value: 'hihat_open', label: 'Hi-Hat (Open)' },
+  { value: 'crash', label: 'Crash' },
+  { value: 'clap', label: 'Clap' },
+  { value: 'cowbell', label: 'Cowbell' },
+  { value: 'tom_low', label: 'Tom (Low)' },
+  { value: 'tom_mid', label: 'Tom (Mid)' },
+  { value: 'tom_high', label: 'Tom (High)' },
+  { value: 'ride', label: 'Ride' },
+  { value: 'percussion', label: 'Percussion' },
+  { value: 'fx', label: 'FX' },
+  { value: 'other', label: 'Other' }
+]
+
+function SoundGenerationModal({ isOpen, onClose, onAcceptSound }) {
+  const [prompt, setPrompt] = useState('')
+  const [duration, setDuration] = useState(0.5)
+  const [drumType, setDrumType] = useState('kick')
+  const [name, setName] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
+  const [generatedSound, setGeneratedSound] = useState(null)
+  const [error, setError] = useState(null)
+  const [hasBeenRejected, setHasBeenRejected] = useState(false)
+
+  const handleSubmit = async () => {
+    if (!prompt.trim() || !name.trim()) {
+      setError('Please provide both a name and prompt')
+      return
+    }
+
+    setIsLoading(true)
+    setError(null)
+
+    try {
+      const response = await fetch('/api/sounds/generate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          prompt: prompt.trim(),
+          duration,
+          name: name.trim(),
+          drumType
+        }),
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to generate sound')
+      }
+
+      const soundData = await response.json()
+      setGeneratedSound(soundData)
+    } catch (err) {
+      setError(err.message)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const handleAccept = () => {
+    if (generatedSound) {
+      onAcceptSound(generatedSound)
+      handleClose()
+    }
+  }
+
+  const handleReject = () => {
+    setGeneratedSound(null)
+    setHasBeenRejected(true)
+  }
+
+  const handleClose = () => {
+    setPrompt('')
+    setDuration(0.5)
+    setDrumType('kick')
+    setName('')
+    setIsLoading(false)
+    setGeneratedSound(null)
+    setError(null)
+    setHasBeenRejected(false)
+    onClose()
+  }
+
+  const canSubmit = prompt.trim() && name.trim() && !isLoading
+
+  if (!isOpen) return null
+
+  return (
+    <div className="sound-generation-overlay" onClick={handleClose}>
+      <div className="sound-generation-modal" onClick={(e) => e.stopPropagation()}>
+        <div className="sound-generation-header">
+          <h2>🎛️ Create New Sound</h2>
+          <button className="close-button" onClick={handleClose}>×</button>
+        </div>
+
+        {error && (
+          <div className="sound-generation-error">
+            <strong>Error:</strong> {error}
+          </div>
+        )}
+
+        {!generatedSound ? (
+          <div className="sound-generation-form">
+            <div className="form-group">
+              <label htmlFor="sound-name">Sound Name:</label>
+              <input
+                id="sound-name"
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="e.g., Heavy Kick, Crisp Snare..."
+                maxLength="50"
+              />
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="drum-type">Drum Type:</label>
+              <select
+                id="drum-type"
+                value={drumType}
+                onChange={(e) => setDrumType(e.target.value)}
+              >
+                {DRUM_TYPES.map(type => (
+                  <option key={type.value} value={type.value}>
+                    {type.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <PromptInput
+              value={prompt}
+              onChange={setPrompt}
+              disabled={isLoading}
+            />
+
+            <DurationSlider
+              value={duration}
+              onChange={setDuration}
+              disabled={isLoading}
+            />
+
+            <SubmitButton
+              isLoading={isLoading}
+              disabled={!canSubmit}
+              onClick={handleSubmit}
+            />
+          </div>
+        ) : (
+          <div className="sound-generation-preview">
+            <h3>🎵 Generated Sound Preview</h3>
+            <div className="sound-details">
+              <p><strong>Name:</strong> {name}</p>
+              <p><strong>Type:</strong> {DRUM_TYPES.find(t => t.value === drumType)?.label}</p>
+              <p><strong>Prompt:</strong> "{prompt}"</p>
+              <p><strong>Duration:</strong> {duration}s</p>
+            </div>
+
+            <AudioPreview audioUrl={generatedSound.audioUrl} />
+
+            <AcceptRejectControls
+              onAccept={handleAccept}
+              onReject={handleReject}
+              onCancel={handleClose}
+            />
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
+export default SoundGenerationModal

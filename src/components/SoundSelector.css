@@ -68,12 +68,47 @@
   box-shadow: 0.2vw 0.2vh 0 #000;
 }
 
+.sound-selector-actions {
+  padding: 1.5vh 2vw;
+  border-bottom: 0.2vw solid #000;
+  background: rgba(136, 136, 255, 0.1);
+}
+
+.create-sound-button {
+  background: linear-gradient(135deg, #8888FF 0%, #6366f1 100%);
+  color: white;
+  border: 0.15vw solid #000;
+  padding: 1vh 2vw;
+  border-radius: 0;
+  font-family: 'Anton', sans-serif;
+  font-weight: bold;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.1s ease;
+  font-size: clamp(0.8rem, 1vw, 1rem);
+  letter-spacing: 0.5px;
+  box-shadow: 0.2vw 0.2vh 0 #000;
+}
+
+.create-sound-button:hover {
+  transform: translate(-0.1vw, -0.1vh);
+  box-shadow: 0.3vw 0.3vh 0 #000;
+  background: linear-gradient(135deg, #7c7cfa 0%, #5856eb 100%);
+}
+
 .sound-selector-filters {
   padding: 1.5vh 2vw;
   border-bottom: 0.2vw solid #000;
   display: flex;
   align-items: center;
-  gap: 1vw;
+  gap: 2vw;
+  flex-wrap: wrap;
+}
+
+.filter-group {
+  display: flex;
+  align-items: center;
+  gap: 0.5vw;
 }
 
 .sound-selector-filters label {
@@ -93,6 +128,12 @@
   font-weight: bold;
   text-transform: uppercase;
   font-size: clamp(0.7rem, 1vw, 1rem);
+}
+
+.sound-selector-filters input[type="checkbox"] {
+  width: 1rem;
+  height: 1rem;
+  margin-right: 0.5vw;
 }
 
 .sound-selector-content {
@@ -189,11 +230,25 @@
     font-size: clamp(1.2rem, 3vw, 1.5rem);
   }
   
+  .sound-selector-actions {
+    padding: 2vh 4vw;
+  }
+  
+  .create-sound-button {
+    padding: 1.5vh 3vw;
+    font-size: clamp(0.9rem, 3vw, 1.2rem);
+  }
+  
   .sound-selector-filters {
     padding: 2vh 4vw;
     flex-direction: column;
     align-items: flex-start;
     gap: 1vh;
+  }
+  
+  .filter-group {
+    width: 100%;
+    justify-content: space-between;
   }
   
   .sound-selector-filters label {
