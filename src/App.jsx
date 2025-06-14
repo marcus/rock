@@ -131,7 +131,14 @@ function App() {
   const handleRemoveTrack = (trackIndex) => {
     if (tracks.length <= 1) return // Keep at least one track
     
+    const trackToRemove = tracks[trackIndex]
     const newTracks = tracks.filter((_, index) => index !== trackIndex)
+    
+    // Remove the sound from DrumSoundsAPI
+    if (trackToRemove) {
+      drumSoundsInstance.removeSound(trackToRemove)
+    }
+    
     setTracks(newTracks)
     
     // Remove from pattern arrays

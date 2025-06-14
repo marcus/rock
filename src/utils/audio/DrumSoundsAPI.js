@@ -303,6 +303,39 @@ export class DrumSoundsAPI {
     return true
   }
 
+  // Remove a sound from the loaded sounds
+  removeSound(soundData) {
+    if (!soundData) return false
+    
+    // Find and remove from soundsData
+    const soundIndex = this.soundsData.findIndex(sound => sound.id === soundData.id)
+    if (soundIndex === -1) {
+      console.warn(`Sound ${soundData.name} not found in loaded sounds`)
+      return false
+    }
+    
+    // Remove from soundsData array
+    this.soundsData.splice(soundIndex, 1)
+    
+    // Generate the drum key for cleanup
+    const drumKey = this.getDrumKey(soundData.drum_type, soundData.id)
+    
+    // Clean up instrument if it exists
+    if (this.instruments.has(drumKey)) {
+      this.instruments.delete(drumKey)
+    }
+    
+    // Clean up sample player if it exists
+    if (this.samplePlayers.has(drumKey)) {
+      const player = this.samplePlayers.get(drumKey)
+      player.dispose()
+      this.samplePlayers.delete(drumKey)
+    }
+    
+    console.log(`Sound ${soundData.name} removed from DrumSoundsAPI`)
+    return true
+  }
+
   // Get sound data by drum key
   getSoundByKey(drumKey) {
     return this.soundsData.find(sound => 

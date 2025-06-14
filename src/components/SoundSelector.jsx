@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import './SoundSelector.css'
 
 function SoundSelector({ isOpen, onClose, onSelectSound, usedSounds = [] }) {
@@ -7,9 +7,32 @@ function SoundSelector({ isOpen, onClose, onSelectSound, usedSounds = [] }) {
   const [error, setError] = useState(null)
   const [selectedCategory, setSelectedCategory] = useState('all')
 
+  // Create a stable reference for used sound IDs to ensure useEffect triggers correctly
+  const usedSoundIds = useMemo(() => {
+    const ids = usedSounds.map(sound => sound.id)
+    return ids
+  }, [usedSounds])
+
+  // Also track the length and content to ensure we catch all changes
+  const usedSoundsKey = useMemo(() => {
+    return `${usedSounds.length}-${usedSounds.map(s => s.id).sort().join(',')}`
+  }, [usedSounds])
+
   useEffect(() => {
     if (isOpen) {
       fetchAvailableSounds()
+    }
+  }, [isOpen, usedSoundIds, usedSoundsKey])
+
+  // Additional effect to force refresh when sound selector opens
+  useEffect(() => {
+    if (isOpen) {
+      // Small delay to ensure state has settled
+      const timeoutId = setTimeout(() => {
+        fetchAvailableSounds()
+      }, 100)
+      
+      return () => clearTimeout(timeoutId)
     }
   }, [isOpen])
 
@@ -18,7 +41,16 @@ function SoundSelector({ isOpen, onClose, onSelectSound, usedSounds = [] }) {
     setError(null)
     
     try {
-      const response = await fetch('/api/sounds')
+      // Add cache-busting parameter to prevent browser caching issues
+      const timestamp = Date.now()
+      const response = await fetch(`/api/sounds?_t=${timestamp}`, {
+        cache: 'no-cache',
+        headers: {
+          'Cache-Control': 'no-cache',
+          'Pragma': 'no-cache'
+        }
+      })
+      
       if (!response.ok) {
         throw new Error('Failed to fetch sounds')
       }
@@ -26,7 +58,6 @@ function SoundSelector({ isOpen, onClose, onSelectSound, usedSounds = [] }) {
       const allSounds = await response.json()
       
       // Filter out sounds that are already in use
-      const usedSoundIds = usedSounds.map(sound => sound.id)
       const filtered = allSounds.filter(sound => !usedSoundIds.includes(sound.id))
       
       setAvailableSounds(filtered)
