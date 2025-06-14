@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Anton&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Anton&family=Roboto:wght@400;700&display=swap');
 
 * {
   margin: 0;
@@ -7,7 +7,8 @@
 }
 
 body {
-  font-family: 'Anton', sans-serif;
+  font-family: 'Roboto', sans-serif;
+  font-stretch: 75%;
   background-color: #fffef0;
   display: flex;
   justify-content: center;
@@ -136,7 +137,9 @@ body::before {
 
 button {
   padding: 0.6vh 1.2vw;
-  font-family: 'Anton', sans-serif;
+  font-family: 'Roboto', sans-serif;
+  font-stretch: 75%;
+  font-weight: 700;
   font-size: clamp(0.7rem, 1vw, 1rem);
   text-transform: uppercase;
   background-color: #ffd700;
@@ -277,8 +280,9 @@ input[type='range']::-moz-range-thumb {
   background-color: #ff6b6b;
   border: 0.15vw solid #000;
   flex-shrink: 0;
-  font-family: 'Anton', sans-serif;
-  font-weight: bold;
+  font-family: 'Roboto', sans-serif;
+  font-stretch: 75%;
+  font-weight: 700;
   cursor: pointer;
   transition: all 0.1s;
   color: #000;
@@ -357,9 +361,12 @@ input[type='range']::-moz-range-thumb {
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: #0000ff;
-  color: #fff;
+  background-color: #e8e8e8;
+  color: #2c3e50;
   border: 0.2vw solid #000;
+  font-family: 'Roboto', sans-serif;
+  font-stretch: 75%;
+  font-weight: 700;
   font-size: clamp(0.6rem, 1vw, 1rem);
   text-transform: uppercase;
   flex-shrink: 0;

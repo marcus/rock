@@ -12,15 +12,15 @@
 }
 
 .sound-generation-modal {
-  background: white;
-  border-radius: 12px;
+  background: #fffef0;
+  border: 0.5vw solid #000;
+  box-shadow: 0.8vw 0.8vw 0 #000;
   width: 90%;
   max-width: 500px;
   max-height: 90vh;
   overflow-y: auto;
-  box-shadow:
-    0 20px 25px -5px rgba(0, 0, 0, 0.1),
-    0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  font-family: 'Roboto', sans-serif;
+  font-stretch: 75%;
 }
 
 .sound-generation-header {
@@ -28,42 +28,58 @@
   justify-content: space-between;
   align-items: center;
   padding: 1.5rem;
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 0.3vw solid #000;
+  background-color: #ffd700;
 }
 
 .sound-generation-header h2 {
   margin: 0;
-  color: #1f2937;
+  color: #000;
   font-size: 1.5rem;
+  font-family: 'Roboto', sans-serif;
+  font-stretch: 75%;
+  font-weight: 700;
+  text-transform: uppercase;
 }
 
 .close-button {
-  background: none;
-  border: none;
+  background: #ff0000;
+  border: 0.15vw solid #000;
   font-size: 1.5rem;
   cursor: pointer;
-  color: #6b7280;
-  padding: 0;
+  color: #fff;
+  padding: 0.3vh 0.8vw;
   width: 2rem;
   height: 2rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 50%;
-  transition: background-color 0.2s;
+  font-family: 'Roboto', sans-serif;
+  font-stretch: 75%;
+  font-weight: 700;
+  transition: all 0.1s;
 }
 
 .close-button:hover {
-  background-color: #f3f4f6;
+  transform: translate(-0.2vw, -0.2vh);
+  box-shadow: 0.3vw 0.3vh 0 #000;
+}
+
+.close-button:active {
+  transform: translate(0, 0);
+  box-shadow: none;
 }
 
 .sound-generation-error {
   margin: 1rem 1.5rem;
   padding: 1rem;
-  background-color: #fef2f2;
-  border: 1px solid #fecaca;
-  border-radius: 6px;
-  color: #dc2626;
+  background-color: #ff6b6b;
+  border: 0.15vw solid #000;
+  color: #000;
+  font-family: 'Roboto', sans-serif;
+  font-stretch: 75%;
+  font-weight: 700;
+  text-transform: uppercase;
 }
 
 .sound-generation-form {
@@ -77,25 +93,35 @@
 .form-group label {
   display: block;
   margin-bottom: 0.5rem;
-  font-weight: 600;
-  color: #374151;
+  font-weight: 700;
+  color: #000;
+  font-family: 'Roboto', sans-serif;
+  font-stretch: 75%;
+  text-transform: uppercase;
+  font-size: clamp(0.7rem, 1vw, 1rem);
 }
 
 .form-group input,
-.form-group select {
+.form-group select,
+.form-group textarea {
   width: 100%;
   padding: 0.75rem;
-  border: 1px solid #d1d5db;
-  border-radius: 6px;
+  border: 0.15vw solid #000;
+  background: #fff;
   font-size: 1rem;
-  transition: border-color 0.2s;
+  font-family: 'Roboto', sans-serif;
+  font-stretch: 75%;
+  transition: all 0.1s;
+  box-sizing: border-box;
 }
 
 .form-group input:focus,
-.form-group select:focus {
+.form-group select:focus,
+.form-group textarea:focus {
   outline: none;
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  background-color: #ffd700;
+  transform: translate(-0.1vw, -0.1vh);
+  box-shadow: 0.2vw 0.2vh 0 #000;
 }
 
 .sound-generation-preview {
@@ -104,23 +130,33 @@
 
 .sound-generation-preview h3 {
   margin: 0 0 1rem 0;
-  color: #1f2937;
+  color: #000;
+  font-family: 'Roboto', sans-serif;
+  font-stretch: 75%;
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 1.2rem;
 }
 
 .sound-details {
-  background-color: #f9fafb;
+  background-color: #e8e8e8;
   padding: 1rem;
-  border-radius: 6px;
+  border: 0.15vw solid #000;
   margin-bottom: 1.5rem;
 }
 
 .sound-details p {
   margin: 0.5rem 0;
-  color: #374151;
+  color: #2c3e50;
+  font-family: 'Roboto', sans-serif;
+  font-stretch: 75%;
+  font-weight: 400;
 }
 
 .sound-details strong {
-  color: #1f2937;
+  color: #000;
+  font-weight: 700;
+  text-transform: uppercase;
 }
 
 /* Responsive design */
@@ -128,11 +164,35 @@
   .sound-generation-modal {
     width: 95%;
     margin: 1rem;
+    border: 0.3vw solid #000;
+    box-shadow: 0.5vw 0.5vw 0 #000;
   }
 
   .sound-generation-header,
   .sound-generation-form,
   .sound-generation-preview {
     padding: 1rem;
+  }
+
+  .sound-generation-header {
+    border-bottom: 0.2vw solid #000;
+  }
+
+  .close-button {
+    border: 0.1vw solid #000;
+  }
+
+  .sound-generation-error {
+    border: 0.1vw solid #000;
+  }
+
+  .form-group input,
+  .form-group select,
+  .form-group textarea {
+    border: 0.1vw solid #000;
+  }
+
+  .sound-details {
+    border: 0.1vw solid #000;
   }
 }
