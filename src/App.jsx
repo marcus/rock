@@ -5,6 +5,7 @@ import Controls from './components/Controls'
 import TrackLabels from './components/TrackLabels'
 import VolumeControls from './components/VolumeControls'
 import { initAudio, drumSounds, soundNames } from './utils/audioUtils'
+import * as Tone from 'tone'
 
 function App() {
   const [pattern, setPattern] = useState({
@@ -21,10 +22,10 @@ function App() {
   
   const audioContextRef = useRef(null)
   const masterGainRef = useRef(null)
-  const schedulerTimerRef = useRef(null)
   const currentStepRef = useRef(0)
   const isPlayingRef = useRef(false)
   const patternRef = useRef(pattern)
+  const toneSequenceRef = useRef(null)
 
   useEffect(() => {
     const defaultPattern = { ...pattern }
@@ -37,7 +38,14 @@ function App() {
   useEffect(() => {
     isPlayingRef.current = isPlaying
     if (!isPlaying) {
-      clearTimeout(schedulerTimerRef.current)
+      // Stop Tone.js transport when not playing
+      Tone.Transport.stop()
+      Tone.Transport.cancel()
+      
+      if (toneSequenceRef.current) {
+        toneSequenceRef.current.dispose()
+        toneSequenceRef.current = null
+      }
     }
   }, [isPlaying])
 
@@ -48,6 +56,17 @@ function App() {
   useEffect(() => {
     patternRef.current = pattern
   }, [pattern])
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      Tone.Transport.stop()
+      Tone.Transport.cancel()
+      if (toneSequenceRef.current) {
+        toneSequenceRef.current.dispose()
+      }
+    }
+  }, [])
 
   const toggleStep = (row, col) => {
     setPattern(prev => {
@@ -80,17 +99,24 @@ function App() {
     }
   }, [])
 
-  const scheduler = useCallback(() => {
-    if (!isPlayingRef.current) return
-    
-    playStep(currentStepRef.current)
-    const nextStep = (currentStepRef.current + 1) % 16
-    currentStepRef.current = nextStep
-    setCurrentStep(nextStep)
-    
-    const stepTime = 60000 / (tempo * 4)
-    schedulerTimerRef.current = setTimeout(scheduler, stepTime)
-  }, [tempo, playStep])
+  const setupToneSequence = useCallback(() => {
+    // Clean up existing sequence
+    if (toneSequenceRef.current) {
+      toneSequenceRef.current.dispose()
+    }
+
+    // Create Tone.js sequence that runs every 16th note
+    toneSequenceRef.current = new Tone.Sequence((time, step) => {
+      // Schedule the audio to play at the exact time
+      Tone.Draw.schedule(() => {
+        playStep(step)
+        currentStepRef.current = step
+        setCurrentStep(step)
+      }, time)
+    }, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15], "16n")
+
+    toneSequenceRef.current.start(0)
+  }, [playStep])
 
   const togglePlayback = async () => {
     if (!audioContextRef.current) {
@@ -102,6 +128,8 @@ function App() {
       if (audioContext.state === 'suspended') {
         await audioContext.resume()
       }
+      
+      await new Promise(resolve => setTimeout(resolve, 100))
     }
     
     const newIsPlaying = !isPlaying
@@ -109,11 +137,28 @@ function App() {
     setIsPlaying(newIsPlaying)
     
     if (newIsPlaying) {
-      scheduler()
-    } else {
-      clearTimeout(schedulerTimerRef.current)
-      setCurrentStep(0)
+      // Set up Tone.js transport and sequence
+      Tone.Transport.bpm.value = tempo
+      setupToneSequence()
+      
+      // Reset to step 0
       currentStepRef.current = 0
+      setCurrentStep(0)
+      
+      // Start Tone.js transport
+      Tone.Transport.start()
+    } else {
+      // Stop transport and clean up
+      Tone.Transport.stop()
+      Tone.Transport.cancel()
+      
+      if (toneSequenceRef.current) {
+        toneSequenceRef.current.dispose()
+        toneSequenceRef.current = null
+      }
+      
+      currentStepRef.current = 0
+      setCurrentStep(0)
     }
   }
 
@@ -127,6 +172,11 @@ function App() {
   const updateTempo = (newTempo) => {
     setTempo(newTempo)
     setPattern(prev => ({ ...prev, tempo: newTempo }))
+    
+    // Update Tone.js transport tempo if playing
+    if (isPlaying) {
+      Tone.Transport.bpm.value = newTempo
+    }
   }
 
   const updateMasterVolume = (volume) => {
@@ -188,6 +238,7 @@ function App() {
           />
         </div>
       </div>
+      
     </div>
   )
 }
