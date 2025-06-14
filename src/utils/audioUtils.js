@@ -2,4 +2,4 @@
 export * from './audio/index.js'
 
 // Legacy compatibility - maintain exact same API as before
-export { drumSounds, soundNames } from './audio/DrumSounds.js'
+export { soundNames } from './audio/DrumSounds.js'

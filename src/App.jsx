@@ -3,7 +3,8 @@ import './App.css'
 import SequencerGrid from './components/SequencerGrid'
 import Controls from './components/Controls'
 import MasterVolumeControl from './components/MasterVolumeControl'
-import { initAudio, drumSounds, soundNames } from './utils/audioUtils'
+import { initAudio } from './utils/audioUtils'
+import { drumSoundsInstance, getSoundNames } from './utils/audio/DrumSoundsAPI'
 import * as Tone from 'tone'
 
 function App() {
@@ -19,6 +20,7 @@ function App() {
   const [tempo, setTempo] = useState(120)
   const [masterVolume, setMasterVolume] = useState(80)
   const [masterMuted, setMasterMuted] = useState(false)
+  const [availableSounds, setAvailableSounds] = useState([])
   
   const audioContextRef = useRef(null)
   const masterGainRef = useRef(null)
@@ -28,11 +30,23 @@ function App() {
   const toneSequenceRef = useRef(null)
 
   useEffect(() => {
-    const defaultPattern = { ...pattern }
-    defaultPattern.steps[0] = [true, false, false, false, true, false, false, false, true, false, false, false, true, false, false, false]
-    defaultPattern.steps[1] = [false, false, false, false, true, false, false, false, false, false, false, false, true, false, false, false]
-    defaultPattern.steps[2] = [false, false, true, false, false, false, true, false, false, false, true, false, false, false, true, false]
-    setPattern(defaultPattern)
+    const initializeApp = async () => {
+      // Initialize drum sounds API early
+      await drumSoundsInstance.initialize()
+      
+      // Get available sound names after initialization
+      const soundNames = getSoundNames()
+      setAvailableSounds(soundNames)
+      
+      // Set up default pattern
+      const defaultPattern = { ...pattern }
+      defaultPattern.steps[0] = [true, false, false, false, true, false, false, false, true, false, false, false, true, false, false, false]
+      defaultPattern.steps[1] = [false, false, false, false, true, false, false, false, false, false, false, false, true, false, false, false]
+      defaultPattern.steps[2] = [false, false, true, false, false, false, true, false, false, false, true, false, false, false, true, false]
+      setPattern(defaultPattern)
+    }
+    
+    initializeApp()
   }, [])
 
   useEffect(() => {
@@ -81,23 +95,25 @@ function App() {
   }
 
   const playStep = useCallback((step) => {
-    if (!audioContextRef.current || !masterGainRef.current) return
+    if (!audioContextRef.current || !masterGainRef.current || availableSounds.length === 0) return
     
     const currentPattern = patternRef.current
     
     for (let track = 0; track < 8; track++) {
       if (currentPattern.steps[track][step] && !currentPattern.muted[track]) {
-        const soundFunction = drumSounds[soundNames[track]]
-        if (soundFunction) {
+        const soundName = availableSounds[track]
+        if (soundName) {
+          // Create track gain exactly like the original working code
           const trackGain = audioContextRef.current.createGain()
           trackGain.gain.value = currentPattern.volumes[track]
           trackGain.connect(masterGainRef.current)
           
-          soundFunction(audioContextRef.current, trackGain)
+          // Use the sync method that maintains exact timing compatibility
+          drumSoundsInstance.playSoundSync(soundName, audioContextRef.current, trackGain)
         }
       }
     }
-  }, [])
+  }, [availableSounds])
 
   const setupToneSequence = useCallback(() => {
     // Clean up existing sequence
@@ -119,6 +135,16 @@ function App() {
   }, [playStep])
 
   const togglePlayback = async () => {
+    // Ensure drumSoundsInstance is initialized before playback
+    if (!drumSoundsInstance.isInitialized) {
+      await drumSoundsInstance.initialize()
+      // Update available sounds if they weren't loaded yet
+      if (availableSounds.length === 0) {
+        const soundNames = getSoundNames()
+        setAvailableSounds(soundNames)
+      }
+    }
+    
     if (!audioContextRef.current) {
       const { audioContext, masterGain } = await initAudio()
       audioContextRef.current = audioContext

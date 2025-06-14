@@ -119,7 +119,7 @@ const defaultSounds = [
       filter: {
         frequency: 1100,
         type: 'bandpass',
-        Q: -12
+        Q: 12
       },
       duration: '64n',
       multiple_hits: [0, 0.01, 0.02],

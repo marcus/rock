@@ -1,7 +1,7 @@
 // Main audio utilities export
 export { audioEngine } from './AudioEngine.js'
 export { sampleManager, SampleManager } from './SampleManager.js'
-export { drumSounds, soundNames, DrumSounds } from './DrumSounds.js'
+export { soundNames, DrumSounds } from './DrumSounds.js'
 
 // Convenience functions for backward compatibility and ease of use
 export async function initAudio() {
@@ -30,8 +30,8 @@ export async function initAudio() {
 }
 
 export async function playDrumSound(soundName, options = {}) {
-  const { drumSounds } = await import('./DrumSounds.js')
-  return drumSounds.playSound(soundName, options)
+  const { drumSoundsInstance } = await import('./DrumSounds.js')
+  return drumSoundsInstance.playSound(soundName, options)
 }
 
 export async function loadCustomSample(name, file) {
