@@ -75,6 +75,20 @@ app.get('/api/sound-packs/:id/sounds', async (req, res) => {
   }
 })
 
+// Get all sounds
+app.get('/api/sounds', async (req, res) => {
+  try {
+    const sounds = await database.query(`
+      SELECT * FROM sounds 
+      ORDER BY drum_type, name
+    `)
+    res.json(sounds)
+  } catch (error) {
+    console.error('Error fetching all sounds:', error)
+    res.status(500).json({ error: 'Failed to fetch sounds' })
+  }
+})
+
 // Get sounds for default sound pack
 app.get('/api/sounds/default', async (req, res) => {
   try {

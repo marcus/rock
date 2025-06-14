@@ -1,0 +1,301 @@
+.track-manager {
+  width: 100%;
+}
+
+.tracks-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5vh;
+}
+
+.track-row {
+  display: flex;
+  align-items: center;
+  background: transparent;
+  padding: 0;
+  min-height: 6vh;
+}
+
+.track-info {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  min-width: 10vw;
+  max-width: 10vw;
+  position: relative;
+  padding-right: 1vw;
+}
+
+.track-label {
+  font-family: 'Anton', sans-serif;
+  font-weight: bold;
+  font-size: clamp(0.7rem, 1vw, 1rem);
+  color: #FFD700;
+  text-align: left;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  word-break: break-word;
+  line-height: 1.2;
+  flex: 1;
+}
+
+.remove-track-button {
+  background: rgba(255, 107, 107, 0.2);
+  border: 0.1vw solid #ff6b6b;
+  color: #ff6b6b;
+  border-radius: 50%;
+  width: 1.5vw;
+  height: 1.5vw;
+  font-size: clamp(0.6rem, 0.8vw, 0.8rem);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  font-family: 'Anton', sans-serif;
+  font-weight: bold;
+}
+
+.remove-track-button:hover {
+  background: rgba(255, 107, 107, 0.4);
+  transform: scale(1.1);
+}
+
+.step-row {
+  display: flex;
+  gap: 0.3vw;
+  flex: 1;
+  margin: 0 1vw;
+  justify-content: center;
+}
+
+.step-button {
+  width: 4vw;
+  height: 4vw;
+  max-width: 40px;
+  max-height: 40px;
+  min-width: 25px;
+  min-height: 25px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 0.15vw solid rgba(255, 255, 255, 0.3);
+  border-radius: 0;
+  cursor: pointer;
+  transition: all 0.1s ease;
+  position: relative;
+}
+
+.step-button:hover {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.6);
+  transform: translate(-0.1vw, -0.1vh);
+  box-shadow: 0.2vw 0.2vh 0 #000;
+}
+
+.step-button.active {
+  background: #FFD700;
+  border-color: #000;
+  box-shadow: 0.3vw 0.3vh 0 #000;
+}
+
+.step-button.playing {
+  background: #FF0000;
+  border-color: #000;
+  box-shadow: 0.3vw 0.3vh 0 #000;
+  animation: pulse 0.3s ease-in-out;
+}
+
+.step-button.beat-marker {
+  border-color: rgba(255, 255, 255, 0.6);
+}
+
+.step-button.beat-marker::after {
+  content: '';
+  position: absolute;
+  top: -0.3vh;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0.3vw;
+  height: 0.3vh;
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 50%;
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+  100% { transform: scale(1); }
+}
+
+.track-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.5vw;
+  min-width: 8vw;
+}
+
+.volume-slider {
+  width: 6vw;
+  height: 0.6vh;
+  background: #FFD700;
+  border: 0.1vw solid #000;
+  outline: none;
+  -webkit-appearance: none;
+}
+
+.volume-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 1.2vw;
+  height: 1.2vw;
+  background: #0000FF;
+  border: 0.1vw solid #000;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.volume-slider::-moz-range-thumb {
+  width: 1.2vw;
+  height: 1.2vw;
+  background: #0000FF;
+  border: 0.1vw solid #000;
+  border-radius: 50%;
+  cursor: pointer;
+  border: none;
+}
+
+.mute-button {
+  background: #FFD700;
+  border: 0.15vw solid #000;
+  color: #000;
+  border-radius: 0;
+  width: 2vw;
+  height: 2vw;
+  min-width: 20px;
+  min-height: 20px;
+  font-size: clamp(0.6rem, 0.8vw, 0.8rem);
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.1s ease;
+  font-family: 'Anton', sans-serif;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mute-button:hover {
+  transform: translate(-0.1vw, -0.1vh);
+  box-shadow: 0.2vw 0.2vh 0 #000;
+}
+
+.mute-button.muted {
+  background: #FF0000;
+  color: #FFF;
+}
+
+.add-track-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2vh 0;
+  margin-top: 1vh;
+  gap: 1vw;
+}
+
+.add-track-button {
+  background: #FFD700;
+  border: 0.15vw solid #000;
+  color: #000;
+  border-radius: 0;
+  padding: 0.6vh 1.2vw;
+  font-family: 'Anton', sans-serif;
+  font-weight: bold;
+  font-size: clamp(0.7rem, 1vw, 1rem);
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.1s ease;
+  position: relative;
+  min-height: 3vh;
+}
+
+.add-track-button:hover {
+  transform: translate(-0.2vw, -0.2vh);
+  box-shadow: 0.3vw 0.3vh 0 #000;
+}
+
+.add-track-button:active {
+  transform: translate(0, 0);
+  box-shadow: none;
+}
+
+.track-count {
+  font-family: 'Anton', sans-serif;
+  font-size: clamp(0.6rem, 0.8vw, 0.8rem);
+  color: #000;
+  text-transform: uppercase;
+  font-weight: bold;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .track-row {
+    flex-direction: column;
+    gap: 1vh;
+    padding: 1vh;
+    min-height: auto;
+  }
+  
+  .track-info {
+    min-width: auto;
+    max-width: none;
+    width: 100%;
+    flex-direction: row;
+    justify-content: space-between;
+    padding-right: 0;
+  }
+  
+  .track-label {
+    font-size: clamp(0.8rem, 3vw, 1.2rem);
+  }
+  
+  .remove-track-button {
+    width: 6vw;
+    height: 6vw;
+    font-size: clamp(0.8rem, 2vw, 1rem);
+  }
+  
+  .step-row {
+    margin: 0;
+    justify-content: center;
+    gap: 1vw;
+  }
+  
+  .step-button {
+    width: 5vw;
+    height: 5vw;
+    max-width: 35px;
+    max-height: 35px;
+    min-width: 20px;
+    min-height: 20px;
+  }
+  
+  .track-controls {
+    justify-content: center;
+    min-width: auto;
+    gap: 2vw;
+  }
+  
+  .volume-slider {
+    width: 20vw;
+  }
+  
+  .mute-button {
+    width: 8vw;
+    height: 8vw;
+    font-size: clamp(0.8rem, 2vw, 1rem);
+  }
+  
+  .add-track-button {
+    padding: 2vh 4vw;
+    font-size: clamp(0.8rem, 3vw, 1.2rem);
+  }
+} 

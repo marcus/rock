@@ -53,14 +53,14 @@ export class DrumSoundsAPI {
     try {
       const samplePaths = {}
       sampleSounds.forEach(sound => {
-        samplePaths[this.getDrumKey(sound.drum_type)] = sound.file_path
+        samplePaths[this.getDrumKey(sound.drum_type, sound.id)] = sound.file_path
       })
       
       await sampleLoader.loadSamples(samplePaths)
 
       // After samples are loaded, create persistent Tone.Player instances for each sample.
       sampleSounds.forEach(sound => {
-        const drumKey = this.getDrumKey(sound.drum_type)
+        const drumKey = this.getDrumKey(sound.drum_type, sound.id)
         if (!this.samplePlayers.has(drumKey) && sampleLoader.hasSample(drumKey)) {
           const player = new Tone.Player({
             url: sampleLoader.getSample(drumKey).buffer,
@@ -80,7 +80,7 @@ export class DrumSoundsAPI {
     // Create synthesis functions for each sound
     this.soundsData.forEach(sound => {
       if (sound.type === 'synthesis' && sound.synthesis_params) {
-        const drumKey = this.getDrumKey(sound.drum_type)
+        const drumKey = this.getDrumKey(sound.drum_type, sound.id)
         const synthParams = JSON.parse(sound.synthesis_params)
         
         this.instruments.set(drumKey, () => this.createSynthesisInstrument(synthParams))
@@ -88,8 +88,13 @@ export class DrumSoundsAPI {
     })
   }
 
-  getDrumKey(drumType) {
-    // Map database drum_type to legacy key names
+  getDrumKey(drumType, soundId = null) {
+    // For dynamic sounds, use a combination of drum_type and id to ensure uniqueness
+    if (soundId) {
+      return `${drumType}_${soundId}`
+    }
+    
+    // Map database drum_type to legacy key names for default sounds
     const keyMap = {
       'kick': 'kick',
       'snare': 'snare', 
@@ -248,8 +253,67 @@ export class DrumSoundsAPI {
       return []
     }
     
-    return this.soundsData.map(sound => this.getDrumKey(sound.drum_type))
+    return this.soundsData.map(sound => this.getDrumKey(sound.drum_type, sound.id))
       .filter((key, index, array) => array.indexOf(key) === index) // Remove duplicates
+  }
+
+  // Add a new sound to the loaded sounds
+  async addSound(soundData) {
+    if (!soundData) return false
+    
+    // Check if sound is already loaded
+    const existingSound = this.soundsData.find(sound => sound.id === soundData.id)
+    if (existingSound) {
+      console.warn(`Sound ${soundData.name} is already loaded`)
+      return false
+    }
+    
+    // Add to soundsData
+    this.soundsData.push(soundData)
+    
+    // Use unique key for dynamic sounds
+    const drumKey = this.getDrumKey(soundData.drum_type, soundData.id)
+    
+    // Initialize instrument if it's a synthesis sound
+    if (soundData.type === 'synthesis' && soundData.synthesis_params) {
+      const synthParams = JSON.parse(soundData.synthesis_params)
+      this.instruments.set(drumKey, () => this.createSynthesisInstrument(synthParams))
+    }
+    
+    // Load sample if it's a sample sound
+    if (soundData.type === 'sample' && soundData.file_path) {
+      try {
+        const samplePaths = { [drumKey]: soundData.file_path }
+        await sampleLoader.loadSamples(samplePaths)
+        
+        // Create persistent player for the sample
+        if (sampleLoader.hasSample(drumKey)) {
+          const player = new Tone.Player({
+            url: sampleLoader.getSample(drumKey).buffer,
+            retrigger: true,
+            onstop: () => {},
+          }).connect(audioEngine.getDestination())
+          this.samplePlayers.set(drumKey, player)
+        }
+      } catch (error) {
+        console.warn(`Failed to load sample for ${soundData.name}:`, error)
+      }
+    }
+    
+    return true
+  }
+
+  // Get sound data by drum key
+  getSoundByKey(drumKey) {
+    return this.soundsData.find(sound => 
+      this.getDrumKey(sound.drum_type, sound.id) === drumKey ||
+      this.getDrumKey(sound.drum_type) === drumKey
+    )
+  }
+
+  // Get all loaded sound data
+  getAllSounds() {
+    return [...this.soundsData]
   }
 
   dispose() {
@@ -268,8 +332,9 @@ export class DrumSoundsAPI {
       return
     }
 
-    // Find the sound data
+    // Find the sound data - check both old and new key formats
     const soundData = this.soundsData.find(sound => 
+      this.getDrumKey(sound.drum_type, sound.id) === soundName ||
       this.getDrumKey(sound.drum_type) === soundName
     )
     
@@ -305,6 +370,7 @@ export class DrumSoundsAPI {
 
   createSynthesisInstrumentSync(soundName, volume) {
     const soundData = this.soundsData.find(sound => 
+      this.getDrumKey(sound.drum_type, sound.id) === soundName ||
       this.getDrumKey(sound.drum_type) === soundName
     )
     
@@ -443,8 +509,9 @@ export class DrumSoundsAPI {
       return
     }
 
-    // Find the sound data
+    // Find the sound data - check both old and new key formats
     const soundData = this.soundsData.find(sound => 
+      this.getDrumKey(sound.drum_type, sound.id) === soundName ||
       this.getDrumKey(sound.drum_type) === soundName
     )
     
@@ -478,6 +545,7 @@ export class DrumSoundsAPI {
 
   createSynthesisInstrumentScheduled(soundName, volume, time) {
     const soundData = this.soundsData.find(sound => 
+      this.getDrumKey(sound.drum_type, sound.id) === soundName ||
       this.getDrumKey(sound.drum_type) === soundName
     )
     

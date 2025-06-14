@@ -1,58 +1,79 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import './App.css'
-import SequencerGrid from './components/SequencerGrid'
+import TrackManager from './components/TrackManager'
 import Controls from './components/Controls'
 import MasterVolumeControl from './components/MasterVolumeControl'
 import { initAudio } from './utils/audioUtils'
-import { drumSoundsInstance, getSoundNames } from './utils/audio/DrumSoundsAPI'
+import { drumSoundsInstance } from './utils/audio/DrumSoundsAPI'
 import * as Tone from 'tone'
 
 function App() {
+  // Track management state
+  const [tracks, setTracks] = useState([])
   const [pattern, setPattern] = useState({
-    steps: Array(8).fill().map(() => Array(16).fill(false)),
+    steps: [],
     tempo: 120,
-    volumes: Array(8).fill(0.8),
-    muted: Array(8).fill(false)
+    volumes: [],
+    muted: []
   })
   
+  // Playback state
   const [isPlaying, setIsPlaying] = useState(false)
   const [currentStep, setCurrentStep] = useState(0)
   const [tempo, setTempo] = useState(120)
   const [masterVolume, setMasterVolume] = useState(80)
   const [masterMuted, setMasterMuted] = useState(false)
-  const [availableSounds, setAvailableSounds] = useState([])
   
+  // Audio refs
   const audioContextRef = useRef(null)
   const masterGainRef = useRef(null)
   const currentStepRef = useRef(0)
   const isPlayingRef = useRef(false)
   const patternRef = useRef(pattern)
   const toneSequenceRef = useRef(null)
+  const tracksRef = useRef([])
 
+  // Initialize app with default tracks
   useEffect(() => {
     const initializeApp = async () => {
       // Initialize drum sounds API early
       await drumSoundsInstance.initialize()
       
-      // Get available sound names after initialization
-      const soundNames = getSoundNames()
-      setAvailableSounds(soundNames)
+      // Get default sounds and create initial tracks
+      const defaultSounds = drumSoundsInstance.getAllSounds()
+      const initialTracks = defaultSounds.slice(0, 8) // Start with first 8 sounds
       
-      // Set up default pattern
-      const defaultPattern = { ...pattern }
-      defaultPattern.steps[0] = [true, false, false, false, true, false, false, false, true, false, false, false, true, false, false, false]
-      defaultPattern.steps[1] = [false, false, false, false, true, false, false, false, false, false, false, false, true, false, false, false]
-      defaultPattern.steps[2] = [false, false, true, false, false, false, true, false, false, false, true, false, false, false, true, false]
+      setTracks(initialTracks)
+      
+      // Set up default pattern for initial tracks
+      const defaultPattern = {
+        steps: initialTracks.map(() => Array(16).fill(false)),
+        tempo: 120,
+        volumes: initialTracks.map(() => 0.8),
+        muted: initialTracks.map(() => false)
+      }
+      
+      // Add some default beats
+      if (defaultPattern.steps.length > 0) {
+        defaultPattern.steps[0] = [true, false, false, false, true, false, false, false, true, false, false, false, true, false, false, false]
+      }
+      if (defaultPattern.steps.length > 1) {
+        defaultPattern.steps[1] = [false, false, false, false, true, false, false, false, false, false, false, false, true, false, false, false]
+      }
+      if (defaultPattern.steps.length > 2) {
+        defaultPattern.steps[2] = [false, false, true, false, false, false, true, false, false, false, true, false, false, false, true, false]
+      }
+      
       setPattern(defaultPattern)
     }
     
     initializeApp()
   }, [])
 
+  // Sync refs with state
   useEffect(() => {
     isPlayingRef.current = isPlaying
     if (!isPlaying) {
-      // Stop Tone.js transport when not playing
       Tone.Transport.stop()
       Tone.Transport.cancel()
       
@@ -71,6 +92,10 @@ function App() {
     patternRef.current = pattern
   }, [pattern])
 
+  useEffect(() => {
+    tracksRef.current = tracks
+  }, [tracks])
+
   // Cleanup on unmount
   useEffect(() => {
     return () => {
@@ -81,6 +106,42 @@ function App() {
       }
     }
   }, [])
+
+  // Add new track
+  const handleAddTrack = async (soundData) => {
+    if (tracks.length >= 40) return
+    
+    // Add sound to DrumSoundsAPI
+    const success = await drumSoundsInstance.addSound(soundData)
+    if (!success) return
+    
+    const newTracks = [...tracks, soundData]
+    setTracks(newTracks)
+    
+    // Extend pattern arrays
+    setPattern(prev => ({
+      ...prev,
+      steps: [...prev.steps, Array(16).fill(false)],
+      volumes: [...prev.volumes, 0.8],
+      muted: [...prev.muted, false]
+    }))
+  }
+
+  // Remove track
+  const handleRemoveTrack = (trackIndex) => {
+    if (tracks.length <= 1) return // Keep at least one track
+    
+    const newTracks = tracks.filter((_, index) => index !== trackIndex)
+    setTracks(newTracks)
+    
+    // Remove from pattern arrays
+    setPattern(prev => ({
+      ...prev,
+      steps: prev.steps.filter((_, index) => index !== trackIndex),
+      volumes: prev.volumes.filter((_, index) => index !== trackIndex),
+      muted: prev.muted.filter((_, index) => index !== trackIndex)
+    }))
+  }
 
   const toggleStep = (row, col) => {
     setPattern(prev => {
@@ -95,21 +156,25 @@ function App() {
   }
 
   const playStep = useCallback((step, time) => {
-    if (!audioContextRef.current || !masterGainRef.current || availableSounds.length === 0) return
+    if (!audioContextRef.current || !masterGainRef.current || tracksRef.current.length === 0) return
     
     const currentPattern = patternRef.current
+    const currentTracks = tracksRef.current
     
-    for (let track = 0; track < 8; track++) {
-      if (currentPattern.steps[track][step] && !currentPattern.muted[track]) {
-        const soundName = availableSounds[track]
-        if (soundName) {
-          const volume = currentPattern.volumes[track]
-          // Use the new scheduled playback method for precise timing across browsers
-          drumSoundsInstance.playSoundScheduled(soundName, volume, time)
+    for (let trackIndex = 0; trackIndex < currentTracks.length; trackIndex++) {
+      if (currentPattern.steps[trackIndex]?.[step] && !currentPattern.muted[trackIndex]) {
+        const track = currentTracks[trackIndex]
+        if (track) {
+          // Generate the sound key for this track
+          const soundKey = drumSoundsInstance.getDrumKey(track.drum_type, track.id)
+          const volume = currentPattern.volumes[trackIndex] || 0.8
+          
+          // Use the scheduled playback method for precise timing
+          drumSoundsInstance.playSoundScheduled(soundKey, volume, time)
         }
       }
     }
-  }, [availableSounds])
+  }, [])
 
   const setupToneSequence = useCallback(() => {
     // Clean up existing sequence
@@ -119,7 +184,7 @@ function App() {
 
     // Create Tone.js sequence that runs every 16th note
     toneSequenceRef.current = new Tone.Sequence((time, step) => {
-      // Schedule audio playback at the exact time (this fixes Safari timing issues)
+      // Schedule audio playback at the exact time
       playStep(step, time)
       
       // Schedule UI updates separately using Tone.Draw for visual feedback
@@ -136,20 +201,14 @@ function App() {
     // Ensure drumSoundsInstance is initialized before playback
     if (!drumSoundsInstance.isInitialized) {
       await drumSoundsInstance.initialize()
-      // Update available sounds if they weren't loaded yet
-      if (availableSounds.length === 0) {
-        const soundNames = getSoundNames()
-        setAvailableSounds(soundNames)
-      }
     }
     
-    // Configure Tone.js for optimal timing after user gesture (required for Safari)
+    // Configure Tone.js for optimal timing after user gesture
     if (Tone.context.state === 'suspended') {
       await Tone.start()
     }
     
     // Configure Tone.js for tighter timing in Safari
-    // Reduce the default lookahead for more precise scheduling
     if (Tone.Transport.lookAhead > 0.05) {
       Tone.Transport.lookAhead = 0.05
     }
@@ -200,7 +259,7 @@ function App() {
   const clearPattern = () => {
     setPattern(prev => ({
       ...prev,
-      steps: Array(8).fill().map(() => Array(16).fill(false))
+      steps: prev.steps.map(() => Array(16).fill(false))
     }))
   }
 
@@ -273,7 +332,11 @@ function App() {
                 onVolumeChange={updateMasterVolume}
                 onToggleMute={toggleMasterMute}
               />
-              <SequencerGrid 
+              <TrackManager
+                tracks={tracks}
+                onAddTrack={handleAddTrack}
+                onRemoveTrack={handleRemoveTrack}
+                maxTracks={40}
                 pattern={pattern.steps}
                 currentStep={isPlaying ? currentStep : -1}
                 onToggleStep={toggleStep}
@@ -286,7 +349,6 @@ function App() {
           </div>
         </div>
       </div>
-      
     </div>
   )
 }
