@@ -221,8 +221,8 @@ input[type='range']::-moz-range-thumb {
 
 .master-volume-control {
   position: absolute;
-  top: -5vh;
-  right: 0.8vw;
+  top: -6vh;
+  right: 2.2vw;
   width: 9vw;
   display: flex;
   flex-direction: column;

@@ -7,7 +7,12 @@
       "Bash(sqlite3:*)",
       "Bash(npm run lint)",
       "Bash(npm test)",
-      "Bash(npm test:*)"
+      "Bash(npm test:*)",
+      "Bash(ls:*)",
+      "Bash(curl:*)",
+      "Bash(kill:*)",
+      "Bash(npm run backend:*)",
+      "Bash(pkill:*)"
     ],
     "deny": []
   }

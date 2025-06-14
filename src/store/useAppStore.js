@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { drumSoundsInstance } from '../utils/audio/DrumSoundsAPI'
+import { saveAppState, loadAppState } from '../utils/localStorage'
 
 const useAppStore = create((set, get) => ({
   // Track management state
@@ -18,11 +19,17 @@ const useAppStore = create((set, get) => ({
   masterVolume: 80,
   masterMuted: false,
 
+  // Utility function to save state to localStorage
+  saveState: () => {
+    const state = get()
+    saveAppState(state)
+  },
+
   // Actions for track management
   setTracks: tracks => set({ tracks }),
 
   addTrack: async soundData => {
-    const { tracks, pattern } = get()
+    const { tracks, pattern, saveState } = get()
     if (tracks.length >= 40) return false
 
     // Add sound to DrumSoundsAPI
@@ -41,11 +48,12 @@ const useAppStore = create((set, get) => ({
       },
     })
 
+    saveState()
     return true
   },
 
   removeTrack: trackIndex => {
-    const { tracks, pattern } = get()
+    const { tracks, pattern, saveState } = get()
     if (tracks.length <= 1) return // Keep at least one track
 
     const trackToRemove = tracks[trackIndex]
@@ -65,13 +73,15 @@ const useAppStore = create((set, get) => ({
         muted: pattern.muted.filter((_, index) => index !== trackIndex),
       },
     })
+
+    saveState()
   },
 
   // Actions for pattern management
   setPattern: pattern => set({ pattern }),
 
   toggleStep: (row, col) => {
-    const { pattern } = get()
+    const { pattern, saveState } = get()
     const newPattern = { ...pattern }
     newPattern.steps = pattern.steps.map((stepRow, rowIndex) =>
       rowIndex === row
@@ -79,36 +89,40 @@ const useAppStore = create((set, get) => ({
         : [...stepRow]
     )
     set({ pattern: newPattern })
+    saveState()
   },
 
   clearPattern: () => {
-    const { pattern } = get()
+    const { pattern, saveState } = get()
     set({
       pattern: {
         ...pattern,
         steps: pattern.steps.map(() => Array(16).fill(false)),
       },
     })
+    saveState()
   },
 
   updateTrackVolume: (track, volume) => {
-    const { pattern } = get()
+    const { pattern, saveState } = get()
     set({
       pattern: {
         ...pattern,
         volumes: pattern.volumes.map((vol, index) => (index === track ? volume / 100 : vol)),
       },
     })
+    saveState()
   },
 
   toggleMute: track => {
-    const { pattern } = get()
+    const { pattern, saveState } = get()
     set({
       pattern: {
         ...pattern,
         muted: pattern.muted.map((muted, index) => (index === track ? !muted : muted)),
       },
     })
+    saveState()
   },
 
   // Actions for playback control
@@ -116,18 +130,23 @@ const useAppStore = create((set, get) => ({
   setCurrentStep: currentStep => set({ currentStep }),
 
   updateTempo: newTempo => {
-    const { pattern } = get()
+    const { pattern, saveState } = get()
     set({
       tempo: newTempo,
       pattern: { ...pattern, tempo: newTempo },
     })
+    saveState()
   },
 
   // Actions for master audio controls
-  updateMasterVolume: volume => set({ masterVolume: volume }),
+  updateMasterVolume: volume => {
+    set({ masterVolume: volume })
+    get().saveState()
+  },
   toggleMasterMute: () => {
-    const { masterMuted } = get()
+    const { masterMuted, saveState } = get()
     set({ masterMuted: !masterMuted })
+    saveState()
   },
 
   // Initialize app with default tracks
@@ -135,7 +154,28 @@ const useAppStore = create((set, get) => ({
     // Initialize drum sounds API early
     await drumSoundsInstance.initialize()
 
-    // Get default sounds and create initial tracks
+    // Try to load saved state first
+    const savedState = loadAppState()
+    
+    if (savedState && savedState.tracks && savedState.tracks.length > 0) {
+      // Restore saved state
+      // Re-add all saved sounds to DrumSoundsAPI
+      for (const track of savedState.tracks) {
+        await drumSoundsInstance.addSound(track)
+      }
+      
+      set({
+        tracks: savedState.tracks,
+        pattern: savedState.pattern,
+        tempo: savedState.tempo || 120,
+        masterVolume: savedState.masterVolume || 80,
+        masterMuted: savedState.masterMuted || false,
+      })
+      
+      return
+    }
+
+    // If no saved state, create default setup
     const defaultSounds = drumSoundsInstance.getAllSounds()
     const initialTracks = defaultSounds.slice(0, 8) // Start with first 8 sounds
 
@@ -213,6 +253,9 @@ const useAppStore = create((set, get) => ({
       tracks: initialTracks,
       pattern: defaultPattern,
     })
+    
+    // Save the initial state
+    get().saveState()
   },
 }))
 

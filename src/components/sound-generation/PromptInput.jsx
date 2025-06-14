@@ -21,7 +21,7 @@ function PromptInput({ value, onChange, disabled = false }) {
           minHeight: '100px',
         }}
       />
-      <style jsx>{`
+      <style>{`
         .char-count {
           float: right;
           font-size: 0.875rem;

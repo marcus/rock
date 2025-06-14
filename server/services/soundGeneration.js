@@ -1,11 +1,15 @@
 import { writeFileSync } from 'fs'
-import { join } from 'path'
+import { join, dirname } from 'path'
+import { fileURLToPath } from 'url'
 import {
   MAX_PROMPT_LENGTH,
   MIN_DURATION_SECONDS,
   MAX_DURATION_SECONDS,
   DEFAULT_DURATION_SECONDS,
 } from '../config/constants.js'
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = dirname(__filename)
 
 export class SoundGenerationService {
   constructor() {
@@ -74,7 +78,7 @@ export class SoundGenerationService {
     // Generate unique filename
     const timestamp = Date.now()
     const filename = `generated_${timestamp}.mp3`
-    const filePath = join(process.cwd(), 'public', 'audio', filename)
+    const filePath = join(__dirname, '..', '..', 'public', 'audio', filename)
 
     // Save the file
     writeFileSync(filePath, Buffer.from(audioBuffer))

@@ -1,8 +1,13 @@
 import express from 'express'
 import cors from 'cors'
+import { join, dirname } from 'path'
+import { fileURLToPath } from 'url'
 import { database } from './db/database.js'
 import { seedDefaultSoundPack } from './seedData.js'
 import { SoundGenerationService } from './services/soundGeneration.js'
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = dirname(__filename)
 
 const app = express()
 const PORT = process.env.PORT || 3001
@@ -10,6 +15,16 @@ const PORT = process.env.PORT || 3001
 // Middleware
 app.use(cors())
 app.use(express.json())
+
+// Serve static audio files with proper MIME types
+const audioPath = join(__dirname, '..', 'public', 'audio')
+app.use('/audio', express.static(audioPath, {
+  setHeaders: (res, path) => {
+    if (path.endsWith('.mp3')) {
+      res.setHeader('Content-Type', 'audio/mpeg')
+    }
+  }
+}))
 
 // Initialize sound generation service
 let soundGenerationService

@@ -35,7 +35,7 @@ function DurationSlider({ value, onChange, disabled = false }) {
         <span>{minDuration}s</span>
         <span>{maxDuration}s</span>
       </div>
-      <style jsx>{`
+      <style>{`
         input[type='range'] {
           -webkit-appearance: none;
           appearance: none;
