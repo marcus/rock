@@ -91,7 +91,7 @@ body {
     margin-bottom: 2vh;
     flex-wrap: wrap;
     justify-content: center;
-    align-items: center;
+    align-items: flex-end;
     flex-shrink: 0;
 }
 
@@ -100,6 +100,8 @@ body {
     flex-direction: column;
     align-items: center;
     gap: 0.5vh;
+    min-height: 8vh;
+    justify-content: flex-end;
 }
 
 .control-label {
@@ -109,16 +111,17 @@ body {
 }
 
 button {
-    padding: 1vh 2vw;
+    padding: 0.8vh 1.5vw;
     font-family: 'Anton', sans-serif;
-    font-size: clamp(1rem, 1.5vw, 1.5rem);
+    font-size: clamp(0.8rem, 1.2vw, 1.2rem);
     text-transform: uppercase;
     background-color: #FFD700;
     color: #000;
-    border: 0.3vw solid #000;
+    border: 0.2vw solid #000;
     cursor: pointer;
     position: relative;
     transition: all 0.1s;
+    min-height: 3.5vh;
 }
 
 button:hover {
@@ -137,31 +140,32 @@ button.active {
 }
 
 input[type="range"] {
-    width: 12vw;
-    height: 0.6vh;
+    width: 10vw;
+    height: 0.8vh;
     background: #FFD700;
     outline: none;
-    border: 0.2vw solid #000;
+    border: 0.15vw solid #000;
     -webkit-appearance: none;
 }
 
 input[type="range"]::-webkit-slider-thumb {
     -webkit-appearance: none;
-    width: 2vw;
-    height: 2vw;
+    width: 1.5vw;
+    height: 1.5vw;
     background: #0000FF;
-    border: 0.2vw solid #000;
+    border: 0.15vw solid #000;
     cursor: pointer;
     border-radius: 50%;
 }
 
 input[type="range"]::-moz-range-thumb {
-    width: 2vw;
-    height: 2vw;
+    width: 1.5vw;
+    height: 1.5vw;
     background: #0000FF;
-    border: 0.2vw solid #000;
+    border: 0.15vw solid #000;
     cursor: pointer;
     border-radius: 50%;
+    border: none;
 }
 
 .tempo-display {

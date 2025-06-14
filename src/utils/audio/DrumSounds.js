@@ -116,25 +116,44 @@ export class DrumSounds {
       }, 500)
     })
 
-    // Cowbell - using metallic oscillators
+    // Cowbell - deep and resonant metallic sound
     this.instruments.set('cowbell', () => {
       const cowbell = new Tone.Synth({
-        oscillator: { type: 'square' },
-        envelope: { attack: 0.001, decay: 0.2, sustain: 0 }
+        oscillator: { type: 'triangle' },
+        envelope: { attack: 0.001, decay: 0.4, sustain: 0.1, release: 0.3 }
       }).connect(audioEngine.getDestination())
       
       const cowbell2 = new Tone.Synth({
-        oscillator: { type: 'square' },
-        envelope: { attack: 0.001, decay: 0.2, sustain: 0 }
+        oscillator: { type: 'sawtooth' },
+        envelope: { attack: 0.001, decay: 0.3, sustain: 0.05, release: 0.2 }
       }).connect(audioEngine.getDestination())
       
-      cowbell.triggerAttackRelease('G5', '8n')
-      cowbell2.triggerAttackRelease('G6', '8n')
+      // Add resonant filter for metallic character
+      const filter = new Tone.Filter({
+        frequency: 800,
+        type: 'bandpass',
+        Q: 8
+      }).connect(audioEngine.getDestination())
+      
+      const filter2 = new Tone.Filter({
+        frequency: 1200,
+        type: 'bandpass',
+        Q: 6
+      }).connect(audioEngine.getDestination())
+      
+      cowbell.connect(filter)
+      cowbell2.connect(filter2)
+      
+      // Lower, deeper frequencies for more resonance
+      cowbell.triggerAttackRelease('D4', '4n')
+      cowbell2.triggerAttackRelease('A4', '4n')
       
       setTimeout(() => {
         cowbell.dispose()
         cowbell2.dispose()
-      }, 1000)
+        filter.dispose()
+        filter2.dispose()
+      }, 1500)
     })
 
     // Tom - using MembraneSynth
