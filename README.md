@@ -2,6 +2,8 @@
 
 A browser-based drum sequencer with AI-powered sound generation.
 
+![Roy's Rock Machine Screenshot](public/img/screenshot.png)
+
 ## Features
 
 - **Dynamic Drum Sequencer**: Variable-length patterns with real-time editing
