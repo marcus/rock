@@ -94,7 +94,7 @@ function App() {
     })
   }
 
-  const playStep = useCallback((step) => {
+  const playStep = useCallback((step, time) => {
     if (!audioContextRef.current || !masterGainRef.current || availableSounds.length === 0) return
     
     const currentPattern = patternRef.current
@@ -103,13 +103,9 @@ function App() {
       if (currentPattern.steps[track][step] && !currentPattern.muted[track]) {
         const soundName = availableSounds[track]
         if (soundName) {
-          // Create track gain exactly like the original working code
-          const trackGain = audioContextRef.current.createGain()
-          trackGain.gain.value = currentPattern.volumes[track]
-          trackGain.connect(masterGainRef.current)
-          
-          // Use the sync method that maintains exact timing compatibility
-          drumSoundsInstance.playSoundSync(soundName, audioContextRef.current, trackGain)
+          const volume = currentPattern.volumes[track]
+          // Use the new scheduled playback method for precise timing across browsers
+          drumSoundsInstance.playSoundScheduled(soundName, volume, time)
         }
       }
     }
@@ -123,9 +119,11 @@ function App() {
 
     // Create Tone.js sequence that runs every 16th note
     toneSequenceRef.current = new Tone.Sequence((time, step) => {
-      // Schedule the audio to play at the exact time
+      // Schedule audio playback at the exact time (this fixes Safari timing issues)
+      playStep(step, time)
+      
+      // Schedule UI updates separately using Tone.Draw for visual feedback
       Tone.Draw.schedule(() => {
-        playStep(step)
         currentStepRef.current = step
         setCurrentStep(step)
       }, time)

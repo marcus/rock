@@ -432,6 +432,185 @@ export class DrumSoundsAPI {
       }
     }
   }
+
+  // New method for scheduled playback with precise timing - fixes Safari timing issues
+  playSoundScheduled(soundName, volume, time) {
+    if (!this.isInitialized || !this.soundsLoaded) {
+      console.warn(`Sound system not ready for ${soundName}`)
+      return
+    }
+
+    // Find the sound data
+    const soundData = this.soundsData.find(sound => 
+      this.getDrumKey(sound.drum_type) === soundName
+    )
+    
+    if (!soundData) {
+      console.warn(`Sound ${soundName} not found`)
+      return
+    }
+
+    // Check if we should use a sample or synthesis
+    if (soundData.type === 'sample' && soundData.file_path && sampleLoader.hasSample(soundName)) {
+      // Play sample with scheduled timing
+      this.playSampleScheduled(soundName, volume, time)
+    } else {
+      // Play synthesized sound with scheduled timing
+      this.createSynthesisInstrumentScheduled(soundName, volume, time)
+    }
+  }
+
+  playSampleScheduled(soundName, volume, time) {
+    const sample = sampleLoader.getSample(soundName)
+    if (!sample) {
+      console.warn(`Sample ${soundName} not loaded, falling back to synthesis`)
+      this.createSynthesisInstrumentScheduled(soundName, volume, time)
+      return
+    }
+
+    // Create a new player instance using Tone.js destination
+    const player = new Tone.Player({
+      url: sample.buffer,
+      volume: Tone.gainToDb(volume)
+    }).toDestination()
+
+    // Schedule playback at the exact time provided by Tone.js
+    player.start(time)
+    
+    // Clean up after playback
+    setTimeout(() => {
+      player.dispose()
+    }, 3000)
+  }
+
+  createSynthesisInstrumentScheduled(soundName, volume, time) {
+    const soundData = this.soundsData.find(sound => 
+      this.getDrumKey(sound.drum_type) === soundName
+    )
+    
+    if (!soundData || !soundData.synthesis_params) {
+      console.warn(`No synthesis params for ${soundName}`)
+      return
+    }
+
+    try {
+      const synthParams = JSON.parse(soundData.synthesis_params)
+      
+      if (synthParams.synthType === 'MembraneSynth') {
+        const synth = new Tone.MembraneSynth(synthParams.config).toDestination()
+        synth.volume.value = Tone.gainToDb(volume)
+        // Schedule the attack at the exact time
+        synth.triggerAttackRelease(synthParams.note, synthParams.duration, time)
+        setTimeout(() => synth.dispose(), synthParams.cleanup_delay)
+      }
+      else if (synthParams.synthType === 'NoiseSynth') {
+        const synth = new Tone.NoiseSynth(synthParams.config).toDestination()
+        synth.volume.value = Tone.gainToDb(volume)
+        
+        if (synthParams.filter) {
+          // Fix invalid Q parameter - Q should be positive
+          const filterQ = synthParams.filter.Q && synthParams.filter.Q > 0 ? synthParams.filter.Q : 1
+          
+          // Fix invalid rolloff parameter - must be -12, -24, -48, or -96
+          let rolloff = synthParams.filter.rolloff || -12
+          if (![-12, -24, -48, -96].includes(rolloff)) {
+            rolloff = -12
+          }
+          
+          const filter = new Tone.Filter({
+            frequency: synthParams.filter.frequency,
+            type: synthParams.filter.type,
+            Q: filterQ,
+            rolloff: rolloff
+          }).toDestination()
+          synth.connect(filter)
+          
+          // Schedule the attack at the exact time
+          synth.triggerAttackRelease(synthParams.duration, time)
+          
+          setTimeout(() => {
+            synth.dispose()
+            filter.dispose()
+          }, synthParams.cleanup_delay)
+        } else {
+          if (synthParams.multiple_hits) {
+            // For clap - multiple hits, all scheduled relative to the base time
+            synthParams.multiple_hits.forEach(delay => {
+              synth.triggerAttackRelease(synthParams.duration, time + delay)
+            })
+          } else {
+            // Schedule the attack at the exact time
+            synth.triggerAttackRelease(synthParams.duration, time)
+          }
+          
+          setTimeout(() => synth.dispose(), synthParams.cleanup_delay)  
+        }
+      }
+      else if (synthParams.synthType === 'Dual') {
+        // For cowbell - dual synth setup
+        const synth1 = new Tone.Synth(synthParams.synth1.config).toDestination()
+        const synth2 = new Tone.Synth(synthParams.synth2.config).toDestination()
+        
+        synth1.volume.value = Tone.gainToDb(volume)
+        synth2.volume.value = Tone.gainToDb(volume)
+        
+        // Fix Q parameters for filters
+        const filter1Q = synthParams.synth1.filter.Q && synthParams.synth1.filter.Q > 0 ? synthParams.synth1.filter.Q : 1
+        const filter2Q = synthParams.synth2.filter.Q && synthParams.synth2.filter.Q > 0 ? synthParams.synth2.filter.Q : 1
+        
+        // Fix rolloff parameters
+        let filter1Rolloff = synthParams.synth1.filter.rolloff || -12
+        if (![-12, -24, -48, -96].includes(filter1Rolloff)) {
+          filter1Rolloff = -12
+        }
+        
+        let filter2Rolloff = synthParams.synth2.filter.rolloff || -12
+        if (![-12, -24, -48, -96].includes(filter2Rolloff)) {
+          filter2Rolloff = -12
+        }
+        
+        const filter1 = new Tone.Filter({
+          frequency: synthParams.synth1.filter.frequency,
+          type: synthParams.synth1.filter.type,
+          Q: filter1Q,
+          rolloff: filter1Rolloff
+        }).toDestination()
+        
+        const filter2 = new Tone.Filter({
+          frequency: synthParams.synth2.filter.frequency,
+          type: synthParams.synth2.filter.type,
+          Q: filter2Q,
+          rolloff: filter2Rolloff
+        }).toDestination()
+        
+        synth1.connect(filter1)
+        synth2.connect(filter2)
+        
+        // Schedule both synths at the exact time
+        synth1.triggerAttackRelease(synthParams.synth1.note, synthParams.duration, time)
+        synth2.triggerAttackRelease(synthParams.synth2.note, synthParams.duration, time)
+        
+        setTimeout(() => {
+          synth1.dispose()
+          synth2.dispose()
+          filter1.dispose()
+          filter2.dispose()
+        }, synthParams.cleanup_delay)
+      }
+    } catch (error) {
+      console.error(`Error creating synthesis instrument for ${soundName}:`, error)
+      
+      // Try to create a fallback simple synth with scheduled timing
+      try {
+        const fallbackSynth = new Tone.Synth().toDestination()
+        fallbackSynth.volume.value = Tone.gainToDb(volume)
+        fallbackSynth.triggerAttackRelease('C4', '8n', time)
+        setTimeout(() => fallbackSynth.dispose(), 1000)
+      } catch (fallbackError) {
+        console.error('Even fallback synth failed:', fallbackError)
+      }
+    }
+  }
 }
 
 export const drumSoundsInstance = new DrumSoundsAPI()
