@@ -136,6 +136,18 @@ const useAppStore = create((set, get) => ({
     saveState()
   },
 
+  updateTrackSettingsRealTime: (trackIndex, settings) => {
+    const { tracks } = get()
+    // Update tracks without saving to localStorage (temporary for real-time preview)
+    const newTracks = tracks.map((track, index) =>
+      index === trackIndex
+        ? { ...track, settings }
+        : track
+    )
+    set({ tracks: newTracks })
+    // Don't call saveState() - these are temporary changes
+  },
+
   // Actions for playback control
   setIsPlaying: isPlaying => set({ isPlaying }),
   setCurrentStep: currentStep => set({ currentStep }),

@@ -28,6 +28,7 @@ function App() {
     updateTrackVolume,
     toggleMute,
     updateTrackSettings,
+    updateTrackSettingsRealTime,
     setIsPlaying,
     setCurrentStep,
     initializeApp,
@@ -263,6 +264,7 @@ function App() {
                 onVolumeChange={updateTrackVolume}
                 onToggleMute={toggleMute}
                 onUpdateTrackSettings={updateTrackSettings}
+                onRealTimeUpdateTrackSettings={updateTrackSettingsRealTime}
               />
             </div>
           </div>

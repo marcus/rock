@@ -1,7 +1,18 @@
 import { useState, useEffect } from 'react'
 import './TrackSettingsModal.css'
 
-function TrackSettingsModal({ trackId, trackName, trackSettings, onSave, onClose }) {
+function TrackSettingsModal({ trackId, trackName, trackSettings, onSave, onClose, onRealTimeUpdate }) {
+  // Store original settings for cancel functionality
+  const [originalSettings] = useState(() => ({
+    gain_db: 0,
+    pitch_semitones: 0,
+    filter: {
+      cutoff_hz: 20000,
+      resonance_q: 0.7,
+    },
+    ...trackSettings,
+  }))
+
   const [settings, setSettings] = useState(() => ({
     gain_db: 0,
     pitch_semitones: 0,
@@ -15,7 +26,7 @@ function TrackSettingsModal({ trackId, trackName, trackSettings, onSave, onClose
   useEffect(() => {
     // Only update if trackSettings has meaningful values and is different from current
     if (trackSettings && Object.keys(trackSettings).length > 0) {
-      setSettings({
+      const newSettings = {
         gain_db: 0,
         pitch_semitones: 0,
         filter: {
@@ -23,7 +34,8 @@ function TrackSettingsModal({ trackId, trackName, trackSettings, onSave, onClose
           resonance_q: 0.7,
         },
         ...trackSettings,
-      })
+      }
+      setSettings(newSettings)
     }
   }, [trackId]) // Only reset when trackId changes (different track)
 
@@ -32,58 +44,79 @@ function TrackSettingsModal({ trackId, trackName, trackSettings, onSave, onClose
     onClose()
   }
 
+  const handleCancel = () => {
+    // Revert to original settings
+    if (onRealTimeUpdate) {
+      onRealTimeUpdate(originalSettings)
+    }
+    onClose()
+  }
+
+  const updateSettingsAndApply = (newSettings) => {
+    setSettings(newSettings)
+    // Apply changes in real-time if callback provided
+    if (onRealTimeUpdate) {
+      onRealTimeUpdate(newSettings)
+    }
+  }
+
   const handleGainChange = value => {
-    setSettings(prev => ({
-      ...prev,
+    const newSettings = {
+      ...settings,
       gain_db: parseFloat(value),
-    }))
+    }
+    updateSettingsAndApply(newSettings)
   }
 
   const handlePitchChange = value => {
-    setSettings(prev => ({
-      ...prev,
+    const newSettings = {
+      ...settings,
       pitch_semitones: parseFloat(value),
-    }))
+    }
+    updateSettingsAndApply(newSettings)
   }
 
   const handleCutoffChange = value => {
-    setSettings(prev => ({
-      ...prev,
+    const newSettings = {
+      ...settings,
       filter: {
-        ...prev.filter,
+        ...settings.filter,
         cutoff_hz: parseFloat(value),
       },
-    }))
+    }
+    updateSettingsAndApply(newSettings)
   }
 
   const handleResonanceChange = value => {
-    setSettings(prev => ({
-      ...prev,
+    const newSettings = {
+      ...settings,
       filter: {
-        ...prev.filter,
+        ...settings.filter,
         resonance_q: parseFloat(value),
       },
-    }))
+    }
+    updateSettingsAndApply(newSettings)
   }
 
   const handleReset = () => {
-    setSettings({
+    const resetSettings = {
       gain_db: 0,
       pitch_semitones: 0,
       filter: {
         cutoff_hz: 20000,
         resonance_q: 0.7,
       },
-    })
+    }
+    updateSettingsAndApply(resetSettings)
   }
 
   return (
-    <div className='modal-overlay' onClick={onClose}>
+    <div className='modal-overlay' onClick={handleCancel}>
       <div className='modal-content' onClick={e => e.stopPropagation()}>
         <div className='modal-header'>
           <h2>Track Settings</h2>
           <h3>{trackName}</h3>
-          <button className='close-button' onClick={onClose}>
+          <button className='close-button' onClick={handleCancel}>
             ×
           </button>
         </div>
@@ -179,7 +212,7 @@ function TrackSettingsModal({ trackId, trackName, trackSettings, onSave, onClose
             Reset
           </button>
           <div className='action-buttons'>
-            <button className='cancel-button' onClick={onClose}>
+            <button className='cancel-button' onClick={handleCancel}>
               Cancel
             </button>
             <button className='save-button' onClick={handleSave}>

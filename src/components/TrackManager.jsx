@@ -16,6 +16,7 @@ function TrackManager({
   onVolumeChange,
   onToggleMute,
   onUpdateTrackSettings,
+  onRealTimeUpdateTrackSettings,
 }) {
   const [showSoundSelector, setShowSoundSelector] = useState(false)
   const [activeTrackIndex, setActiveTrackIndex] = useState(null)
@@ -29,6 +30,12 @@ function TrackManager({
   const handleTrackSettingsSave = settings => {
     if (activeTrackIndex !== null && onUpdateTrackSettings) {
       onUpdateTrackSettings(activeTrackIndex, settings)
+    }
+  }
+
+  const handleRealTimeUpdate = settings => {
+    if (activeTrackIndex !== null && onRealTimeUpdateTrackSettings) {
+      onRealTimeUpdateTrackSettings(activeTrackIndex, settings)
     }
   }
 
@@ -119,6 +126,7 @@ function TrackManager({
           trackSettings={tracks[activeTrackIndex]?.settings || {}}
           onSave={handleTrackSettingsSave}
           onClose={() => setActiveTrackIndex(null)}
+          onRealTimeUpdate={handleRealTimeUpdate}
         />
       )}
     </div>
