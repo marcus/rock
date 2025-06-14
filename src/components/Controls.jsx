@@ -3,7 +3,7 @@ function Controls({ isPlaying, tempo, onTogglePlayback, onTempoChange, onClear }
     <div className='controls'>
       <div className='control-group'>
         <button className={`play-stop-btn ${isPlaying ? 'active' : ''}`} onClick={onTogglePlayback}>
-          {isPlaying ? '■' : '▶'}
+          {isPlaying ? 'STOP' : 'PLAY'}
         </button>
       </div>
 

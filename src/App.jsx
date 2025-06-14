@@ -3,6 +3,7 @@ import './App.css'
 import TrackManager from './components/TrackManager'
 import Controls from './components/Controls'
 import MasterVolumeControl from './components/MasterVolumeControl'
+import OrientationPrompt from './components/OrientationPrompt'
 import { initAudio, setMasterMute } from './utils/audioUtils'
 import { drumSoundsInstance } from './utils/audio/DrumSoundsAPI'
 import useAppStore from './store/useAppStore'
@@ -227,6 +228,7 @@ function App() {
 
   return (
     <div className='App'>
+      <OrientationPrompt />
       <div className='halftone-bg'></div>
       <div className='sequencer-container'>
         <div className='title'>

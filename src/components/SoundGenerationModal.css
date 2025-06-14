@@ -159,8 +159,8 @@
   text-transform: uppercase;
 }
 
-/* Responsive design */
-@media (max-width: 640px) {
+/* Mobile Portrait */
+@media (max-width: 640px) and (orientation: portrait) {
   .sound-generation-modal {
     width: 95%;
     margin: 1rem;
@@ -194,5 +194,69 @@
 
   .sound-details {
     border: 0.1vw solid #000;
+  }
+}
+
+/* Mobile Landscape */
+@media (max-width: 1024px) and (orientation: landscape) {
+  .sound-generation-modal {
+    width: 90%;
+    max-width: 600px;
+    max-height: 85vh;
+    border: 0.2vw solid #000;
+    box-shadow: 0.4vw 0.4vw 0 #000;
+  }
+
+  .sound-generation-header {
+    padding: 1rem;
+    border-bottom: 0.2vw solid #000;
+  }
+
+  .sound-generation-header h2 {
+    font-size: 1.2rem;
+  }
+
+  .sound-generation-form,
+  .sound-generation-preview {
+    padding: 1rem;
+  }
+
+  .form-group {
+    margin-bottom: 1rem;
+  }
+
+  .form-group label {
+    font-size: clamp(0.6rem, 1.2vw, 0.9rem);
+  }
+
+  .form-group input,
+  .form-group select,
+  .form-group textarea {
+    padding: 0.5rem;
+    font-size: 0.9rem;
+    border: 0.1vw solid #000;
+  }
+
+  .close-button {
+    width: 1.8rem;
+    height: 1.8rem;
+    font-size: 1.2rem;
+    border: 0.1vw solid #000;
+  }
+
+  .sound-generation-error {
+    margin: 0.8rem 1rem;
+    padding: 0.8rem;
+    border: 0.1vw solid #000;
+  }
+
+  .sound-details {
+    padding: 0.8rem;
+    border: 0.1vw solid #000;
+    margin-bottom: 1rem;
+  }
+
+  .sound-details p {
+    margin: 0.3rem 0;
   }
 }

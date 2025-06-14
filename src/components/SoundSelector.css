@@ -209,8 +209,8 @@
   text-transform: uppercase;
 }
 
-/* Responsive adjustments */
-@media (max-width: 768px) {
+/* Mobile Portrait */
+@media (max-width: 768px) and (orientation: portrait) {
   .sound-selector-modal {
     width: 95%;
     max-height: 85vh;
@@ -247,6 +247,68 @@
     align-items: flex-start;
     gap: 1vh;
   }
+}
+
+/* Mobile Landscape */
+@media (max-width: 1024px) and (orientation: landscape) {
+  .sound-selector-modal {
+    width: 90%;
+    max-width: 700px;
+    max-height: 85vh;
+    border: 0.2vw solid #000;
+    box-shadow: 0.4vw 0.4vw 0 #000;
+  }
+
+  .sound-selector-header {
+    padding: 1.5vh 2vw;
+  }
+
+  .sound-selector-header h2 {
+    font-size: clamp(1rem, 2vw, 1.3rem);
+  }
+
+  .close-button {
+    width: 3vw;
+    height: 3vh;
+    min-width: 30px;
+    min-height: 25px;
+    font-size: clamp(0.8rem, 1.5vw, 1.2rem);
+    border: 0.1vw solid #000;
+  }
+
+  .sound-selector-actions {
+    padding: 1vh 2vw;
+  }
+
+  .create-sound-button {
+    padding: 0.8vh 1.5vw;
+    font-size: clamp(0.7rem, 1.3vw, 1rem);
+    border: 0.1vw solid #000;
+  }
+
+  .sound-selector-filters {
+    padding: 1vh 2vw;
+    gap: 0.5vh;
+  }
+
+  .sound-selector-body {
+    padding: 1vh 2vw;
+  }
+
+  .sound-item {
+    padding: 1vh 1.5vw;
+    border: 0.1vw solid #000;
+  }
+
+  .sound-name {
+    font-size: clamp(0.7rem, 1.4vw, 1rem);
+  }
+
+  .sound-meta {
+    font-size: clamp(0.5rem, 1vw, 0.7rem);
+    gap: 0.3vw;
+  }
+}
 
   .filter-group {
     width: 100%;

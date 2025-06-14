@@ -50,11 +50,42 @@ body::before {
   position: relative;
 }
 
-@media (max-width: 768px) {
+/* Mobile Portrait */
+@media (max-width: 768px) and (orientation: portrait) {
   .sequencer-container {
     width: 98vw;
     height: 95vh;
     padding: 1.5vw;
+  }
+}
+
+/* Mobile Landscape - Optimized for drum sequencer */
+@media (max-width: 1024px) and (orientation: landscape) {
+  body {
+    padding: 0.2vh;
+    min-height: 100vh;
+  }
+
+  .sequencer-container {
+    width: 99.5vw;
+    height: 99vh;
+    padding: 0.2vh 0.3vw;
+    gap: 0.3vh;
+    border: 0.1vw solid #000;
+    box-shadow: 0.2vw 0.2vw 0 #000;
+  }
+
+  .title {
+    top: 0.1vh;
+    left: 0.2vw;
+  }
+
+  .title h1 {
+    font-size: 8px;
+  }
+
+  .title-shadow {
+    font-size: 8px;
   }
 }
 
@@ -117,6 +148,54 @@ body::before {
   align-items: flex-end;
   flex-shrink: 0;
   margin-left: 10vw;
+}
+
+/* Mobile Landscape Controls */
+@media (max-width: 1024px) and (orientation: landscape) {
+  .controls {
+    gap: 0.8vw;
+    margin-left: 1vw;
+    margin-bottom: 0.5vh;
+  }
+
+  .control-group {
+    min-height: 3vh;
+  }
+
+  .control-label {
+    font-size: clamp(0.6rem, 1.2vw, 0.9rem);
+  }
+
+  button {
+    padding: 0.4vh 0.8vw;
+    font-size: clamp(0.6rem, 1.2vw, 0.9rem);
+    min-height: 2.5vh;
+    border: 0.1vw solid #000;
+  }
+
+  .play-stop-btn {
+    font-size: clamp(0.7rem, 1.3vw, 1rem);
+    padding: 0.4vh 0.8vw;
+    min-width: 4vw;
+  }
+
+  .tempo-control {
+    gap: 0.3vw;
+    margin-bottom: 0.5vh;
+  }
+
+  .tempo-slider {
+    width: 8vw;
+  }
+
+  .tempo-label {
+    font-size: clamp(0.6rem, 1.2vw, 0.9rem);
+  }
+
+  .tempo-value {
+    font-size: clamp(0.6rem, 1.2vw, 0.9rem);
+    min-width: 5vw;
+  }
 }
 
 .control-group {
@@ -250,6 +329,43 @@ input[type='range']::-moz-range-thumb {
   white-space: nowrap;
 }
 
+/* Mobile Landscape Master Volume */
+@media (max-width: 1024px) and (orientation: landscape) {
+  .master-volume-control {
+    top: -3vh;
+    right: 0.5vw;
+    width: 12vw;
+  }
+
+  .master-volume-label {
+    font-size: clamp(0.5rem, 1vw, 0.8rem);
+  }
+
+  .master-volume-slider {
+    width: 10vw;
+    height: 0.4vh;
+    border: 0.1vw solid #000;
+  }
+
+  .master-mute-button {
+    padding: 0.2vh 0.5vw;
+    font-size: clamp(0.5rem, 1.2vw, 0.8rem);
+    border: 0.1vw solid #000;
+  }
+
+  .master-volume-slider::-webkit-slider-thumb {
+    width: 1vw;
+    height: 1vw;
+    border: 0.1vw solid #000;
+  }
+
+  .master-volume-slider::-moz-range-thumb {
+    width: 1vw;
+    height: 1vw;
+    border: 0.1vw solid #000;
+  }
+}
+
 .master-volume-label {
   font-size: clamp(0.6rem, 0.9vw, 0.9rem);
   text-transform: uppercase;
@@ -346,7 +462,8 @@ input[type='range']::-moz-range-thumb {
   flex-shrink: 0;
 }
 
-@media (max-width: 768px) {
+/* Mobile Portrait Track Labels */
+@media (max-width: 768px) and (orientation: portrait) {
   .track-labels {
     flex-direction: row;
     gap: 0.5vw;
@@ -372,12 +489,22 @@ input[type='range']::-moz-range-thumb {
   flex-shrink: 0;
 }
 
-@media (max-width: 768px) {
+/* Mobile Portrait Track Label */
+@media (max-width: 768px) and (orientation: portrait) {
   .sequencer-row .track-label {
     width: auto;
     padding: 0 1vw;
     min-width: 8vw;
     font-size: clamp(0.5rem, 2vw, 0.8rem);
+  }
+}
+
+/* Mobile Landscape Track Label */
+@media (max-width: 1024px) and (orientation: landscape) {
+  .sequencer-row .track-label {
+    width: 12vw;
+    font-size: clamp(0.5rem, 1.3vw, 0.8rem);
+    border: 0.1vw solid #000;
   }
 }
 
@@ -389,6 +516,15 @@ input[type='range']::-moz-range-thumb {
   padding: 0.8vw;
   background-color: #fff;
   position: relative;
+}
+
+/* Mobile Landscape Sequencer Grid */
+@media (max-width: 1024px) and (orientation: landscape) {
+  .sequencer-grid {
+    border: 0.2vw solid #000;
+    padding: 0.3vw;
+    gap: 0.2vh;
+  }
 }
 
 .sequencer-grid::before {
@@ -408,10 +544,19 @@ input[type='range']::-moz-range-thumb {
   height: 4vh;
 }
 
-@media (max-width: 768px) {
+/* Mobile Portrait Sequencer Row */
+@media (max-width: 768px) and (orientation: portrait) {
   .sequencer-row {
     height: 3vh;
     gap: 0.5vw;
+  }
+}
+
+/* Mobile Landscape Sequencer Row */
+@media (max-width: 1024px) and (orientation: landscape) {
+  .sequencer-row {
+    height: 4.5vh;
+    gap: 0.3vw;
   }
 }
 
@@ -422,9 +567,20 @@ input[type='range']::-moz-range-thumb {
   justify-content: center;
 }
 
-@media (max-width: 768px) {
+/* Mobile Portrait Step Row */
+@media (max-width: 768px) and (orientation: portrait) {
   .step-row {
     gap: 0.2vw;
+  }
+}
+
+/* Mobile Landscape Step Row */
+@media (max-width: 1024px) and (orientation: landscape) {
+  .step-row {
+    gap: 0.15vw;
+    flex: 1;
+    justify-content: center;
+    align-items: center;
   }
 }
 
@@ -439,10 +595,26 @@ input[type='range']::-moz-range-thumb {
   flex-shrink: 0;
 }
 
-@media (max-width: 768px) {
+/* Mobile Portrait Step Button */
+@media (max-width: 768px) and (orientation: portrait) {
   .step-button {
     width: 5vw;
     height: 2.5vh;
+  }
+}
+
+/* Mobile Landscape Step Button - Optimized for 16 steps */
+@media (max-width: 1024px) and (orientation: landscape) {
+  .step-button {
+    width: 4.8vw;
+    height: 3.5vh;
+    border: 0.1vw solid #000;
+    max-width: 45px;
+    min-width: 35px;
+  }
+
+  .step-button:nth-child(4n + 1) {
+    border-left: 0.2vw solid #000;
   }
 }
 
@@ -486,7 +658,8 @@ input[type='range']::-moz-range-thumb {
   flex-shrink: 0;
 }
 
-@media (max-width: 768px) {
+/* Mobile Portrait Volume Controls */
+@media (max-width: 768px) and (orientation: portrait) {
   .volume-controls {
     width: 100%;
     flex-direction: row;
@@ -504,10 +677,37 @@ input[type='range']::-moz-range-thumb {
   flex-shrink: 0;
 }
 
-@media (max-width: 768px) {
+/* Mobile Portrait Volume Slider */
+@media (max-width: 768px) and (orientation: portrait) {
   .sequencer-row .volume-slider {
     gap: 0.3vw;
     padding: 0 0.3vw;
+  }
+}
+
+/* Mobile Landscape Volume Slider */
+@media (max-width: 1024px) and (orientation: landscape) {
+  .sequencer-row .volume-slider {
+    gap: 0.2vw;
+    padding: 0 0.2vw;
+  }
+
+  .sequencer-row .volume-slider input {
+    width: 10vw;
+    height: 0.4vh;
+    border: 0.1vw solid #000;
+  }
+
+  .sequencer-row .volume-slider input::-webkit-slider-thumb {
+    width: 1vw;
+    height: 1vw;
+    border: 0.1vw solid #000;
+  }
+
+  .sequencer-row .volume-slider input::-moz-range-thumb {
+    width: 1vw;
+    height: 1vw;
+    border: 0.1vw solid #000;
   }
 }
 
@@ -516,7 +716,8 @@ input[type='range']::-moz-range-thumb {
   flex-shrink: 0;
 }
 
-@media (max-width: 768px) {
+/* Mobile Portrait Volume Slider Input */
+@media (max-width: 768px) and (orientation: portrait) {
   .sequencer-row .volume-slider input {
     width: 6vw;
   }
@@ -530,10 +731,20 @@ input[type='range']::-moz-range-thumb {
   flex-shrink: 0;
 }
 
-@media (max-width: 768px) {
+/* Mobile Portrait Mute Button */
+@media (max-width: 768px) and (orientation: portrait) {
   .mute-button {
     padding: 0.2vh 0.5vw;
     font-size: clamp(0.5rem, 1.5vw, 0.8rem);
+  }
+}
+
+/* Mobile Landscape Mute Button */
+@media (max-width: 1024px) and (orientation: landscape) {
+  .mute-button {
+    padding: 0.2vh 0.4vw;
+    font-size: clamp(0.5rem, 1.2vw, 0.7rem);
+    border: 0.1vw solid #000;
   }
 }
 
