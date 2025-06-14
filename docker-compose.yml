@@ -8,9 +8,8 @@ services:
     restart: unless-stopped
     ports:
       - "5060:5060"
-    environment:
-      - NODE_ENV=production
-      - PORT=5060
+    env_file:
+      - .env
     volumes:
       - ./db:/app/db
       - ./public/audio:/app/public/audio
