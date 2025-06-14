@@ -143,6 +143,17 @@ function App() {
       }
     }
     
+    // Configure Tone.js for optimal timing after user gesture (required for Safari)
+    if (Tone.context.state === 'suspended') {
+      await Tone.start()
+    }
+    
+    // Configure Tone.js for tighter timing in Safari
+    // Reduce the default lookahead for more precise scheduling
+    if (Tone.Transport.lookAhead > 0.05) {
+      Tone.Transport.lookAhead = 0.05
+    }
+    
     if (!audioContextRef.current) {
       const { audioContext, masterGain } = await initAudio()
       audioContextRef.current = audioContext

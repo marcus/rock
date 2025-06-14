@@ -8,6 +8,8 @@ export class DrumSoundsAPI {
     this.soundsData = []
     this.soundsLoaded = false
     this.isInitialized = false
+    // Persistent Tone.Player instances for each loaded sample to avoid Safari scheduling latency
+    this.samplePlayers = new Map()
   }
 
   async initialize() {
@@ -55,6 +57,19 @@ export class DrumSoundsAPI {
       })
       
       await sampleLoader.loadSamples(samplePaths)
+
+      // After samples are loaded, create persistent Tone.Player instances for each sample.
+      sampleSounds.forEach(sound => {
+        const drumKey = this.getDrumKey(sound.drum_type)
+        if (!this.samplePlayers.has(drumKey) && sampleLoader.hasSample(drumKey)) {
+          const player = new Tone.Player({
+            url: sampleLoader.getSample(drumKey).buffer,
+            retrigger: true, // allow retriggering while the sample is still playing
+            onstop: () => {},
+          }).connect(audioEngine.getDestination())
+          this.samplePlayers.set(drumKey, player)
+        }
+      })
       console.log('Sample sounds loaded successfully')
     } catch (error) {
       console.warn('Some sample sounds failed to load, using synthesis fallback:', error)
@@ -212,26 +227,20 @@ export class DrumSoundsAPI {
   }
 
   playSample(soundName, options = {}) {
-    const sample = sampleLoader.getSample(soundName)
-    if (!sample) {
-      console.warn(`Sample ${soundName} not loaded, falling back to synthesis`)
+    const player = this.samplePlayers.get(soundName)
+    if (!player) {
+      console.warn(`Sample player for ${soundName} not found, falling back to synthesis`)
       const instrument = this.instruments.get(soundName)
       if (instrument) instrument()
       return
     }
 
-    // Create a new player instance for this playback to avoid conflicts
-    const player = new Tone.Player({
-      url: sample.buffer,
-      volume: options.volume !== undefined ? Tone.gainToDb(options.volume) : 0
-    }).connect(audioEngine.getDestination())
+    // Apply volume for this hit only
+    if (options.volume !== undefined) {
+      player.volume.setValueAtTime(Tone.gainToDb(options.volume), Tone.now())
+    }
 
     player.start()
-    
-    // Clean up after playback
-    setTimeout(() => {
-      player.dispose()
-    }, 3000)
   }
 
   getSoundNames() {
@@ -246,6 +255,10 @@ export class DrumSoundsAPI {
   dispose() {
     // Individual instruments are disposed after playing
     this.instruments.clear()
+
+    // Dispose persistent sample players
+    this.samplePlayers.forEach(player => player.dispose())
+    this.samplePlayers.clear()
   }
 
   // Legacy-compatible method that accepts audioContext and gain for perfect timing
@@ -279,25 +292,15 @@ export class DrumSoundsAPI {
   }
 
   playSampleSync(soundName, volume) {
-    const sample = sampleLoader.getSample(soundName)
-    if (!sample) {
-      console.warn(`Sample ${soundName} not loaded, falling back to synthesis`)
+    const player = this.samplePlayers.get(soundName)
+    if (!player) {
+      console.warn(`Sample player for ${soundName} not found, falling back to synthesis`)
       this.createSynthesisInstrumentSync(soundName, volume)
       return
     }
 
-    // Create a new player instance using Tone.js destination
-    const player = new Tone.Player({
-      url: sample.buffer,
-      volume: Tone.gainToDb(volume)
-    }).toDestination()
-
+    player.volume.setValueAtTime(Tone.gainToDb(volume), Tone.now())
     player.start()
-    
-    // Clean up after playback
-    setTimeout(() => {
-      player.dispose()
-    }, 3000)
   }
 
   createSynthesisInstrumentSync(soundName, volume) {
@@ -461,26 +464,16 @@ export class DrumSoundsAPI {
   }
 
   playSampleScheduled(soundName, volume, time) {
-    const sample = sampleLoader.getSample(soundName)
-    if (!sample) {
-      console.warn(`Sample ${soundName} not loaded, falling back to synthesis`)
+    const player = this.samplePlayers.get(soundName)
+    if (!player) {
+      console.warn(`Sample player for ${soundName} not found, falling back to synthesis`)
       this.createSynthesisInstrumentScheduled(soundName, volume, time)
       return
     }
 
-    // Create a new player instance using Tone.js destination
-    const player = new Tone.Player({
-      url: sample.buffer,
-      volume: Tone.gainToDb(volume)
-    }).toDestination()
-
-    // Schedule playback at the exact time provided by Tone.js
+    // Set volume just before scheduled time to avoid clicks
+    player.volume.setValueAtTime(Tone.gainToDb(volume), time - 0.01)
     player.start(time)
-    
-    // Clean up after playback
-    setTimeout(() => {
-      player.dispose()
-    }, 3000)
   }
 
   createSynthesisInstrumentScheduled(soundName, volume, time) {
