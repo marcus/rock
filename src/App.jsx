@@ -27,6 +27,7 @@ function App() {
     toggleMasterMute,
     updateTrackVolume,
     toggleMute,
+    updateTrackSettings,
     setIsPlaying,
     setCurrentStep,
     initializeApp,
@@ -106,8 +107,8 @@ function App() {
           const soundKey = drumSoundsInstance.getDrumKey(track.drum_type, track.id)
           const volume = currentPattern.volumes[trackIndex] || 0.8
 
-          // Use the scheduled playback method for precise timing
-          drumSoundsInstance.playSoundScheduled(soundKey, volume, time)
+          // Use the scheduled playback method for precise timing with track settings
+          drumSoundsInstance.playSoundScheduled(soundKey, volume, time, track.settings)
         }
       }
     }
@@ -261,6 +262,7 @@ function App() {
                 muted={pattern.muted}
                 onVolumeChange={updateTrackVolume}
                 onToggleMute={toggleMute}
+                onUpdateTrackSettings={updateTrackSettings}
               />
             </div>
           </div>

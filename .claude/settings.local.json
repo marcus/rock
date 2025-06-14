@@ -12,7 +12,8 @@
       "Bash(curl:*)",
       "Bash(kill:*)",
       "Bash(npm run backend:*)",
-      "Bash(pkill:*)"
+      "Bash(pkill:*)",
+      "Bash(grep:*)"
     ],
     "deny": []
   }

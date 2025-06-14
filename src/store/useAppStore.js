@@ -125,6 +125,17 @@ const useAppStore = create((set, get) => ({
     saveState()
   },
 
+  updateTrackSettings: (trackIndex, settings) => {
+    const { tracks, saveState } = get()
+    const newTracks = tracks.map((track, index) =>
+      index === trackIndex
+        ? { ...track, settings }
+        : track
+    )
+    set({ tracks: newTracks })
+    saveState()
+  },
+
   // Actions for playback control
   setIsPlaying: isPlaying => set({ isPlaying }),
   setCurrentStep: currentStep => set({ currentStep }),

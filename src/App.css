@@ -173,7 +173,6 @@ button.active {
 }
 
 input[type='range'] {
-  width: 8vw;
   height: 0.6vh;
   background: #ffd700;
   outline: none;

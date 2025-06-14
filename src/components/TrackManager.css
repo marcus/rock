@@ -44,6 +44,17 @@
   font-weight: bold;
 }
 
+.track-label.clickable {
+  cursor: pointer;
+  transition: all 0.1s ease;
+}
+
+.track-label.clickable:hover {
+  background-color: #2222ff;
+  transform: translate(-0.1vw, -0.1vh);
+  box-shadow: 0.2vw 0.2vh 0 #000;
+}
+
 .remove-track-button {
   width: 1.5vw;
   height: 1.5vw;

@@ -551,7 +551,7 @@ export class DrumSoundsAPI {
   }
 
   // New method for scheduled playback with precise timing - fixes Safari timing issues
-  playSoundScheduled(soundName, volume, time) {
+  playSoundScheduled(soundName, volume, time, trackSettings = null) {
     if (!this.isInitialized || !this.soundsLoaded) {
       console.warn(`Sound system not ready for ${soundName}`)
       return
@@ -569,30 +569,77 @@ export class DrumSoundsAPI {
       return
     }
 
+    // Apply gain settings to volume if provided
+    let adjustedVolume = volume
+    if (trackSettings?.gain_db !== undefined && trackSettings.gain_db !== 0) {
+      // Convert dB to linear gain and apply to volume
+      const gainMultiplier = Math.pow(10, trackSettings.gain_db / 20)
+      adjustedVolume = Math.max(0, Math.min(1, volume * gainMultiplier))
+    }
+
     // Check if we should use a sample or synthesis
     if (soundData.type === 'sample' && soundData.file_path && sampleLoader.hasSample(soundName)) {
       // Play sample with scheduled timing
-      this.playSampleScheduled(soundName, volume, time)
+      this.playSampleScheduled(soundName, adjustedVolume, time, trackSettings)
     } else {
       // Play synthesized sound with scheduled timing
-      this.createSynthesisInstrumentScheduled(soundName, volume, time)
+      this.createSynthesisInstrumentScheduled(soundName, adjustedVolume, time, trackSettings)
     }
   }
 
-  playSampleScheduled(soundName, volume, time) {
+  playSampleScheduled(soundName, volume, time, trackSettings = null) {
     const player = this.samplePlayers.get(soundName)
     if (!player) {
       console.warn(`Sample player for ${soundName} not found, falling back to synthesis`)
-      this.createSynthesisInstrumentScheduled(soundName, volume, time)
+      this.createSynthesisInstrumentScheduled(soundName, volume, time, trackSettings)
       return
+    }
+
+    // Apply pitch settings if provided
+    if (trackSettings?.pitch_semitones !== undefined && trackSettings.pitch_semitones !== 0) {
+      // Convert semitones to playback rate: 2^(semitones/12)
+      const pitchRatio = Math.pow(2, trackSettings.pitch_semitones / 12)
+      player.playbackRate = pitchRatio
+    } else {
+      player.playbackRate = 1 // Reset to normal pitch
+    }
+
+    // Create effects chain if needed
+    let effectsChain = audioEngine.getDestination()
+    const effectsToDispose = []
+
+    // Apply filter settings if provided
+    if (trackSettings?.filter && (trackSettings.filter.cutoff_hz !== 20000 || trackSettings.filter.resonance_q !== 0.7)) {
+      const filter = new Tone.Filter({
+        frequency: trackSettings.filter.cutoff_hz,
+        type: 'lowpass',
+        Q: trackSettings.filter.resonance_q
+      }).connect(effectsChain)
+      
+      // Disconnect from current destination and connect through filter
+      player.disconnect()
+      player.connect(filter)
+      effectsChain = filter
+      effectsToDispose.push(filter)
     }
 
     // Set volume just before scheduled time to avoid clicks
     player.volume.setValueAtTime(Tone.gainToDb(volume), time - 0.01)
     player.start(time)
+
+    // Clean up effects after sample finishes
+    if (effectsToDispose.length > 0) {
+      // Estimate sample duration and clean up effects
+      setTimeout(() => {
+        effectsToDispose.forEach(effect => effect.dispose())
+        // Reconnect player to default destination
+        player.disconnect()
+        player.connect(audioEngine.getDestination())
+      }, 5000) // 5 seconds should be enough for most drum samples
+    }
   }
 
-  createSynthesisInstrumentScheduled(soundName, volume, time) {
+  createSynthesisInstrumentScheduled(soundName, volume, time, trackSettings = null) {
     const soundData = this.soundsData.find(
       sound =>
         this.getDrumKey(sound.drum_type, sound.id) === soundName ||
@@ -606,64 +653,67 @@ export class DrumSoundsAPI {
 
     try {
       const synthParams = JSON.parse(soundData.synthesis_params)
+      
+      // Apply track settings to synthesis parameters
+      const adjustedParams = this.applySynthTrackSettings(synthParams, trackSettings)
 
-      if (synthParams.synthType === 'MembraneSynth') {
-        const synth = new Tone.MembraneSynth(synthParams.config).connect(
+      if (adjustedParams.synthType === 'MembraneSynth') {
+        const synth = new Tone.MembraneSynth(adjustedParams.config).connect(
           audioEngine.getDestination()
         )
         synth.volume.value = Tone.gainToDb(volume)
         // Schedule the attack at the exact time
-        synth.triggerAttackRelease(synthParams.note, synthParams.duration, time)
-        setTimeout(() => synth.dispose(), synthParams.cleanup_delay)
-      } else if (synthParams.synthType === 'NoiseSynth') {
-        const synth = new Tone.NoiseSynth(synthParams.config).connect(audioEngine.getDestination())
+        synth.triggerAttackRelease(adjustedParams.note, adjustedParams.duration, time)
+        setTimeout(() => synth.dispose(), adjustedParams.cleanup_delay)
+      } else if (adjustedParams.synthType === 'NoiseSynth') {
+        const synth = new Tone.NoiseSynth(adjustedParams.config).connect(audioEngine.getDestination())
         synth.volume.value = Tone.gainToDb(volume)
 
-        if (synthParams.filter) {
+        if (adjustedParams.filter) {
           // Fix invalid Q parameter - Q should be positive
           const filterQ =
-            synthParams.filter.Q && synthParams.filter.Q > 0 ? synthParams.filter.Q : 1
+            adjustedParams.filter.Q && adjustedParams.filter.Q > 0 ? adjustedParams.filter.Q : 1
 
           // Fix invalid rolloff parameter - must be -12, -24, -48, or -96
-          let rolloff = synthParams.filter.rolloff || -12
+          let rolloff = adjustedParams.filter.rolloff || -12
           if (![-12, -24, -48, -96].includes(rolloff)) {
             rolloff = -12
           }
 
           const filter = new Tone.Filter({
-            frequency: synthParams.filter.frequency,
-            type: synthParams.filter.type,
+            frequency: adjustedParams.filter.frequency,
+            type: adjustedParams.filter.type,
             Q: filterQ,
             rolloff: rolloff,
           }).connect(audioEngine.getDestination())
           synth.connect(filter)
 
           // Schedule the attack at the exact time
-          synth.triggerAttackRelease(synthParams.duration, time)
+          synth.triggerAttackRelease(adjustedParams.duration, time)
 
           setTimeout(() => {
             synth.dispose()
             filter.dispose()
-          }, synthParams.cleanup_delay)
+          }, adjustedParams.cleanup_delay)
         } else {
-          if (synthParams.multiple_hits) {
+          if (adjustedParams.multiple_hits) {
             // For clap - multiple hits, all scheduled relative to the base time
-            synthParams.multiple_hits.forEach(delay => {
-              synth.triggerAttackRelease(synthParams.duration, time + delay)
+            adjustedParams.multiple_hits.forEach(delay => {
+              synth.triggerAttackRelease(adjustedParams.duration, time + delay)
             })
           } else {
             // Schedule the attack at the exact time
-            synth.triggerAttackRelease(synthParams.duration, time)
+            synth.triggerAttackRelease(adjustedParams.duration, time)
           }
 
-          setTimeout(() => synth.dispose(), synthParams.cleanup_delay)
+          setTimeout(() => synth.dispose(), adjustedParams.cleanup_delay)
         }
-      } else if (synthParams.synthType === 'Dual') {
+      } else if (adjustedParams.synthType === 'Dual') {
         // For cowbell - dual synth setup
-        const synth1 = new Tone.Synth(synthParams.synth1.config).connect(
+        const synth1 = new Tone.Synth(adjustedParams.synth1.config).connect(
           audioEngine.getDestination()
         )
-        const synth2 = new Tone.Synth(synthParams.synth2.config).connect(
+        const synth2 = new Tone.Synth(adjustedParams.synth2.config).connect(
           audioEngine.getDestination()
         )
 
@@ -672,35 +722,35 @@ export class DrumSoundsAPI {
 
         // Fix Q parameters for filters
         const filter1Q =
-          synthParams.synth1.filter.Q && synthParams.synth1.filter.Q > 0
-            ? synthParams.synth1.filter.Q
+          adjustedParams.synth1.filter.Q && adjustedParams.synth1.filter.Q > 0
+            ? adjustedParams.synth1.filter.Q
             : 1
         const filter2Q =
-          synthParams.synth2.filter.Q && synthParams.synth2.filter.Q > 0
-            ? synthParams.synth2.filter.Q
+          adjustedParams.synth2.filter.Q && adjustedParams.synth2.filter.Q > 0
+            ? adjustedParams.synth2.filter.Q
             : 1
 
         // Fix rolloff parameters
-        let filter1Rolloff = synthParams.synth1.filter.rolloff || -12
+        let filter1Rolloff = adjustedParams.synth1.filter.rolloff || -12
         if (![-12, -24, -48, -96].includes(filter1Rolloff)) {
           filter1Rolloff = -12
         }
 
-        let filter2Rolloff = synthParams.synth2.filter.rolloff || -12
+        let filter2Rolloff = adjustedParams.synth2.filter.rolloff || -12
         if (![-12, -24, -48, -96].includes(filter2Rolloff)) {
           filter2Rolloff = -12
         }
 
         const filter1 = new Tone.Filter({
-          frequency: synthParams.synth1.filter.frequency,
-          type: synthParams.synth1.filter.type,
+          frequency: adjustedParams.synth1.filter.frequency,
+          type: adjustedParams.synth1.filter.type,
           Q: filter1Q,
           rolloff: filter1Rolloff,
         }).connect(audioEngine.getDestination())
 
         const filter2 = new Tone.Filter({
-          frequency: synthParams.synth2.filter.frequency,
-          type: synthParams.synth2.filter.type,
+          frequency: adjustedParams.synth2.filter.frequency,
+          type: adjustedParams.synth2.filter.type,
           Q: filter2Q,
           rolloff: filter2Rolloff,
         }).connect(audioEngine.getDestination())
@@ -709,15 +759,15 @@ export class DrumSoundsAPI {
         synth2.connect(filter2)
 
         // Schedule both synths at the exact time
-        synth1.triggerAttackRelease(synthParams.synth1.note, synthParams.duration, time)
-        synth2.triggerAttackRelease(synthParams.synth2.note, synthParams.duration, time)
+        synth1.triggerAttackRelease(adjustedParams.synth1.note, adjustedParams.duration, time)
+        synth2.triggerAttackRelease(adjustedParams.synth2.note, adjustedParams.duration, time)
 
         setTimeout(() => {
           synth1.dispose()
           synth2.dispose()
           filter1.dispose()
           filter2.dispose()
-        }, synthParams.cleanup_delay)
+        }, adjustedParams.cleanup_delay)
       }
     } catch (error) {
       console.error(`Error creating synthesis instrument for ${soundName}:`, error)
@@ -732,6 +782,56 @@ export class DrumSoundsAPI {
         console.error('Even fallback synth failed:', fallbackError)
       }
     }
+  }
+
+  // Helper method to apply track settings to synthesis parameters
+  applySynthTrackSettings(synthParams, trackSettings) {
+    if (!trackSettings) return synthParams
+
+    // Create a deep copy of the synthesis parameters
+    const adjustedParams = JSON.parse(JSON.stringify(synthParams))
+
+    // Apply pitch settings to note frequencies
+    if (trackSettings.pitch_semitones !== undefined && trackSettings.pitch_semitones !== 0) {
+      const pitchRatio = Math.pow(2, trackSettings.pitch_semitones / 12)
+      
+      if (adjustedParams.note) {
+        // For single note synthesis, adjust the frequency
+        const noteFreq = Tone.Frequency(adjustedParams.note).toFrequency()
+        adjustedParams.note = noteFreq * pitchRatio
+      }
+      
+      if (adjustedParams.synth1?.note) {
+        const noteFreq1 = Tone.Frequency(adjustedParams.synth1.note).toFrequency()
+        adjustedParams.synth1.note = noteFreq1 * pitchRatio
+      }
+      
+      if (adjustedParams.synth2?.note) {
+        const noteFreq2 = Tone.Frequency(adjustedParams.synth2.note).toFrequency()
+        adjustedParams.synth2.note = noteFreq2 * pitchRatio
+      }
+    }
+
+    // Apply filter settings to existing filters or add new ones
+    if (trackSettings.filter && (trackSettings.filter.cutoff_hz !== 20000 || trackSettings.filter.resonance_q !== 0.7)) {
+      // For synthesis with existing filters, modify the filter parameters
+      if (adjustedParams.filter) {
+        adjustedParams.filter.frequency = trackSettings.filter.cutoff_hz
+        adjustedParams.filter.Q = trackSettings.filter.resonance_q
+      }
+      
+      if (adjustedParams.synth1?.filter) {
+        adjustedParams.synth1.filter.frequency = trackSettings.filter.cutoff_hz
+        adjustedParams.synth1.filter.Q = trackSettings.filter.resonance_q
+      }
+      
+      if (adjustedParams.synth2?.filter) {
+        adjustedParams.synth2.filter.frequency = trackSettings.filter.cutoff_hz
+        adjustedParams.synth2.filter.Q = trackSettings.filter.resonance_q
+      }
+    }
+
+    return adjustedParams
   }
 }
 

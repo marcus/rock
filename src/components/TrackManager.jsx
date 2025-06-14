@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import SoundSelector from './SoundSelector'
+import TrackSettingsModal from './TrackSettingsModal'
 import './TrackManager.css'
 
 function TrackManager({
@@ -14,12 +15,20 @@ function TrackManager({
   muted,
   onVolumeChange,
   onToggleMute,
+  onUpdateTrackSettings,
 }) {
   const [showSoundSelector, setShowSoundSelector] = useState(false)
+  const [activeTrackIndex, setActiveTrackIndex] = useState(null)
 
   const handleAddSound = sound => {
     if (tracks.length < maxTracks) {
       onAddTrack(sound)
+    }
+  }
+
+  const handleTrackSettingsSave = settings => {
+    if (activeTrackIndex !== null && onUpdateTrackSettings) {
+      onUpdateTrackSettings(activeTrackIndex, settings)
     }
   }
 
@@ -31,7 +40,13 @@ function TrackManager({
         {tracks.map((track, trackIndex) => (
           <div key={track.id || trackIndex} className='track-row'>
             <div className='track-info'>
-              <div className='track-label'>{track.name || `Track ${trackIndex + 1}`}</div>
+              <div 
+                className='track-label clickable'
+                onClick={() => setActiveTrackIndex(trackIndex)}
+                title='Click to edit track settings'
+              >
+                {track.name || `Track ${trackIndex + 1}`}
+              </div>
               <button
                 className='remove-track-button'
                 onClick={() => onRemoveTrack(trackIndex)}
@@ -96,6 +111,16 @@ function TrackManager({
         onSelectSound={handleAddSound}
         usedSounds={tracks}
       />
+
+      {activeTrackIndex !== null && (
+        <TrackSettingsModal
+          trackId={tracks[activeTrackIndex]?.id}
+          trackName={tracks[activeTrackIndex]?.name || `Track ${activeTrackIndex + 1}`}
+          trackSettings={tracks[activeTrackIndex]?.settings || {}}
+          onSave={handleTrackSettingsSave}
+          onClose={() => setActiveTrackIndex(null)}
+        />
+      )}
     </div>
   )
 }
