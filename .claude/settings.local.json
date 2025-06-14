@@ -13,7 +13,10 @@
       "Bash(kill:*)",
       "Bash(npm run backend:*)",
       "Bash(pkill:*)",
-      "Bash(grep:*)"
+      "Bash(grep:*)",
+      "Bash(ssh:*)",
+      "Bash(NODE_ENV=production node server/index.js)",
+      "Bash(./deploy.sh)"
     ],
     "deny": []
   }
