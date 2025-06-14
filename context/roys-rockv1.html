@@ -1,0 +1,868 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pop Art Step Sequencer</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Anton&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Anton', sans-serif;
+            background-color: #FFFEF0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+            overflow-x: auto;
+        }
+        
+        .sequencer-container {
+            background-color: #FFFEF0;
+            border: 6px solid #000;
+            padding: 30px;
+            box-shadow: 10px 10px 0 #000;
+            max-width: 1200px;
+            width: 100%;
+        }
+        
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+            
+            .sequencer-container {
+                padding: 15px;
+                border-width: 4px;
+                box-shadow: 6px 6px 0 #000;
+            }
+        }
+        
+        /* Halftone pattern background */
+        .halftone-bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            opacity: 0.1;
+            pointer-events: none;
+            background-image: radial-gradient(circle, #000 20%, transparent 20%);
+            background-size: 10px 10px;
+            z-index: -1;
+        }
+        
+        /* Title styling */
+        .title {
+            text-align: center;
+            margin-bottom: 30px;
+            position: relative;
+        }
+        
+        .title h1 {
+            font-size: clamp(2rem, 8vw, 4rem);
+            letter-spacing: 4px;
+            color: #FF0000;
+            text-transform: uppercase;
+            position: relative;
+            z-index: 2;
+            -webkit-text-stroke: 3px #000;
+            paint-order: stroke fill;
+        }
+        
+        .title-shadow {
+            position: absolute;
+            top: 5px;
+            left: 5px;
+            font-size: clamp(2rem, 8vw, 4rem);
+            letter-spacing: 4px;
+            color: #FFD700;
+            text-transform: uppercase;
+            z-index: 1;
+            -webkit-text-stroke: 3px #000;
+            paint-order: stroke fill;
+            width: 100%;
+            text-align: center;
+        }
+        
+        @media (max-width: 768px) {
+            .title h1, .title-shadow {
+                letter-spacing: 2px;
+                -webkit-text-stroke: 2px #000;
+            }
+        }
+        
+        /* Control panel */
+        .controls {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .control-label {
+            font-size: 1.2rem;
+            text-transform: uppercase;
+            color: #000;
+        }
+        
+        button {
+            padding: 15px 30px;
+            font-family: 'Anton', sans-serif;
+            font-size: 1.5rem;
+            text-transform: uppercase;
+            background-color: #FFD700;
+            color: #000;
+            border: 4px solid #000;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.1s;
+        }
+        
+        button:hover {
+            transform: translate(-2px, -2px);
+            box-shadow: 4px 4px 0 #000;
+        }
+        
+        button:active {
+            transform: translate(0, 0);
+            box-shadow: none;
+        }
+        
+        button.active {
+            background-color: #FF0000;
+            color: #FFF;
+        }
+        
+        input[type="range"] {
+            width: 150px;
+            height: 8px;
+            background: #FFD700;
+            outline: none;
+            border: 3px solid #000;
+            -webkit-appearance: none;
+        }
+        
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 25px;
+            height: 25px;
+            background: #0000FF;
+            border: 3px solid #000;
+            cursor: pointer;
+            border-radius: 50%;
+        }
+        
+        input[type="range"]::-moz-range-thumb {
+            width: 25px;
+            height: 25px;
+            background: #0000FF;
+            border: 3px solid #000;
+            cursor: pointer;
+            border-radius: 50%;
+        }
+        
+        .tempo-display {
+            font-size: 1.5rem;
+            color: #000;
+            min-width: 100px;
+            text-align: center;
+        }
+        
+        /* Grid container */
+        .grid-container {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            overflow-x: auto;
+            padding-bottom: 10px;
+        }
+        
+        @media (max-width: 1024px) {
+            .grid-container {
+                gap: 10px;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .grid-container {
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+        
+        /* Track labels */
+        .track-labels {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            margin-top: 40px;
+            flex-shrink: 0;
+        }
+        
+        @media (max-width: 768px) {
+            .track-labels {
+                flex-direction: row;
+                margin-top: 0;
+                margin-bottom: 10px;
+                overflow-x: auto;
+                width: 100%;
+                justify-content: space-between;
+                padding: 5px;
+            }
+        }
+        
+        .track-label {
+            height: 50px;
+            width: 100px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #0000FF;
+            color: #FFF;
+            border: 3px solid #000;
+            font-size: clamp(0.8rem, 2vw, 1.2rem);
+            text-transform: uppercase;
+            flex-shrink: 0;
+        }
+        
+        @media (max-width: 768px) {
+            .track-label {
+                height: 40px;
+                width: auto;
+                padding: 0 10px;
+                min-width: 60px;
+                font-size: 0.8rem;
+                border-width: 2px;
+            }
+        }
+        
+        /* Sequencer grid */
+        .sequencer-grid {
+            display: grid;
+            grid-template-columns: repeat(16, 50px);
+            grid-template-rows: repeat(8, 50px);
+            gap: 4px;
+            border: 4px solid #000;
+            padding: 10px;
+            background-color: #FFF;
+            position: relative;
+            overflow-x: auto;
+        }
+        
+        @media (max-width: 1024px) {
+            .sequencer-grid {
+                grid-template-columns: repeat(16, 40px);
+                grid-template-rows: repeat(8, 40px);
+                gap: 3px;
+                padding: 8px;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .sequencer-grid {
+                grid-template-columns: repeat(16, 35px);
+                grid-template-rows: repeat(8, 35px);
+                gap: 2px;
+                padding: 5px;
+                border-width: 3px;
+            }
+        }
+        
+        .step-button {
+            width: 100%;
+            height: 100%;
+            border: 3px solid #000;
+            background-color: #FFFEF0;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.1s;
+        }
+        
+        @media (max-width: 768px) {
+            .step-button {
+                border-width: 2px;
+            }
+        }
+        
+        .step-button:hover {
+            background-color: #FFD700;
+            transform: scale(1.1);
+        }
+        
+        .step-button.active {
+            background-color: #FF0000;
+            box-shadow: inset 2px 2px 0 #000;
+        }
+        
+        .step-button.playing {
+            background-color: #00FF00 !important;
+            animation: pulse 0.2s;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+        
+        /* Beat markers */
+        .step-button:nth-child(4n+1) {
+            border-left: 4px solid #000;
+        }
+        
+        /* Volume controls */
+        .volume-controls {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            margin-top: 40px;
+            flex-shrink: 0;
+        }
+        
+        @media (max-width: 768px) {
+            .volume-controls {
+                margin-top: 10px;
+                width: 100%;
+            }
+        }
+        
+        .volume-slider {
+            height: 50px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 0 10px;
+        }
+        
+        @media (max-width: 768px) {
+            .volume-slider {
+                height: 40px;
+                gap: 5px;
+                padding: 0 5px;
+            }
+        }
+        
+        .volume-slider input {
+            width: 100px;
+            flex-grow: 1;
+            max-width: 150px;
+        }
+        
+        @media (max-width: 768px) {
+            .volume-slider input {
+                width: auto;
+                min-width: 60px;
+            }
+        }
+        
+        .mute-button {
+            padding: 5px 10px;
+            font-size: 1rem;
+            background-color: #FFFEF0;
+            border: 2px solid #000;
+            flex-shrink: 0;
+        }
+        
+        @media (max-width: 768px) {
+            .mute-button {
+                padding: 3px 8px;
+                font-size: 0.9rem;
+            }
+        }
+        
+        .mute-button.muted {
+            background-color: #FF0000;
+            color: #FFF;
+        }
+    </style>
+</head>
+<body>
+    <div class="halftone-bg"></div>
+    <div class="sequencer-container">
+        <div class="title">
+            <span class="title-shadow">ROY'S ROCK MACHINE</span>
+            <h1>ROY'S ROCK MACHINE</h1>
+        </div>
+        
+        <div class="controls">
+            <div class="control-group">
+                <button id="playButton">PLAY</button>
+            </div>
+            
+            <div class="control-group">
+                <label class="control-label">TEMPO</label>
+                <input type="range" id="tempoSlider" min="60" max="180" value="120">
+                <div class="tempo-display" id="tempoDisplay">120 BPM</div>
+            </div>
+            
+            <div class="control-group">
+                <label class="control-label">VOLUME</label>
+                <input type="range" id="volumeSlider" min="0" max="100" value="80">
+            </div>
+            
+            <div class="control-group">
+                <button id="clearButton">CLEAR</button>
+            </div>
+        </div>
+        
+        <div class="grid-container">
+            <div class="track-labels">
+                <div class="track-label">KICK</div>
+                <div class="track-label">SNARE</div>
+                <div class="track-label">HAT-C</div>
+                <div class="track-label">HAT-O</div>
+                <div class="track-label">CRASH</div>
+                <div class="track-label">CLAP</div>
+                <div class="track-label">COWBELL</div>
+                <div class="track-label">TOM</div>
+            </div>
+            
+            <div class="sequencer-grid" id="sequencerGrid"></div>
+            
+            <div class="volume-controls">
+                <div class="volume-slider">
+                    <input type="range" class="track-volume" data-track="0" min="0" max="100" value="80">
+                    <button class="mute-button" data-track="0">M</button>
+                </div>
+                <div class="volume-slider">
+                    <input type="range" class="track-volume" data-track="1" min="0" max="100" value="80">
+                    <button class="mute-button" data-track="1">M</button>
+                </div>
+                <div class="volume-slider">
+                    <input type="range" class="track-volume" data-track="2" min="0" max="100" value="80">
+                    <button class="mute-button" data-track="2">M</button>
+                </div>
+                <div class="volume-slider">
+                    <input type="range" class="track-volume" data-track="3" min="0" max="100" value="80">
+                    <button class="mute-button" data-track="3">M</button>
+                </div>
+                <div class="volume-slider">
+                    <input type="range" class="track-volume" data-track="4" min="0" max="100" value="80">
+                    <button class="mute-button" data-track="4">M</button>
+                </div>
+                <div class="volume-slider">
+                    <input type="range" class="track-volume" data-track="5" min="0" max="100" value="80">
+                    <button class="mute-button" data-track="5">M</button>
+                </div>
+                <div class="volume-slider">
+                    <input type="range" class="track-volume" data-track="6" min="0" max="100" value="80">
+                    <button class="mute-button" data-track="6">M</button>
+                </div>
+                <div class="volume-slider">
+                    <input type="range" class="track-volume" data-track="7" min="0" max="100" value="80">
+                    <button class="mute-button" data-track="7">M</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Audio context and global variables
+        let audioContext;
+        let masterGain;
+        let isPlaying = false;
+        let currentStep = 0;
+        let tempo = 120;
+        let schedulerTimer;
+        
+        // Pattern data structure
+        const pattern = {
+            steps: Array(8).fill().map(() => Array(16).fill(false)),
+            tempo: 120,
+            volumes: Array(8).fill(0.8),
+            muted: Array(8).fill(false)
+        };
+        
+        // Initialize audio context
+        function initAudio() {
+            audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            masterGain = audioContext.createGain();
+            masterGain.connect(audioContext.destination);
+            masterGain.gain.value = 0.8;
+        }
+        
+        // Drum synthesis functions
+        const drumSounds = {
+            kick: () => {
+                const osc = audioContext.createOscillator();
+                const gain = audioContext.createGain();
+                
+                osc.frequency.setValueAtTime(60, audioContext.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(40, audioContext.currentTime + 0.1);
+                
+                gain.gain.setValueAtTime(1, audioContext.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+                
+                osc.connect(gain);
+                gain.connect(masterGain);
+                
+                osc.start();
+                osc.stop(audioContext.currentTime + 0.3);
+            },
+            
+            snare: () => {
+                const noise = audioContext.createBufferSource();
+                const noiseBuffer = audioContext.createBuffer(1, audioContext.sampleRate * 0.2, audioContext.sampleRate);
+                const data = noiseBuffer.getChannelData(0);
+                
+                for (let i = 0; i < data.length; i++) {
+                    data[i] = Math.random() * 2 - 1;
+                }
+                
+                noise.buffer = noiseBuffer;
+                
+                const filter = audioContext.createBiquadFilter();
+                filter.type = 'bandpass';
+                filter.frequency.value = 200;
+                
+                const gain = audioContext.createGain();
+                gain.gain.setValueAtTime(0.8, audioContext.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
+                
+                noise.connect(filter);
+                filter.connect(gain);
+                gain.connect(masterGain);
+                
+                noise.start();
+            },
+            
+            hatClosed: () => {
+                const noise = audioContext.createBufferSource();
+                const noiseBuffer = audioContext.createBuffer(1, audioContext.sampleRate * 0.1, audioContext.sampleRate);
+                const data = noiseBuffer.getChannelData(0);
+                
+                for (let i = 0; i < data.length; i++) {
+                    data[i] = Math.random() * 2 - 1;
+                }
+                
+                noise.buffer = noiseBuffer;
+                
+                const filter = audioContext.createBiquadFilter();
+                filter.type = 'highpass';
+                filter.frequency.value = 8000;
+                
+                const gain = audioContext.createGain();
+                gain.gain.setValueAtTime(0.5, audioContext.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
+                
+                noise.connect(filter);
+                filter.connect(gain);
+                gain.connect(masterGain);
+                
+                noise.start();
+            },
+            
+            hatOpen: () => {
+                const noise = audioContext.createBufferSource();
+                const noiseBuffer = audioContext.createBuffer(1, audioContext.sampleRate * 0.4, audioContext.sampleRate);
+                const data = noiseBuffer.getChannelData(0);
+                
+                for (let i = 0; i < data.length; i++) {
+                    data[i] = Math.random() * 2 - 1;
+                }
+                
+                noise.buffer = noiseBuffer;
+                
+                const filter = audioContext.createBiquadFilter();
+                filter.type = 'highpass';
+                filter.frequency.value = 6000;
+                
+                const gain = audioContext.createGain();
+                gain.gain.setValueAtTime(0.4, audioContext.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.4);
+                
+                noise.connect(filter);
+                filter.connect(gain);
+                gain.connect(masterGain);
+                
+                noise.start();
+            },
+            
+            crash: () => {
+                const noise = audioContext.createBufferSource();
+                const noiseBuffer = audioContext.createBuffer(1, audioContext.sampleRate * 1.5, audioContext.sampleRate);
+                const data = noiseBuffer.getChannelData(0);
+                
+                for (let i = 0; i < data.length; i++) {
+                    data[i] = Math.random() * 2 - 1;
+                }
+                
+                noise.buffer = noiseBuffer;
+                
+                const filter = audioContext.createBiquadFilter();
+                filter.type = 'highpass';
+                filter.frequency.value = 3000;
+                filter.Q.value = 0.5;
+                
+                const gain = audioContext.createGain();
+                gain.gain.setValueAtTime(0.7, audioContext.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 1.5);
+                
+                noise.connect(filter);
+                filter.connect(gain);
+                gain.connect(masterGain);
+                
+                noise.start();
+            },
+            
+            clap: () => {
+                const burstCount = 3;
+                const burstGap = 0.01;
+                
+                for (let i = 0; i < burstCount; i++) {
+                    const noise = audioContext.createBufferSource();
+                    const noiseBuffer = audioContext.createBuffer(1, audioContext.sampleRate * 0.03, audioContext.sampleRate);
+                    const data = noiseBuffer.getChannelData(0);
+                    
+                    for (let j = 0; j < data.length; j++) {
+                        data[j] = Math.random() * 2 - 1;
+                    }
+                    
+                    noise.buffer = noiseBuffer;
+                    
+                    const filter = audioContext.createBiquadFilter();
+                    filter.type = 'bandpass';
+                    filter.frequency.value = 1100;
+                    filter.Q.value = 5;
+                    
+                    const gain = audioContext.createGain();
+                    gain.gain.value = 0.5;
+                    
+                    noise.connect(filter);
+                    filter.connect(gain);
+                    gain.connect(masterGain);
+                    
+                    noise.start(audioContext.currentTime + i * burstGap);
+                }
+            },
+            
+            cowbell: () => {
+                const osc1 = audioContext.createOscillator();
+                const osc2 = audioContext.createOscillator();
+                const gain = audioContext.createGain();
+                
+                osc1.frequency.value = 800;
+                osc2.frequency.value = 1600;
+                
+                gain.gain.setValueAtTime(0.4, audioContext.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
+                
+                osc1.connect(gain);
+                osc2.connect(gain);
+                gain.connect(masterGain);
+                
+                osc1.start();
+                osc2.start();
+                osc1.stop(audioContext.currentTime + 0.2);
+                osc2.stop(audioContext.currentTime + 0.2);
+            },
+            
+            tom: () => {
+                const osc = audioContext.createOscillator();
+                const gain = audioContext.createGain();
+                
+                osc.frequency.setValueAtTime(120, audioContext.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(80, audioContext.currentTime + 0.2);
+                
+                gain.gain.setValueAtTime(0.7, audioContext.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.4);
+                
+                osc.connect(gain);
+                gain.connect(masterGain);
+                
+                osc.start();
+                osc.stop(audioContext.currentTime + 0.4);
+            }
+        };
+        
+        const soundNames = ['kick', 'snare', 'hatClosed', 'hatOpen', 'crash', 'clap', 'cowbell', 'tom'];
+        
+        // Create sequencer grid
+        function createGrid() {
+            const grid = document.getElementById('sequencerGrid');
+            
+            for (let row = 0; row < 8; row++) {
+                for (let col = 0; col < 16; col++) {
+                    const button = document.createElement('div');
+                    button.className = 'step-button';
+                    button.dataset.row = row;
+                    button.dataset.col = col;
+                    
+                    button.addEventListener('click', () => toggleStep(row, col));
+                    
+                    grid.appendChild(button);
+                }
+            }
+        }
+        
+        // Toggle step
+        function toggleStep(row, col) {
+            pattern.steps[row][col] = !pattern.steps[row][col];
+            updateStepVisual(row, col);
+        }
+        
+        // Update step visual
+        function updateStepVisual(row, col) {
+            const button = document.querySelector(`[data-row="${row}"][data-col="${col}"]`);
+            if (pattern.steps[row][col]) {
+                button.classList.add('active');
+            } else {
+                button.classList.remove('active');
+            }
+        }
+        
+        // Play step
+        function playStep(step) {
+            for (let track = 0; track < 8; track++) {
+                if (pattern.steps[track][step] && !pattern.muted[track]) {
+                    const soundFunction = drumSounds[soundNames[track]];
+                    if (soundFunction) {
+                        // Create a temporary gain node for track volume
+                        const trackGain = audioContext.createGain();
+                        trackGain.gain.value = pattern.volumes[track];
+                        trackGain.connect(masterGain);
+                        
+                        // Store original masterGain connection
+                        const originalMasterGain = masterGain;
+                        masterGain = trackGain;
+                        
+                        soundFunction();
+                        
+                        // Restore original masterGain
+                        masterGain = originalMasterGain;
+                    }
+                }
+            }
+            
+            // Update visual feedback
+            updatePlayingStep(step);
+        }
+        
+        // Update playing step visual
+        function updatePlayingStep(step) {
+            // Remove playing class from all steps
+            document.querySelectorAll('.step-button').forEach(button => {
+                button.classList.remove('playing');
+            });
+            
+            // Add playing class to current column
+            for (let row = 0; row < 8; row++) {
+                const button = document.querySelector(`[data-row="${row}"][data-col="${step}"]`);
+                if (button) {
+                    button.classList.add('playing');
+                }
+            }
+        }
+        
+        // Scheduler
+        function scheduler() {
+            if (!isPlaying) return;
+            
+            playStep(currentStep);
+            currentStep = (currentStep + 1) % 16;
+            
+            const stepTime = 60000 / (tempo * 4); // 16th notes
+            schedulerTimer = setTimeout(scheduler, stepTime);
+        }
+        
+        // Start/stop playback
+        function togglePlayback() {
+            if (!audioContext) {
+                initAudio();
+            }
+            
+            isPlaying = !isPlaying;
+            const playButton = document.getElementById('playButton');
+            
+            if (isPlaying) {
+                playButton.textContent = 'STOP';
+                playButton.classList.add('active');
+                scheduler();
+            } else {
+                playButton.textContent = 'PLAY';
+                playButton.classList.remove('active');
+                clearTimeout(schedulerTimer);
+                currentStep = 0;
+                document.querySelectorAll('.step-button').forEach(button => {
+                    button.classList.remove('playing');
+                });
+            }
+        }
+        
+        // Clear pattern
+        function clearPattern() {
+            pattern.steps = Array(8).fill().map(() => Array(16).fill(false));
+            document.querySelectorAll('.step-button').forEach(button => {
+                button.classList.remove('active');
+            });
+        }
+        
+        // Event listeners
+        document.getElementById('playButton').addEventListener('click', togglePlayback);
+        document.getElementById('clearButton').addEventListener('click', clearPattern);
+        
+        document.getElementById('tempoSlider').addEventListener('input', (e) => {
+            tempo = parseInt(e.target.value);
+            pattern.tempo = tempo;
+            document.getElementById('tempoDisplay').textContent = `${tempo} BPM`;
+        });
+        
+        document.getElementById('volumeSlider').addEventListener('input', (e) => {
+            if (masterGain) {
+                masterGain.gain.value = e.target.value / 100;
+            }
+        });
+        
+        // Track volume controls
+        document.querySelectorAll('.track-volume').forEach(slider => {
+            slider.addEventListener('input', (e) => {
+                const track = parseInt(e.target.dataset.track);
+                pattern.volumes[track] = e.target.value / 100;
+            });
+        });
+        
+        // Mute buttons
+        document.querySelectorAll('.mute-button').forEach(button => {
+            button.addEventListener('click', (e) => {
+                const track = parseInt(e.target.dataset.track);
+                pattern.muted[track] = !pattern.muted[track];
+                e.target.classList.toggle('muted');
+            });
+        });
+        
+        // Initialize grid
+        createGrid();
+        
+        // Add some default pattern
+        pattern.steps[0] = [true, false, false, false, true, false, false, false, true, false, false, false, true, false, false, false];
+        pattern.steps[1] = [false, false, false, false, true, false, false, false, false, false, false, false, true, false, false, false];
+        pattern.steps[2] = [false, false, true, false, false, false, true, false, false, false, true, false, false, false, true, false];
+        
+        // Update visuals for default pattern
+        for (let row = 0; row < 8; row++) {
+            for (let col = 0; col < 16; col++) {
+                if (pattern.steps[row][col]) {
+                    updateStepVisual(row, col);
+                }
+            }
+        }
+    </script>
+</body>
+</html>
