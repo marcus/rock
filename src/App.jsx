@@ -4,6 +4,7 @@ import SequencerGrid from './components/SequencerGrid'
 import Controls from './components/Controls'
 import TrackLabels from './components/TrackLabels'
 import VolumeControls from './components/VolumeControls'
+import MasterVolumeControl from './components/MasterVolumeControl'
 import { initAudio, drumSounds, soundNames } from './utils/audioUtils'
 import * as Tone from 'tone'
 
@@ -19,6 +20,7 @@ function App() {
   const [currentStep, setCurrentStep] = useState(0)
   const [tempo, setTempo] = useState(120)
   const [masterVolume, setMasterVolume] = useState(80)
+  const [masterMuted, setMasterMuted] = useState(false)
   
   const audioContextRef = useRef(null)
   const masterGainRef = useRef(null)
@@ -123,7 +125,7 @@ function App() {
       const { audioContext, masterGain } = await initAudio()
       audioContextRef.current = audioContext
       masterGainRef.current = masterGain
-      masterGain.gain.value = masterVolume / 100
+      masterGain.gain.value = masterMuted ? 0 : masterVolume / 100
       
       if (audioContext.state === 'suspended') {
         await audioContext.resume()
@@ -182,7 +184,15 @@ function App() {
   const updateMasterVolume = (volume) => {
     setMasterVolume(volume)
     if (masterGainRef.current) {
-      masterGainRef.current.gain.value = volume / 100
+      masterGainRef.current.gain.value = masterMuted ? 0 : volume / 100
+    }
+  }
+
+  const toggleMasterMute = () => {
+    const newMuted = !masterMuted
+    setMasterMuted(newMuted)
+    if (masterGainRef.current) {
+      masterGainRef.current.gain.value = newMuted ? 0 : masterVolume / 100
     }
   }
 
@@ -213,29 +223,37 @@ function App() {
           <h1>ROY'S ROCK MACHINE</h1>
         </div>
         
-        <Controls 
-          isPlaying={isPlaying}
-          tempo={tempo}
-          masterVolume={masterVolume}
-          onTogglePlayback={togglePlayback}
-          onTempoChange={updateTempo}
-          onVolumeChange={updateMasterVolume}
-          onClear={clearPattern}
-        />
-        
-        <div className="grid-container">
-          <TrackLabels />
-          <SequencerGrid 
-            pattern={pattern.steps}
-            currentStep={isPlaying ? currentStep : -1}
-            onToggleStep={toggleStep}
+        <div className="sequencer-section">
+          <Controls 
+            isPlaying={isPlaying}
+            tempo={tempo}
+            onTogglePlayback={togglePlayback}
+            onTempoChange={updateTempo}
+            onClear={clearPattern}
           />
-          <VolumeControls 
-            volumes={pattern.volumes}
-            muted={pattern.muted}
-            onVolumeChange={updateTrackVolume}
-            onToggleMute={toggleMute}
-          />
+          
+          <div className="grid-container">
+            <TrackLabels />
+            <SequencerGrid 
+              pattern={pattern.steps}
+              currentStep={isPlaying ? currentStep : -1}
+              onToggleStep={toggleStep}
+            />
+            <div className="volume-controls-container">
+                          <MasterVolumeControl 
+              masterVolume={masterVolume}
+              masterMuted={masterMuted}
+              onVolumeChange={updateMasterVolume}
+              onToggleMute={toggleMasterMute}
+            />
+              <VolumeControls 
+                volumes={pattern.volumes}
+                muted={pattern.muted}
+                onVolumeChange={updateTrackVolume}
+                onToggleMute={toggleMute}
+              />
+            </div>
+          </div>
         </div>
       </div>
       
