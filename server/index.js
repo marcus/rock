@@ -63,7 +63,10 @@ app.get('/api/sound-packs/:id/sounds', async (req, res) => {
   try {
     const { id } = req.params
     const sounds = await database.query(`
-      SELECT * FROM sounds WHERE sound_pack_id = ? ORDER BY drum_type
+      SELECT s.* FROM sounds s 
+      JOIN sound_packs_sounds sps ON s.id = sps.sound_id 
+      WHERE sps.sound_pack_id = ? 
+      ORDER BY s.drum_type
     `, [id])
     res.json(sounds)
   } catch (error) {
@@ -75,16 +78,87 @@ app.get('/api/sound-packs/:id/sounds', async (req, res) => {
 // Get sounds for default sound pack
 app.get('/api/sounds/default', async (req, res) => {
   try {
+    console.log('Fetching default sounds...')
     const sounds = await database.query(`
       SELECT s.* FROM sounds s 
-      JOIN sound_packs sp ON s.sound_pack_id = sp.id 
+      JOIN sound_packs_sounds sps ON s.id = sps.sound_id 
+      JOIN sound_packs sp ON sps.sound_pack_id = sp.id 
       WHERE sp.is_default = 1 
       ORDER BY s.drum_type
     `)
+    console.log(`Found ${sounds.length} default sounds`)
     res.json(sounds)
   } catch (error) {
     console.error('Error fetching default sounds:', error)
+    console.error('Error details:', error.message)
     res.status(500).json({ error: 'Failed to fetch default sounds' })
+  }
+})
+
+// Get all sound packs for a specific sound
+app.get('/api/sounds/:id/sound-packs', async (req, res) => {
+  try {
+    const { id } = req.params
+    const soundPacks = await database.query(`
+      SELECT sp.*, c.name as category_name 
+      FROM sound_packs sp 
+      LEFT JOIN categories c ON sp.category_id = c.id 
+      JOIN sound_packs_sounds sps ON sp.id = sps.sound_pack_id 
+      WHERE sps.sound_id = ? 
+      ORDER BY sp.is_default DESC, sp.created_at DESC
+    `, [id])
+    res.json(soundPacks)
+  } catch (error) {
+    console.error('Error fetching sound packs for sound:', error)
+    res.status(500).json({ error: 'Failed to fetch sound packs for sound' })
+  }
+})
+
+// Add a sound to a sound pack
+app.post('/api/sound-packs/:packId/sounds/:soundId', async (req, res) => {
+  try {
+    const { packId, soundId } = req.params
+    
+    // Check if relationship already exists
+    const existing = await database.get(`
+      SELECT 1 FROM sound_packs_sounds 
+      WHERE sound_pack_id = ? AND sound_id = ?
+    `, [packId, soundId])
+    
+    if (existing) {
+      return res.status(409).json({ error: 'Sound is already in this sound pack' })
+    }
+    
+    await database.run(`
+      INSERT INTO sound_packs_sounds (sound_pack_id, sound_id)
+      VALUES (?, ?)
+    `, [packId, soundId])
+    
+    res.json({ message: 'Sound added to sound pack successfully' })
+  } catch (error) {
+    console.error('Error adding sound to sound pack:', error)
+    res.status(500).json({ error: 'Failed to add sound to sound pack' })
+  }
+})
+
+// Remove a sound from a sound pack
+app.delete('/api/sound-packs/:packId/sounds/:soundId', async (req, res) => {
+  try {
+    const { packId, soundId } = req.params
+    
+    const result = await database.run(`
+      DELETE FROM sound_packs_sounds 
+      WHERE sound_pack_id = ? AND sound_id = ?
+    `, [packId, soundId])
+    
+    if (result.changes === 0) {
+      return res.status(404).json({ error: 'Sound not found in this sound pack' })
+    }
+    
+    res.json({ message: 'Sound removed from sound pack successfully' })
+  } catch (error) {
+    console.error('Error removing sound from sound pack:', error)
+    res.status(500).json({ error: 'Failed to remove sound from sound pack' })
   }
 })
 

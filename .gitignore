@@ -6,6 +6,10 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
+# Database
+server/db/roysrock.db
+server/db/*.db
+
 # Build outputs
 dist/
 build/

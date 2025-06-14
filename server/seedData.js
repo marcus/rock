@@ -218,23 +218,28 @@ export async function seedDefaultSoundPack() {
 
     const soundPackId = packResult.lastID
 
-    // Insert all default sounds
+    // Insert all default sounds and create relationships
     for (const sound of defaultSounds) {
-      await database.run(`
+      const soundResult = await database.run(`
         INSERT INTO sounds (
           name, type, synthesis_params, synthesis_engine, 
-          sound_pack_id, drum_type, energy_level, color
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+          drum_type, energy_level, color
+        ) VALUES (?, ?, ?, ?, ?, ?, ?)
       `, [
         sound.name,
         sound.type,
         sound.synthesis_params,
         sound.synthesis_engine,
-        soundPackId,
         sound.drum_type,
         sound.energy_level,
         sound.color
       ])
+
+      // Create the relationship in the join table
+      await database.run(`
+        INSERT INTO sound_packs_sounds (sound_pack_id, sound_id)
+        VALUES (?, ?)
+      `, [soundPackId, soundResult.lastID])
     }
 
     console.log(`Successfully created default sound pack with ${defaultSounds.length} sounds`)

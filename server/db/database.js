@@ -2,6 +2,7 @@ import sqlite3 from 'sqlite3'
 import { readFileSync } from 'fs'
 import { join, dirname } from 'path'
 import { fileURLToPath } from 'url'
+import { MigrationRunner } from './migrations.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
@@ -36,6 +37,24 @@ class Database {
   }
 
   async runMigrations() {
+    // First, check if this is a fresh database by looking for any tables
+    const tables = await this.query(`
+      SELECT name FROM sqlite_master 
+      WHERE type='table' AND name NOT LIKE 'sqlite_%'
+    `)
+    
+    // If no tables exist, run the initial schema
+    if (tables.length === 0) {
+      console.log('Fresh database detected, running initial schema...')
+      await this.runInitialSchema()
+    }
+    
+    // Then run any pending migrations
+    const migrationRunner = new MigrationRunner(this)
+    await migrationRunner.runMigrations()
+  }
+
+  async runInitialSchema() {
     return new Promise((resolve, reject) => {
       // Read and execute the schema file
       const schemaPath = join(__dirname, './schema.sql')
@@ -43,10 +62,10 @@ class Database {
       
       this.db.exec(schema, (err) => {
         if (err) {
-          console.error('Error running migrations:', err.message)
+          console.error('Error running initial schema:', err.message)
           reject(err)
         } else {
-          console.log('Database migrations completed')
+          console.log('Initial schema completed')
           resolve()
         }
       })
