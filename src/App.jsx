@@ -3,7 +3,7 @@ import './App.css'
 import TrackManager from './components/TrackManager'
 import Controls from './components/Controls'
 import MasterVolumeControl from './components/MasterVolumeControl'
-import { initAudio } from './utils/audioUtils'
+import { initAudio, setMasterMute } from './utils/audioUtils'
 import { drumSoundsInstance } from './utils/audio/DrumSoundsAPI'
 import useAppStore from './store/useAppStore'
 import * as Tone from 'tone'
@@ -160,6 +160,9 @@ function App() {
       masterGainRef.current = masterGain
       masterGain.gain.value = masterMuted ? 0 : masterVolume / 100
 
+      // Sync the AudioEngine with the current master mute state
+      await setMasterMute(masterMuted)
+
       if (audioContext.state === 'suspended') {
         await audioContext.resume()
       }
@@ -213,12 +216,11 @@ function App() {
     }
   }
 
-  const handleMasterMute = () => {
+  const handleMasterMute = async () => {
+    // Toggle the store state first
     toggleMasterMute()
-    if (masterGainRef.current) {
-      const newMuted = !masterMuted
-      masterGainRef.current.gain.value = newMuted ? 0 : masterVolume / 100
-    }
+    // Then sync with the AudioEngine
+    await setMasterMute(!masterMuted)
   }
 
   return (

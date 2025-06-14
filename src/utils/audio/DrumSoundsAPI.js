@@ -421,12 +421,14 @@ export class DrumSoundsAPI {
       console.log(`Full synthesis params for ${soundName}:`, JSON.stringify(synthParams, null, 2))
 
       if (synthParams.synthType === 'MembraneSynth') {
-        const synth = new Tone.MembraneSynth(synthParams.config).toDestination()
+        const synth = new Tone.MembraneSynth(synthParams.config).connect(
+          audioEngine.getDestination()
+        )
         synth.volume.value = Tone.gainToDb(volume)
         synth.triggerAttackRelease(synthParams.note, synthParams.duration)
         setTimeout(() => synth.dispose(), synthParams.cleanup_delay)
       } else if (synthParams.synthType === 'NoiseSynth') {
-        const synth = new Tone.NoiseSynth(synthParams.config).toDestination()
+        const synth = new Tone.NoiseSynth(synthParams.config).connect(audioEngine.getDestination())
         synth.volume.value = Tone.gainToDb(volume)
 
         if (synthParams.filter) {
@@ -448,7 +450,7 @@ export class DrumSoundsAPI {
             type: synthParams.filter.type,
             Q: filterQ,
             rolloff: rolloff,
-          }).toDestination()
+          }).connect(audioEngine.getDestination())
           synth.connect(filter)
 
           synth.triggerAttackRelease(synthParams.duration)
@@ -471,8 +473,12 @@ export class DrumSoundsAPI {
         }
       } else if (synthParams.synthType === 'Dual') {
         // For cowbell - dual synth setup
-        const synth1 = new Tone.Synth(synthParams.synth1.config).toDestination()
-        const synth2 = new Tone.Synth(synthParams.synth2.config).toDestination()
+        const synth1 = new Tone.Synth(synthParams.synth1.config).connect(
+          audioEngine.getDestination()
+        )
+        const synth2 = new Tone.Synth(synthParams.synth2.config).connect(
+          audioEngine.getDestination()
+        )
 
         synth1.volume.value = Tone.gainToDb(volume)
         synth2.volume.value = Tone.gainToDb(volume)
@@ -505,14 +511,14 @@ export class DrumSoundsAPI {
           type: synthParams.synth1.filter.type,
           Q: filter1Q,
           rolloff: filter1Rolloff,
-        }).toDestination()
+        }).connect(audioEngine.getDestination())
 
         const filter2 = new Tone.Filter({
           frequency: synthParams.synth2.filter.frequency,
           type: synthParams.synth2.filter.type,
           Q: filter2Q,
           rolloff: filter2Rolloff,
-        }).toDestination()
+        }).connect(audioEngine.getDestination())
 
         synth1.connect(filter1)
         synth2.connect(filter2)
@@ -534,7 +540,7 @@ export class DrumSoundsAPI {
       // Try to create a fallback simple synth
       try {
         console.log(`Creating fallback synth for ${soundName}`)
-        const fallbackSynth = new Tone.Synth().toDestination()
+        const fallbackSynth = new Tone.Synth().connect(audioEngine.getDestination())
         fallbackSynth.volume.value = Tone.gainToDb(volume)
         fallbackSynth.triggerAttackRelease('C4', '8n')
         setTimeout(() => fallbackSynth.dispose(), 1000)
@@ -602,13 +608,15 @@ export class DrumSoundsAPI {
       const synthParams = JSON.parse(soundData.synthesis_params)
 
       if (synthParams.synthType === 'MembraneSynth') {
-        const synth = new Tone.MembraneSynth(synthParams.config).toDestination()
+        const synth = new Tone.MembraneSynth(synthParams.config).connect(
+          audioEngine.getDestination()
+        )
         synth.volume.value = Tone.gainToDb(volume)
         // Schedule the attack at the exact time
         synth.triggerAttackRelease(synthParams.note, synthParams.duration, time)
         setTimeout(() => synth.dispose(), synthParams.cleanup_delay)
       } else if (synthParams.synthType === 'NoiseSynth') {
-        const synth = new Tone.NoiseSynth(synthParams.config).toDestination()
+        const synth = new Tone.NoiseSynth(synthParams.config).connect(audioEngine.getDestination())
         synth.volume.value = Tone.gainToDb(volume)
 
         if (synthParams.filter) {
@@ -627,7 +635,7 @@ export class DrumSoundsAPI {
             type: synthParams.filter.type,
             Q: filterQ,
             rolloff: rolloff,
-          }).toDestination()
+          }).connect(audioEngine.getDestination())
           synth.connect(filter)
 
           // Schedule the attack at the exact time
@@ -652,8 +660,12 @@ export class DrumSoundsAPI {
         }
       } else if (synthParams.synthType === 'Dual') {
         // For cowbell - dual synth setup
-        const synth1 = new Tone.Synth(synthParams.synth1.config).toDestination()
-        const synth2 = new Tone.Synth(synthParams.synth2.config).toDestination()
+        const synth1 = new Tone.Synth(synthParams.synth1.config).connect(
+          audioEngine.getDestination()
+        )
+        const synth2 = new Tone.Synth(synthParams.synth2.config).connect(
+          audioEngine.getDestination()
+        )
 
         synth1.volume.value = Tone.gainToDb(volume)
         synth2.volume.value = Tone.gainToDb(volume)
@@ -684,14 +696,14 @@ export class DrumSoundsAPI {
           type: synthParams.synth1.filter.type,
           Q: filter1Q,
           rolloff: filter1Rolloff,
-        }).toDestination()
+        }).connect(audioEngine.getDestination())
 
         const filter2 = new Tone.Filter({
           frequency: synthParams.synth2.filter.frequency,
           type: synthParams.synth2.filter.type,
           Q: filter2Q,
           rolloff: filter2Rolloff,
-        }).toDestination()
+        }).connect(audioEngine.getDestination())
 
         synth1.connect(filter1)
         synth2.connect(filter2)
@@ -712,7 +724,7 @@ export class DrumSoundsAPI {
 
       // Try to create a fallback simple synth with scheduled timing
       try {
-        const fallbackSynth = new Tone.Synth().toDestination()
+        const fallbackSynth = new Tone.Synth().connect(audioEngine.getDestination())
         fallbackSynth.volume.value = Tone.gainToDb(volume)
         fallbackSynth.triggerAttackRelease('C4', '8n', time)
         setTimeout(() => fallbackSynth.dispose(), 1000)

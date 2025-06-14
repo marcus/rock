@@ -22,10 +22,15 @@ export async function initAudio() {
     masterGain: {
       gain: {
         get value() {
-          return audioEngine.getMasterVolume()
+          return audioEngine.getMasterMute() ? 0 : audioEngine.getMasterVolume()
         },
         set value(vol) {
-          audioEngine.setMasterVolume(vol)
+          if (vol === 0) {
+            audioEngine.setMasterMute(true)
+          } else {
+            audioEngine.setMasterMute(false)
+            audioEngine.setMasterVolume(vol)
+          }
         },
       },
       connect: () => {},
@@ -51,6 +56,21 @@ export async function playCustomSample(name, options = {}) {
 export async function setMasterVolume(volume) {
   const { audioEngine } = await import('./AudioEngine.js')
   audioEngine.setMasterVolume(volume)
+}
+
+export async function setMasterMute(muted) {
+  const { audioEngine } = await import('./AudioEngine.js')
+  audioEngine.setMasterMute(muted)
+}
+
+export async function getMasterMute() {
+  const { audioEngine } = await import('./AudioEngine.js')
+  return audioEngine.getMasterMute()
+}
+
+export async function toggleMasterMute() {
+  const { audioEngine } = await import('./AudioEngine.js')
+  return audioEngine.toggleMasterMute()
 }
 
 // File validation utilities
