@@ -9,7 +9,10 @@
     "backend": "node server/index.js",
     "build": "vite build",
     "lint": "eslint . --ext js,jsx --report-unused-disable-directives --max-warnings 0",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test": "NODE_OPTIONS='--experimental-vm-modules' jest",
+    "test:watch": "NODE_OPTIONS='--experimental-vm-modules' jest --watch",
+    "test:coverage": "NODE_OPTIONS='--experimental-vm-modules' jest --coverage"
   },
   "dependencies": {
     "concurrently": "^9.1.2",
@@ -17,7 +20,6 @@
     "express": "^5.1.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "sqlite3": "^5.1.7",
     "tone": "^15.1.22"
   },
   "devDependencies": {
@@ -28,6 +30,9 @@
     "eslint-plugin-react": "^7.34.1",
     "eslint-plugin-react-hooks": "^4.6.0",
     "eslint-plugin-react-refresh": "^0.4.6",
+    "jest": "^30.0.0",
+    "sqlite3": "^5.1.7",
+    "supertest": "^7.1.1",
     "vite": "^5.2.0"
   }
 }
