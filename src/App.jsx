@@ -2,8 +2,6 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import './App.css'
 import SequencerGrid from './components/SequencerGrid'
 import Controls from './components/Controls'
-import TrackLabels from './components/TrackLabels'
-import VolumeControls from './components/VolumeControls'
 import MasterVolumeControl from './components/MasterVolumeControl'
 import { initAudio, drumSounds, soundNames } from './utils/audioUtils'
 import * as Tone from 'tone'
@@ -233,26 +231,21 @@ function App() {
           />
           
           <div className="grid-container">
-            <TrackLabels />
-            <SequencerGrid 
-              pattern={pattern.steps}
-              currentStep={isPlaying ? currentStep : -1}
-              onToggleStep={toggleStep}
-            />
-            <div className="volume-controls-container">
-                          <MasterVolumeControl 
+            <MasterVolumeControl 
               masterVolume={masterVolume}
               masterMuted={masterMuted}
               onVolumeChange={updateMasterVolume}
               onToggleMute={toggleMasterMute}
             />
-              <VolumeControls 
-                volumes={pattern.volumes}
-                muted={pattern.muted}
-                onVolumeChange={updateTrackVolume}
-                onToggleMute={toggleMute}
-              />
-            </div>
+            <SequencerGrid 
+              pattern={pattern.steps}
+              currentStep={isPlaying ? currentStep : -1}
+              onToggleStep={toggleStep}
+              volumes={pattern.volumes}
+              muted={pattern.muted}
+              onVolumeChange={updateTrackVolume}
+              onToggleMute={toggleMute}
+            />
           </div>
         </div>
       </div>

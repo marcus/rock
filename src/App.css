@@ -222,8 +222,7 @@ input[type="range"]::-moz-range-thumb {
 .master-volume-control {
     position: absolute;
     top: -4vh;
-    left: 50%;
-    transform: translateX(-50%);
+    right: 4vw;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -298,17 +297,12 @@ input[type="range"]::-moz-range-thumb {
 
 .grid-container {
     display: flex;
-    gap: 1.5vw;
+    flex-direction: column;
+    gap: 1vh;
     justify-content: center;
     flex: 1;
-    align-items: flex-start;
-}
-
-@media (max-width: 768px) {
-    .grid-container {
-        flex-direction: column;
-        gap: 1vh;
-    }
+    align-items: center;
+    position: relative;
 }
 
 .track-labels {
@@ -327,8 +321,8 @@ input[type="range"]::-moz-range-thumb {
     }
 }
 
-.track-label {
-    height: 4vh;
+.sequencer-row .track-label {
+    height: 100%;
     width: 8vw;
     display: flex;
     align-items: center;
@@ -342,8 +336,7 @@ input[type="range"]::-moz-range-thumb {
 }
 
 @media (max-width: 768px) {
-    .track-label {
-        height: 3vh;
+    .sequencer-row .track-label {
         width: auto;
         padding: 0 1vw;
         min-width: 8vw;
@@ -352,33 +345,68 @@ input[type="range"]::-moz-range-thumb {
 }
 
 .sequencer-grid {
-    display: grid;
-    grid-template-columns: repeat(16, 3.5vw);
-    grid-template-rows: repeat(8, 4vh);
-    gap: 0.3vw;
+    display: flex;
+    flex-direction: column;
+    gap: 0.3vh;
     border: 0.3vw solid #000;
     padding: 0.8vw;
     background-color: #FFF;
     position: relative;
 }
 
+.sequencer-grid::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 4vw;
+    width: 12vw;
+    height: 0;
+    pointer-events: none;
+}
+
+.sequencer-row {
+    display: flex;
+    align-items: center;
+    gap: 1vw;
+    height: 4vh;
+}
+
 @media (max-width: 768px) {
-    .sequencer-grid {
-        grid-template-columns: repeat(16, 5vw);
-        grid-template-rows: repeat(8, 3vh);
+    .sequencer-row {
+        height: 3vh;
+        gap: 0.5vw;
+    }
+}
+
+.step-row {
+    display: flex;
+    gap: 0.3vw;
+    flex: 1;
+    justify-content: center;
+}
+
+@media (max-width: 768px) {
+    .step-row {
         gap: 0.2vw;
-        padding: 0.5vw;
     }
 }
 
 .step-button {
-    width: 100%;
-    height: 100%;
+    width: 3.5vw;
+    height: 3.5vh;
     border: 0.2vw solid #000;
     background-color: #FFFEF0;
     cursor: pointer;
     position: relative;
     transition: all 0.1s;
+    flex-shrink: 0;
+}
+
+@media (max-width: 768px) {
+    .step-button {
+        width: 5vw;
+        height: 2.5vh;
+    }
 }
 
 .step-button:hover {
@@ -402,10 +430,7 @@ input[type="range"]::-moz-range-thumb {
     100% { transform: scale(1); }
 }
 
-.step-button:nth-child(16n+1),
-.step-button:nth-child(16n+5),
-.step-button:nth-child(16n+9),
-.step-button:nth-child(16n+13) {
+.step-button:nth-child(4n+1) {
     border-left: 0.4vw solid #000;
 }
 
@@ -425,32 +450,30 @@ input[type="range"]::-moz-range-thumb {
     }
 }
 
-.volume-slider {
-    height: 4vh;
+.sequencer-row .volume-slider {
+    height: 100%;
     display: flex;
     align-items: center;
     gap: 0.5vw;
     padding: 0 0.5vw;
+    flex-shrink: 0;
 }
 
 @media (max-width: 768px) {
-    .volume-slider {
-        height: 3vh;
-        flex-direction: column;
-        gap: 0.2vh;
-        padding: 0;
+    .sequencer-row .volume-slider {
+        gap: 0.3vw;
+        padding: 0 0.3vw;
     }
 }
 
-.volume-slider input {
+.sequencer-row .volume-slider input {
     width: 8vw;
-    flex-grow: 1;
+    flex-shrink: 0;
 }
 
 @media (max-width: 768px) {
-    .volume-slider input {
-        width: 8vw;
-        min-width: 6vw;
+    .sequencer-row .volume-slider input {
+        width: 6vw;
     }
 }
 
