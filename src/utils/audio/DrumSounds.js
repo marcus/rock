@@ -1,10 +1,25 @@
 import * as Tone from 'tone'
 import { audioEngine } from './AudioEngine.js'
+import { sampleLoader } from './SampleLoader.js'
+import { SAMPLE_PATHS, SAMPLE_PREFERENCES } from './samplePaths.js'
 
 export class DrumSounds {
   constructor() {
     this.instruments = new Map()
+    this.samplesLoaded = false
     this.initializeInstruments()
+    this.loadSamples()
+  }
+
+  async loadSamples() {
+    try {
+      await sampleLoader.loadSamples(SAMPLE_PATHS)
+      this.samplesLoaded = true
+      console.log('Audio samples loaded successfully')
+    } catch (error) {
+      console.warn('Some audio samples failed to load, using synthesis fallback:', error)
+      this.samplesLoaded = true // Still mark as loaded to avoid infinite loading
+    }
   }
 
   initializeInstruments() {
@@ -83,7 +98,7 @@ export class DrumSounds {
         noise: { type: 'white' },
         envelope: { attack: 0.001, decay: 1.5, sustain: 0 }
       }).connect(audioEngine.getDestination())
-      
+      // Tone.filter args: frequency, type, Q
       const filter = new Tone.Filter(3000, 'highpass').connect(audioEngine.getDestination())
       crash.connect(filter)
       
@@ -174,24 +189,62 @@ export class DrumSounds {
   async playSound(soundName, options = {}) {
     await audioEngine.ensureInitialized()
     
-    const instrument = this.instruments.get(soundName)
-    if (!instrument) {
-      console.warn(`Drum sound ${soundName} not found`)
+    // Wait for samples to load if they haven't yet
+    while (!this.samplesLoaded) {
+      await new Promise(resolve => setTimeout(resolve, 50))
+    }
+
+    // Check if we should use a sample or synthesis
+    const preference = SAMPLE_PREFERENCES[soundName] || 'synth'
+    const hasSample = sampleLoader.hasSample(soundName)
+    
+    if (preference === 'sample' && hasSample) {
+      // Play sample
+      this.playSample(soundName, options)
+    } else {
+      // Play synthesized sound
+      const instrument = this.instruments.get(soundName)
+      if (!instrument) {
+        console.warn(`Drum sound ${soundName} not found`)
+        return
+      }
+
+      // Apply volume if specified
+      if (options.volume !== undefined) {
+        const currentVolume = audioEngine.getMasterVolume()
+        audioEngine.setMasterVolume(options.volume)
+        
+        // Reset volume after a short delay
+        setTimeout(() => {
+          audioEngine.setMasterVolume(currentVolume)
+        }, 100)
+      }
+
+      instrument()
+    }
+  }
+
+  playSample(soundName, options = {}) {
+    const sample = sampleLoader.getSample(soundName)
+    if (!sample) {
+      console.warn(`Sample ${soundName} not loaded, falling back to synthesis`)
+      const instrument = this.instruments.get(soundName)
+      if (instrument) instrument()
       return
     }
 
-    // Apply volume if specified
-    if (options.volume !== undefined) {
-      const currentVolume = audioEngine.getMasterVolume()
-      audioEngine.setMasterVolume(options.volume)
-      
-      // Reset volume after a short delay
-      setTimeout(() => {
-        audioEngine.setMasterVolume(currentVolume)
-      }, 100)
-    }
+    // Create a new player instance for this playback to avoid conflicts
+    const player = new Tone.Player({
+      url: sample.buffer,
+      volume: options.volume !== undefined ? Tone.gainToDb(options.volume) : 0
+    }).connect(audioEngine.getDestination())
 
-    instrument()
+    player.start()
+    
+    // Clean up after playback
+    setTimeout(() => {
+      player.dispose()
+    }, 3000)
   }
 
   getSoundNames() {
@@ -209,12 +262,12 @@ export const soundNames = drumSoundsInstance.getSoundNames()
 
 // Legacy compatibility object - matches the old API exactly
 export const drumSounds = {
-  kick: (audioContext, outputGain) => drumSoundsInstance.playSound('kick'),
-  snare: (audioContext, outputGain) => drumSoundsInstance.playSound('snare'),
-  hatClosed: (audioContext, outputGain) => drumSoundsInstance.playSound('hatClosed'),
-  hatOpen: (audioContext, outputGain) => drumSoundsInstance.playSound('hatOpen'),
-  crash: (audioContext, outputGain) => drumSoundsInstance.playSound('crash'),
-  clap: (audioContext, outputGain) => drumSoundsInstance.playSound('clap'),
-  cowbell: (audioContext, outputGain) => drumSoundsInstance.playSound('cowbell'),
-  tom: (audioContext, outputGain) => drumSoundsInstance.playSound('tom')
+  kick: () => drumSoundsInstance.playSound('kick'),
+  snare: () => drumSoundsInstance.playSound('snare'),
+  hatClosed: () => drumSoundsInstance.playSound('hatClosed'),
+  hatOpen: () => drumSoundsInstance.playSound('hatOpen'),
+  crash: () => drumSoundsInstance.playSound('crash'),
+  clap: () => drumSoundsInstance.playSound('clap'),
+  cowbell: () => drumSoundsInstance.playSound('cowbell'),
+  tom: () => drumSoundsInstance.playSound('tom')
 } 
