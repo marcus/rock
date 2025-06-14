@@ -7,7 +7,9 @@ export default {
     '**/tests/**/*.test.js',
     '**/tests/**/*.spec.js',
     '**/__tests__/**/*.test.jsx',
-    '**/__tests__/**/*.spec.jsx'
+    '**/__tests__/**/*.spec.jsx',
+    '**/__tests__/**/*.test.js',
+    '**/__tests__/**/*.spec.js'
   ],
   collectCoverageFrom: [
     'server/**/*.js',

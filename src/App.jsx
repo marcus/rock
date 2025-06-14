@@ -1,29 +1,37 @@
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useEffect, useRef, useCallback } from 'react'
 import './App.css'
 import TrackManager from './components/TrackManager'
 import Controls from './components/Controls'
 import MasterVolumeControl from './components/MasterVolumeControl'
 import { initAudio } from './utils/audioUtils'
 import { drumSoundsInstance } from './utils/audio/DrumSoundsAPI'
+import useAppStore from './store/useAppStore'
 import * as Tone from 'tone'
 
 function App() {
-  // Track management state
-  const [tracks, setTracks] = useState([])
-  const [pattern, setPattern] = useState({
-    steps: [],
-    tempo: 120,
-    volumes: [],
-    muted: []
-  })
-  
-  // Playback state
-  const [isPlaying, setIsPlaying] = useState(false)
-  const [currentStep, setCurrentStep] = useState(0)
-  const [tempo, setTempo] = useState(120)
-  const [masterVolume, setMasterVolume] = useState(80)
-  const [masterMuted, setMasterMuted] = useState(false)
-  
+  // Zustand store state and actions
+  const {
+    tracks,
+    pattern,
+    isPlaying,
+    currentStep,
+    tempo,
+    masterVolume,
+    masterMuted,
+    addTrack,
+    removeTrack,
+    toggleStep,
+    clearPattern,
+    updateTempo,
+    updateMasterVolume,
+    toggleMasterMute,
+    updateTrackVolume,
+    toggleMute,
+    setIsPlaying,
+    setCurrentStep,
+    initializeApp
+  } = useAppStore()
+
   // Audio refs
   const audioContextRef = useRef(null)
   const masterGainRef = useRef(null)
@@ -35,40 +43,8 @@ function App() {
 
   // Initialize app with default tracks
   useEffect(() => {
-    const initializeApp = async () => {
-      // Initialize drum sounds API early
-      await drumSoundsInstance.initialize()
-      
-      // Get default sounds and create initial tracks
-      const defaultSounds = drumSoundsInstance.getAllSounds()
-      const initialTracks = defaultSounds.slice(0, 8) // Start with first 8 sounds
-      
-      setTracks(initialTracks)
-      
-      // Set up default pattern for initial tracks
-      const defaultPattern = {
-        steps: initialTracks.map(() => Array(16).fill(false)),
-        tempo: 120,
-        volumes: initialTracks.map(() => 0.8),
-        muted: initialTracks.map(() => false)
-      }
-      
-      // Add some default beats
-      if (defaultPattern.steps.length > 0) {
-        defaultPattern.steps[0] = [true, false, false, false, true, false, false, false, true, false, false, false, true, false, false, false]
-      }
-      if (defaultPattern.steps.length > 1) {
-        defaultPattern.steps[1] = [false, false, false, false, true, false, false, false, false, false, false, false, true, false, false, false]
-      }
-      if (defaultPattern.steps.length > 2) {
-        defaultPattern.steps[2] = [false, false, true, false, false, false, true, false, false, false, true, false, false, false, true, false]
-      }
-      
-      setPattern(defaultPattern)
-    }
-    
     initializeApp()
-  }, [])
+  }, [initializeApp])
 
   // Sync refs with state
   useEffect(() => {
@@ -107,59 +83,13 @@ function App() {
     }
   }, [])
 
-  // Add new track
+  // Track management handlers
   const handleAddTrack = async (soundData) => {
-    if (tracks.length >= 40) return
-    
-    // Add sound to DrumSoundsAPI
-    const success = await drumSoundsInstance.addSound(soundData)
-    if (!success) return
-    
-    const newTracks = [...tracks, soundData]
-    setTracks(newTracks)
-    
-    // Extend pattern arrays
-    setPattern(prev => ({
-      ...prev,
-      steps: [...prev.steps, Array(16).fill(false)],
-      volumes: [...prev.volumes, 0.8],
-      muted: [...prev.muted, false]
-    }))
+    return await addTrack(soundData)
   }
 
-  // Remove track
   const handleRemoveTrack = (trackIndex) => {
-    if (tracks.length <= 1) return // Keep at least one track
-    
-    const trackToRemove = tracks[trackIndex]
-    const newTracks = tracks.filter((_, index) => index !== trackIndex)
-    
-    // Remove the sound from DrumSoundsAPI
-    if (trackToRemove) {
-      drumSoundsInstance.removeSound(trackToRemove)
-    }
-    
-    setTracks(newTracks)
-    
-    // Remove from pattern arrays
-    setPattern(prev => ({
-      ...prev,
-      steps: prev.steps.filter((_, index) => index !== trackIndex),
-      volumes: prev.volumes.filter((_, index) => index !== trackIndex),
-      muted: prev.muted.filter((_, index) => index !== trackIndex)
-    }))
-  }
-
-  const toggleStep = (row, col) => {
-    setPattern(prev => {
-      const newPattern = { ...prev }
-      newPattern.steps = prev.steps.map((stepRow, rowIndex) => 
-        rowIndex === row 
-          ? stepRow.map((step, colIndex) => colIndex === col ? !step : step)
-          : [...stepRow]
-      )
-      return newPattern
-    })
+    removeTrack(trackIndex)
   }
 
   const playStep = useCallback((step, time) => {
@@ -202,7 +132,7 @@ function App() {
     }, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15], "16n")
 
     toneSequenceRef.current.start(0)
-  }, [playStep])
+  }, [playStep, setCurrentStep])
 
   const togglePlayback = async () => {
     // Ensure drumSoundsInstance is initialized before playback
@@ -263,16 +193,8 @@ function App() {
     }
   }
 
-  const clearPattern = () => {
-    setPattern(prev => ({
-      ...prev,
-      steps: prev.steps.map(() => Array(16).fill(false))
-    }))
-  }
-
-  const updateTempo = (newTempo) => {
-    setTempo(newTempo)
-    setPattern(prev => ({ ...prev, tempo: newTempo }))
+  const handleTempoChange = (newTempo) => {
+    updateTempo(newTempo)
     
     // Update Tone.js transport tempo if playing
     if (isPlaying) {
@@ -280,37 +202,19 @@ function App() {
     }
   }
 
-  const updateMasterVolume = (volume) => {
-    setMasterVolume(volume)
+  const handleMasterVolumeChange = (volume) => {
+    updateMasterVolume(volume)
     if (masterGainRef.current) {
       masterGainRef.current.gain.value = masterMuted ? 0 : volume / 100
     }
   }
 
-  const toggleMasterMute = () => {
-    const newMuted = !masterMuted
-    setMasterMuted(newMuted)
+  const handleMasterMute = () => {
+    toggleMasterMute()
     if (masterGainRef.current) {
+      const newMuted = !masterMuted
       masterGainRef.current.gain.value = newMuted ? 0 : masterVolume / 100
     }
-  }
-
-  const updateTrackVolume = (track, volume) => {
-    setPattern(prev => ({
-      ...prev,
-      volumes: prev.volumes.map((vol, index) => 
-        index === track ? volume / 100 : vol
-      )
-    }))
-  }
-
-  const toggleMute = (track) => {
-    setPattern(prev => ({
-      ...prev,
-      muted: prev.muted.map((muted, index) => 
-        index === track ? !muted : muted
-      )
-    }))
   }
 
   return (
@@ -327,7 +231,7 @@ function App() {
             isPlaying={isPlaying}
             tempo={tempo}
             onTogglePlayback={togglePlayback}
-            onTempoChange={updateTempo}
+            onTempoChange={handleTempoChange}
             onClear={clearPattern}
           />
           
@@ -336,8 +240,8 @@ function App() {
               <MasterVolumeControl 
                 masterVolume={masterVolume}
                 masterMuted={masterMuted}
-                onVolumeChange={updateMasterVolume}
-                onToggleMute={toggleMasterMute}
+                onVolumeChange={handleMasterVolumeChange}
+                onToggleMute={handleMasterMute}
               />
               <TrackManager
                 tracks={tracks}
