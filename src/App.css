@@ -27,7 +27,7 @@ body {
     max-width: none;
     display: flex;
     flex-direction: column;
-    justify-content: center;
+    justify-content: top;
     align-items: center;
     gap: 2vh;
     position: relative;
@@ -90,7 +90,6 @@ body {
 .sequencer-section {
     display: flex;
     flex-direction: column;
-    align-items: center;
     gap: 1vh;
 }
 
@@ -98,9 +97,10 @@ body {
     display: flex;
     gap: 2vw;
     flex-wrap: nowrap;
-    justify-content: center;
+    justify-content: left;
     align-items: flex-end;
     flex-shrink: 0;
+    margin-left: 10vw;
 }
 
 .control-group {
@@ -191,6 +191,7 @@ input[type="range"]::-moz-range-thumb {
     align-items: center;
     gap: 0.5vw;
     white-space: nowrap;
+    margin-bottom: 1vh;
 }
 
 .tempo-label {
@@ -221,8 +222,10 @@ input[type="range"]::-moz-range-thumb {
 
 .master-volume-control {
     position: absolute;
-    top: -4vh;
-    right: 4vw;
+    top: -5vh;
+    margin-right: 3vw;
+    right: 0;
+    width: 9vw;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -246,8 +249,8 @@ input[type="range"]::-moz-range-thumb {
 
 .master-volume-slider {
     background: #FF6B6B !important;
-    width: 6vw;
-    height: 0.8vh;
+    width: 8vw;
+    height: 0.6vh;
 }
 
 .master-mute-button {
@@ -302,7 +305,13 @@ input[type="range"]::-moz-range-thumb {
     justify-content: center;
     flex: 1;
     align-items: center;
+}
+
+.sequencer-with-master {
     position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
 
 .track-labels {
@@ -425,9 +434,17 @@ input[type="range"]::-moz-range-thumb {
 }
 
 @keyframes pulse {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.2); }
-    100% { transform: scale(1); }
+    0% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.2);
+    }
+
+    100% {
+        transform: scale(1);
+    }
 }
 
 .step-button:nth-child(4n+1) {

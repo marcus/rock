@@ -231,21 +231,23 @@ function App() {
           />
           
           <div className="grid-container">
-            <MasterVolumeControl 
-              masterVolume={masterVolume}
-              masterMuted={masterMuted}
-              onVolumeChange={updateMasterVolume}
-              onToggleMute={toggleMasterMute}
-            />
-            <SequencerGrid 
-              pattern={pattern.steps}
-              currentStep={isPlaying ? currentStep : -1}
-              onToggleStep={toggleStep}
-              volumes={pattern.volumes}
-              muted={pattern.muted}
-              onVolumeChange={updateTrackVolume}
-              onToggleMute={toggleMute}
-            />
+            <div className="sequencer-with-master">
+              <MasterVolumeControl 
+                masterVolume={masterVolume}
+                masterMuted={masterMuted}
+                onVolumeChange={updateMasterVolume}
+                onToggleMute={toggleMasterMute}
+              />
+              <SequencerGrid 
+                pattern={pattern.steps}
+                currentStep={isPlaying ? currentStep : -1}
+                onToggleStep={toggleStep}
+                volumes={pattern.volumes}
+                muted={pattern.muted}
+                onVolumeChange={updateTrackVolume}
+                onToggleMute={toggleMute}
+              />
+            </div>
           </div>
         </div>
       </div>
