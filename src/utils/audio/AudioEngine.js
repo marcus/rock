@@ -8,7 +8,7 @@ class AudioEngine {
 
   async initialize() {
     if (this.isInitialized) return
-    
+
     await Tone.start()
     this.isInitialized = true
     console.log('Audio engine initialized')
@@ -41,4 +41,4 @@ class AudioEngine {
 }
 
 // Singleton instance
-export const audioEngine = new AudioEngine() 
+export const audioEngine = new AudioEngine()

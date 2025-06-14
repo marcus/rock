@@ -35,12 +35,12 @@ class MockSoundGenerationService {
     // Mock response
     const timestamp = Date.now()
     const filename = `generated_${timestamp}.mp3`
-    
+
     return {
       filename,
       filePath: `/audio/${filename}`,
       prompt: validatedPrompt,
-      duration: validatedDuration
+      duration: validatedDuration,
     }
   }
 }
@@ -56,7 +56,9 @@ describe('Sound Generation API', () => {
     await database.initialize()
 
     // Create the Generated category if it doesn't exist
-    const existingCategory = await database.get('SELECT id FROM categories WHERE name = "Generated"')
+    const existingCategory = await database.get(
+      'SELECT id FROM categories WHERE name = "Generated"'
+    )
     if (!existingCategory) {
       await database.run(
         'INSERT INTO categories (name, description, color, sort_order) VALUES (?, ?, ?, ?)',
@@ -112,12 +114,15 @@ describe('Sound Generation API', () => {
         }
 
         // Insert the new sound into the database
-        const soundResult = await database.run(`
+        const soundResult = await database.run(
+          `
           INSERT INTO sounds (
             name, type, file_path, drum_type, is_generated, prompt,
             created_at, updated_at
           ) VALUES (?, 'sample', ?, ?, 1, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
-        `, [name, generatedSound.filePath, drumType, prompt])
+        `,
+          [name, generatedSound.filePath, drumType, prompt]
+        )
 
         // Add the sound to the sound pack (using sound_packs_sounds join table)
         await database.run(
@@ -126,18 +131,19 @@ describe('Sound Generation API', () => {
         )
 
         // Return the complete sound object
-        const newSound = await database.get('SELECT * FROM sounds WHERE id = ?', [soundResult.lastID])
+        const newSound = await database.get('SELECT * FROM sounds WHERE id = ?', [
+          soundResult.lastID,
+        ])
 
         res.json({
           ...newSound,
-          audioUrl: generatedSound.filePath
+          audioUrl: generatedSound.filePath,
         })
-
       } catch (error) {
         console.error('Error generating sound:', error)
-        res.status(500).json({ 
-          error: 'Failed to generate sound', 
-          details: error.message 
+        res.status(500).json({
+          error: 'Failed to generate sound',
+          details: error.message,
         })
       }
     })
@@ -157,7 +163,7 @@ describe('Sound Generation API', () => {
           prompt: 'Deep punchy kick drum with sub bass',
           duration: 0.8,
           name: 'Test Kick',
-          drumType: 'kick'
+          drumType: 'kick',
         })
         .expect(200)
 
@@ -166,7 +172,7 @@ describe('Sound Generation API', () => {
         type: 'sample',
         drum_type: 'kick',
         is_generated: 1,
-        prompt: 'Deep punchy kick drum with sub bass'
+        prompt: 'Deep punchy kick drum with sub bass',
       })
 
       expect(response.body.file_path).toMatch(/^\/audio\/generated_\d+\.mp3$/)
@@ -178,7 +184,7 @@ describe('Sound Generation API', () => {
         .post('/api/sounds/generate')
         .send({
           name: 'Test Sound',
-          drumType: 'snare'
+          drumType: 'snare',
         })
         .expect(400)
 
@@ -190,7 +196,7 @@ describe('Sound Generation API', () => {
         .post('/api/sounds/generate')
         .send({
           prompt: 'Test prompt',
-          drumType: 'snare'
+          drumType: 'snare',
         })
         .expect(400)
 
@@ -202,7 +208,7 @@ describe('Sound Generation API', () => {
         .post('/api/sounds/generate')
         .send({
           prompt: 'Test prompt',
-          name: 'Test Sound'
+          name: 'Test Sound',
         })
         .expect(400)
 
@@ -211,26 +217,26 @@ describe('Sound Generation API', () => {
 
     it('should validate prompt length', async () => {
       const longPrompt = 'a'.repeat(301) // Exceeds 300 character limit
-      
+
       const response = await request(app)
         .post('/api/sounds/generate')
         .send({
           prompt: longPrompt,
           name: 'Test Sound',
-          drumType: 'kick'
+          drumType: 'kick',
         })
         .expect(500)
 
       expect(response.body.details).toBe('Prompt must be 300 characters or less')
     })
 
-    it('should create Generated Sounds pack if it doesn\'t exist', async () => {
+    it("should create Generated Sounds pack if it doesn't exist", async () => {
       await request(app)
         .post('/api/sounds/generate')
         .send({
           prompt: 'Test sound',
           name: 'Test Sound',
-          drumType: 'kick'
+          drumType: 'kick',
         })
         .expect(200)
 
@@ -250,18 +256,21 @@ describe('Sound Generation API', () => {
         .send({
           prompt: 'Test sound',
           name: 'Test Sound',
-          drumType: 'kick'
+          drumType: 'kick',
         })
         .expect(200)
 
       const soundId = response.body.id
-      
+
       // Check that the sound is in the join table
-      const relationship = await database.get(`
+      const relationship = await database.get(
+        `
         SELECT sps.* FROM sound_packs_sounds sps
         JOIN sound_packs sp ON sps.sound_pack_id = sp.id
         WHERE sp.name = "Generated Sounds" AND sps.sound_id = ?
-      `, [soundId])
+      `,
+        [soundId]
+      )
 
       expect(relationship).toBeTruthy()
     })
@@ -274,7 +283,7 @@ describe('Sound Generation API', () => {
           prompt: 'Test sound',
           name: 'Test Sound 1',
           drumType: 'kick',
-          duration: 0.3 // Below minimum of 0.5
+          duration: 0.3, // Below minimum of 0.5
         })
         .expect(200)
 
@@ -286,9 +295,9 @@ describe('Sound Generation API', () => {
         .post('/api/sounds/generate')
         .send({
           prompt: 'Test sound',
-          name: 'Test Sound 2', 
+          name: 'Test Sound 2',
           drumType: 'kick',
-          duration: 2.0 // Above maximum of 1.5
+          duration: 2.0, // Above maximum of 1.5
         })
         .expect(200)
 

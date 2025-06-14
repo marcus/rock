@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useCallback } from 'react'
 import SoundGenerationModal from './SoundGenerationModal'
 import './SoundSelector.css'
 
@@ -18,14 +18,49 @@ function SoundSelector({ isOpen, onClose, onSelectSound, usedSounds = [] }) {
 
   // Also track the length and content to ensure we catch all changes
   const usedSoundsKey = useMemo(() => {
-    return `${usedSounds.length}-${usedSounds.map(s => s.id).sort().join(',')}`
+    return `${usedSounds.length}-${usedSounds
+      .map(s => s.id)
+      .sort()
+      .join(',')}`
   }, [usedSounds])
+
+  const fetchAvailableSounds = useCallback(async () => {
+    setLoading(true)
+    setError(null)
+
+    try {
+      // Add cache-busting parameter to prevent browser caching issues
+      const timestamp = Date.now()
+      const response = await fetch(`/api/sounds?_t=${timestamp}`, {
+        cache: 'no-cache',
+        headers: {
+          'Cache-Control': 'no-cache',
+          Pragma: 'no-cache',
+        },
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch sounds')
+      }
+
+      const allSounds = await response.json()
+
+      // Filter out sounds that are already in use
+      const filtered = allSounds.filter(sound => !usedSoundIds.includes(sound.id))
+
+      setAvailableSounds(filtered)
+    } catch (err) {
+      setError(err.message)
+    } finally {
+      setLoading(false)
+    }
+  }, [usedSoundIds])
 
   useEffect(() => {
     if (isOpen) {
       fetchAvailableSounds()
     }
-  }, [isOpen, usedSoundIds, usedSoundsKey])
+  }, [isOpen, usedSoundIds, usedSoundsKey, fetchAvailableSounds])
 
   // Additional effect to force refresh when sound selector opens
   useEffect(() => {
@@ -34,44 +69,12 @@ function SoundSelector({ isOpen, onClose, onSelectSound, usedSounds = [] }) {
       const timeoutId = setTimeout(() => {
         fetchAvailableSounds()
       }, 100)
-      
+
       return () => clearTimeout(timeoutId)
     }
-  }, [isOpen])
+  }, [isOpen, fetchAvailableSounds])
 
-  const fetchAvailableSounds = async () => {
-    setLoading(true)
-    setError(null)
-    
-    try {
-      // Add cache-busting parameter to prevent browser caching issues
-      const timestamp = Date.now()
-      const response = await fetch(`/api/sounds?_t=${timestamp}`, {
-        cache: 'no-cache',
-        headers: {
-          'Cache-Control': 'no-cache',
-          'Pragma': 'no-cache'
-        }
-      })
-      
-      if (!response.ok) {
-        throw new Error('Failed to fetch sounds')
-      }
-      
-      const allSounds = await response.json()
-      
-      // Filter out sounds that are already in use
-      const filtered = allSounds.filter(sound => !usedSoundIds.includes(sound.id))
-      
-      setAvailableSounds(filtered)
-    } catch (err) {
-      setError(err.message)
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const handleSoundSelect = (sound) => {
+  const handleSoundSelect = sound => {
     onSelectSound(sound)
     onClose()
   }
@@ -83,19 +86,19 @@ function SoundSelector({ isOpen, onClose, onSelectSound, usedSounds = [] }) {
 
   const getFilteredSounds = () => {
     let filtered = availableSounds
-    
+
     if (selectedCategory !== 'all') {
       filtered = filtered.filter(sound => sound.drum_type === selectedCategory)
     }
-    
+
     if (showGenerateFilter) {
       filtered = filtered.filter(sound => sound.is_generated)
     }
-    
+
     return filtered
   }
 
-  const handleGeneratedSoundAccept = (generatedSound) => {
+  const handleGeneratedSoundAccept = generatedSound => {
     onSelectSound(generatedSound)
     setIsGenerationModalOpen(false)
   }
@@ -103,29 +106,25 @@ function SoundSelector({ isOpen, onClose, onSelectSound, usedSounds = [] }) {
   if (!isOpen) return null
 
   return (
-    <div className="sound-selector-overlay" onClick={onClose}>
-      <div className="sound-selector-modal" onClick={(e) => e.stopPropagation()}>
-        <div className="sound-selector-header">
+    <div className='sound-selector-overlay' onClick={onClose}>
+      <div className='sound-selector-modal' onClick={e => e.stopPropagation()}>
+        <div className='sound-selector-header'>
           <h2>Add Sound</h2>
-          <button className="close-button" onClick={onClose}>×</button>
+          <button className='close-button' onClick={onClose}>
+            ×
+          </button>
         </div>
-        
-        <div className="sound-selector-actions">
-          <button 
-            className="create-sound-button"
-            onClick={() => setIsGenerationModalOpen(true)}
-          >
+
+        <div className='sound-selector-actions'>
+          <button className='create-sound-button' onClick={() => setIsGenerationModalOpen(true)}>
             ➕ Create New Sound
           </button>
         </div>
 
-        <div className="sound-selector-filters">
-          <div className="filter-group">
+        <div className='sound-selector-filters'>
+          <div className='filter-group'>
             <label>Category:</label>
-            <select 
-              value={selectedCategory} 
-              onChange={(e) => setSelectedCategory(e.target.value)}
-            >
+            <select value={selectedCategory} onChange={e => setSelectedCategory(e.target.value)}>
               {getUniqueCategories().map(category => (
                 <option key={category} value={category}>
                   {category === 'all' ? 'All Categories' : category.replace('_', ' ').toUpperCase()}
@@ -133,46 +132,46 @@ function SoundSelector({ isOpen, onClose, onSelectSound, usedSounds = [] }) {
               ))}
             </select>
           </div>
-          
-          <div className="filter-group">
+
+          <div className='filter-group'>
             <label>
               <input
-                type="checkbox"
+                type='checkbox'
                 checked={showGenerateFilter}
-                onChange={(e) => setShowGenerateFilter(e.target.checked)}
+                onChange={e => setShowGenerateFilter(e.target.checked)}
               />
               Show only AI-generated sounds
             </label>
           </div>
         </div>
 
-        <div className="sound-selector-content">
-          {loading && <div className="loading">Loading sounds...</div>}
-          {error && <div className="error">Error: {error}</div>}
-          
+        <div className='sound-selector-content'>
+          {loading && <div className='loading'>Loading sounds...</div>}
+          {error && <div className='error'>Error: {error}</div>}
+
           {!loading && !error && (
-            <div className="sounds-grid">
+            <div className='sounds-grid'>
               {getFilteredSounds().map(sound => (
-                <div 
-                  key={sound.id} 
-                  className="sound-item"
-                  onClick={() => handleSoundSelect(sound)}
-                >
-                  <div className="sound-name">{sound.name}</div>
-                  <div className="sound-type">{sound.drum_type.replace('_', ' ')}</div>
-                  <div className="sound-meta">
-                    {sound.is_generated ? '🤖 AI Generated' : sound.type === 'sample' ? '🎵 Sample' : '🎛️ Synth'}
+                <div key={sound.id} className='sound-item' onClick={() => handleSoundSelect(sound)}>
+                  <div className='sound-name'>{sound.name}</div>
+                  <div className='sound-type'>{sound.drum_type.replace('_', ' ')}</div>
+                  <div className='sound-meta'>
+                    {sound.is_generated
+                      ? '🤖 AI Generated'
+                      : sound.type === 'sample'
+                        ? '🎵 Sample'
+                        : '🎛️ Synth'}
                   </div>
                 </div>
               ))}
             </div>
           )}
-          
+
           {!loading && !error && getFilteredSounds().length === 0 && (
-            <div className="no-sounds">No available sounds in this category</div>
+            <div className='no-sounds'>No available sounds in this category</div>
           )}
         </div>
-        
+
         <SoundGenerationModal
           isOpen={isGenerationModalOpen}
           onClose={() => setIsGenerationModalOpen(false)}
@@ -183,4 +182,4 @@ function SoundSelector({ isOpen, onClose, onSelectSound, usedSounds = [] }) {
   )
 }
 
-export default SoundSelector 
+export default SoundSelector

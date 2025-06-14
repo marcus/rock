@@ -28,6 +28,7 @@ npm test
 ## Architecture
 
 ### Dynamic Track System
+
 The application now supports dynamic track management:
 
 - **Scalable Tracks**: Support for 1-40 tracks (configurable maximum)
@@ -36,6 +37,7 @@ The application now supports dynamic track management:
 - **Real-time Updates**: Immediate audio availability after adding sounds
 
 ### Audio System
+
 The audio architecture uses Tone.js for cross-browser compatibility and precise timing:
 
 - **Timing**: Uses `Tone.Transport` and `Tone.Sequence` instead of `setTimeout` for audio-accurate scheduling
@@ -44,6 +46,7 @@ The audio architecture uses Tone.js for cross-browser compatibility and precise 
 - **Sample Management**: MP3 files are loaded via API configuration with automatic fallback to synthesis if samples fail to load
 
 ### Sound Configuration
+
 - **Database-Driven**: Sound packs, individual sounds, and their parameters are stored in SQLite database
 - **Synthesis Parameters**: Tone.js synthesis configurations stored as JSON in database
 - **Sample Integration**: File paths for audio samples stored in database with automatic loading
@@ -52,12 +55,14 @@ The audio architecture uses Tone.js for cross-browser compatibility and precise 
 - **AI Sound Generation**: ElevenLabs integration for creating custom drum sounds via text prompts
 
 ### State Management
+
 - **Dynamic Pattern State**: Variable-length arrays for step programming, volumes, and mute states
 - **Ref Management**: Uses `useRef` for audio-critical state (`currentStepRef`, `patternRef`, `tracksRef`) to avoid React rendering delays during playback
 - **Real-time Updates**: Pattern changes (volume, mute, steps) update immediately during playback via ref synchronization
 - **Track Synchronization**: Track list and pattern arrays stay synchronized when adding/removing tracks
 
 ### Component Structure
+
 - **App.jsx**: Main sequencer logic, dynamic track management, audio initialization, and state management
 - **TrackManager.jsx**: Handles dynamic track list with add/remove functionality and step grid
 - **SoundSelector.jsx**: Modal for selecting sounds from database with filtering
@@ -65,12 +70,15 @@ The audio architecture uses Tone.js for cross-browser compatibility and precise 
 - **MasterVolumeControl**: Master volume and mute controls
 
 ### Browser Compatibility
+
 - **Safari Issue**: Safari has timing offset issues - the current implementation addresses this with Tone.js Transport
 - **Chrome**: Works correctly with standard timing
 - **Responsive Design**: Uses viewport units (`vw`, `vh`) for scaling across screen sizes
 
 ### API Integration
+
 Sound management is fully API-driven:
+
 - **Initialization**: `DrumSoundsAPI.initialize()` fetches sound configuration from `/api/sounds/default`
 - **All Sounds**: `/api/sounds` endpoint provides complete sound library for selection
 - **Dynamic Addition**: `DrumSoundsAPI.addSound(soundData)` adds new sounds at runtime
@@ -79,6 +87,7 @@ Sound management is fully API-driven:
 - **Sound Generation**: `POST /api/sounds/generate` creates AI-generated sounds via ElevenLabs API
 
 ### Key Implementation Details
+
 - **Scheduling**: `setupToneSequence()` creates a repeating 16-step sequence using `Tone.Sequence`
 - **Visual Sync**: `Tone.Draw.schedule()` ensures UI updates align with audio timing
 - **State Persistence**: Pattern state persists during tempo/volume changes via `patternRef.current`
@@ -89,12 +98,14 @@ Sound management is fully API-driven:
 ### New Components
 
 #### TrackManager
+
 - Renders dynamic list of tracks with step grids
 - Handles add/remove track functionality
 - Integrates volume controls and mute buttons
 - Responsive design for mobile devices
 
 #### SoundSelector
+
 - Modal interface for sound selection
 - Fetches available sounds from `/api/sounds`
 - Filters out sounds already in use
@@ -103,6 +114,7 @@ Sound management is fully API-driven:
 - Clean, accessible UI with keyboard navigation
 
 #### SoundGenerationModal
+
 - AI-powered sound creation interface using ElevenLabs API
 - Prompt input with 300-character limit and real-time validation
 - Duration slider (0.5-1.5 seconds) for sound length control
@@ -110,7 +122,9 @@ Sound management is fully API-driven:
 - Integration with existing sound pack system
 
 ### Database Schema
+
 The application uses SQLite with the following key tables:
+
 - `sounds`: Individual drum sounds with synthesis parameters or sample paths, includes `is_generated` and `prompt` fields for AI-generated sounds
 - `sound_packs`: Collections of sounds (default pack system)
 - `sound_packs_sounds`: Many-to-many relationship between packs and sounds (NO sound_pack_id column in sounds table)
@@ -119,6 +133,7 @@ The application uses SQLite with the following key tables:
 **IMPORTANT**: The `sounds` table does NOT have a `sound_pack_id` column. Sound pack relationships are managed via the `sound_packs_sounds` join table.
 
 ### Performance Considerations
+
 - **Lazy Loading**: Sounds are only loaded when added to the sequencer
 - **Memory Management**: Proper cleanup of Tone.js objects and event listeners
 - **Efficient Rendering**: Uses React keys and memoization where appropriate

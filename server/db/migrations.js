@@ -30,9 +30,7 @@ export class MigrationRunner {
   async getMigrationFiles() {
     try {
       const files = readdirSync(this.migrationsDir)
-      return files
-        .filter(file => file.endsWith('.sql'))
-        .sort() // Ensure migrations run in order
+      return files.filter(file => file.endsWith('.sql')).sort() // Ensure migrations run in order
     } catch (error) {
       // If migrations directory doesn't exist, return empty array
       if (error.code === 'ENOENT') {
@@ -44,13 +42,11 @@ export class MigrationRunner {
 
   async runMigrations() {
     await this.initialize()
-    
+
     const executedMigrations = await this.getExecutedMigrations()
     const migrationFiles = await this.getMigrationFiles()
-    
-    const pendingMigrations = migrationFiles.filter(
-      file => !executedMigrations.includes(file)
-    )
+
+    const pendingMigrations = migrationFiles.filter(file => !executedMigrations.includes(file))
 
     if (pendingMigrations.length === 0) {
       console.log('No pending migrations')
@@ -68,17 +64,17 @@ export class MigrationRunner {
 
   async runMigration(filename) {
     console.log(`Running migration: ${filename}`)
-    
+
     try {
       const migrationPath = join(this.migrationsDir, filename)
       const migrationSql = readFileSync(migrationPath, 'utf8')
-      
+
       // Execute the migration using exec for better multi-statement support
       await new Promise((resolve, reject) => {
-        this.db.db.exec('BEGIN TRANSACTION', (err) => {
+        this.db.db.exec('BEGIN TRANSACTION', err => {
           if (err) return reject(err)
-          
-          this.db.db.exec(migrationSql, (err) => {
+
+          this.db.db.exec(migrationSql, err => {
             if (err) {
               this.db.db.exec('ROLLBACK', () => {})
               return reject(err)
@@ -87,28 +83,23 @@ export class MigrationRunner {
           })
         })
       })
-      
+
       // Record that this migration was executed and commit
       await new Promise((resolve, reject) => {
-        this.db.db.run(
-          'INSERT INTO migrations (filename) VALUES (?)',
-          [filename],
-          (err) => {
+        this.db.db.run('INSERT INTO migrations (filename) VALUES (?)', [filename], err => {
+          if (err) return reject(err)
+
+          this.db.db.exec('COMMIT', err => {
             if (err) return reject(err)
-            
-            this.db.db.exec('COMMIT', (err) => {
-              if (err) return reject(err)
-              resolve()
-            })
-          }
-        )
+            resolve()
+          })
+        })
       })
-      
+
       console.log(`✓ Migration ${filename} completed successfully`)
-      
     } catch (error) {
       console.error(`✗ Migration ${filename} failed:`, error.message)
       throw error
     }
   }
-} 
+}

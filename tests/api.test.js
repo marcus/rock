@@ -11,7 +11,7 @@ function createTestApp(database) {
   app.use(express.json())
 
   // API Routes (copied from server/index.js but using test database)
-  
+
   // Get all sound packs
   app.get('/api/sound-packs', async (req, res) => {
     try {
@@ -34,7 +34,7 @@ function createTestApp(database) {
       const soundPack = await database.get(`
         SELECT * FROM sound_packs WHERE is_default = 1 LIMIT 1
       `)
-      
+
       if (!soundPack) {
         return res.status(404).json({ error: 'Default sound pack not found' })
       }
@@ -50,12 +50,15 @@ function createTestApp(database) {
   app.get('/api/sound-packs/:id/sounds', async (req, res) => {
     try {
       const { id } = req.params
-      const sounds = await database.query(`
+      const sounds = await database.query(
+        `
         SELECT s.* FROM sounds s 
         JOIN sound_packs_sounds sps ON s.id = sps.sound_id 
         WHERE sps.sound_pack_id = ? 
         ORDER BY s.drum_type
-      `, [id])
+      `,
+        [id]
+      )
       res.json(sounds)
     } catch (error) {
       console.error('Error fetching sounds:', error)
@@ -84,14 +87,17 @@ function createTestApp(database) {
   app.get('/api/sounds/:id/sound-packs', async (req, res) => {
     try {
       const { id } = req.params
-      const soundPacks = await database.query(`
+      const soundPacks = await database.query(
+        `
         SELECT sp.*, c.name as category_name 
         FROM sound_packs sp 
         LEFT JOIN categories c ON sp.category_id = c.id 
         JOIN sound_packs_sounds sps ON sp.id = sps.sound_pack_id 
         WHERE sps.sound_id = ? 
         ORDER BY sp.is_default DESC, sp.created_at DESC
-      `, [id])
+      `,
+        [id]
+      )
       res.json(soundPacks)
     } catch (error) {
       console.error('Error fetching sound packs for sound:', error)
@@ -103,22 +109,28 @@ function createTestApp(database) {
   app.post('/api/sound-packs/:packId/sounds/:soundId', async (req, res) => {
     try {
       const { packId, soundId } = req.params
-      
+
       // Check if relationship already exists
-      const existing = await database.get(`
+      const existing = await database.get(
+        `
         SELECT 1 FROM sound_packs_sounds 
         WHERE sound_pack_id = ? AND sound_id = ?
-      `, [packId, soundId])
-      
+      `,
+        [packId, soundId]
+      )
+
       if (existing) {
         return res.status(409).json({ error: 'Sound is already in this sound pack' })
       }
-      
-      await database.run(`
+
+      await database.run(
+        `
         INSERT INTO sound_packs_sounds (sound_pack_id, sound_id)
         VALUES (?, ?)
-      `, [packId, soundId])
-      
+      `,
+        [packId, soundId]
+      )
+
       res.json({ message: 'Sound added to sound pack successfully' })
     } catch (error) {
       console.error('Error adding sound to sound pack:', error)
@@ -130,16 +142,19 @@ function createTestApp(database) {
   app.delete('/api/sound-packs/:packId/sounds/:soundId', async (req, res) => {
     try {
       const { packId, soundId } = req.params
-      
-      const result = await database.run(`
+
+      const result = await database.run(
+        `
         DELETE FROM sound_packs_sounds 
         WHERE sound_pack_id = ? AND sound_id = ?
-      `, [packId, soundId])
-      
+      `,
+        [packId, soundId]
+      )
+
       if (result.changes === 0) {
         return res.status(404).json({ error: 'Sound not found in this sound pack' })
       }
-      
+
       res.json({ message: 'Sound removed from sound pack successfully' })
     } catch (error) {
       console.error('Error removing sound from sound pack:', error)
@@ -179,9 +194,7 @@ describe('API Endpoints', () => {
 
   describe('Health Check', () => {
     test('GET /api/health should return status ok', async () => {
-      const response = await request(app)
-        .get('/api/health')
-        .expect(200)
+      const response = await request(app).get('/api/health').expect(200)
 
       expect(response.body).toHaveProperty('status', 'ok')
       expect(response.body).toHaveProperty('timestamp')
@@ -190,9 +203,7 @@ describe('API Endpoints', () => {
 
   describe('Sound Packs', () => {
     test('GET /api/sound-packs should return all sound packs', async () => {
-      const response = await request(app)
-        .get('/api/sound-packs')
-        .expect(200)
+      const response = await request(app).get('/api/sound-packs').expect(200)
 
       expect(Array.isArray(response.body)).toBe(true)
       expect(response.body).toHaveLength(1)
@@ -201,9 +212,7 @@ describe('API Endpoints', () => {
     })
 
     test('GET /api/sound-packs/default should return default sound pack', async () => {
-      const response = await request(app)
-        .get('/api/sound-packs/default')
-        .expect(200)
+      const response = await request(app).get('/api/sound-packs/default').expect(200)
 
       expect(response.body).toHaveProperty('name', 'Test Sound Pack')
       expect(response.body).toHaveProperty('is_default', 1)
@@ -213,9 +222,7 @@ describe('API Endpoints', () => {
       // Remove default flag
       await testDb.run('UPDATE sound_packs SET is_default = 0')
 
-      const response = await request(app)
-        .get('/api/sound-packs/default')
-        .expect(404)
+      const response = await request(app).get('/api/sound-packs/default').expect(404)
 
       expect(response.body).toHaveProperty('error', 'Default sound pack not found')
     })
@@ -227,7 +234,7 @@ describe('API Endpoints', () => {
 
       expect(Array.isArray(response.body)).toBe(true)
       expect(response.body).toHaveLength(3)
-      
+
       const soundNames = response.body.map(s => s.name)
       expect(soundNames).toContain('Test Kick')
       expect(soundNames).toContain('Test Snare')
@@ -235,9 +242,7 @@ describe('API Endpoints', () => {
     })
 
     test('GET /api/sound-packs/:id/sounds should return empty array for non-existent pack', async () => {
-      const response = await request(app)
-        .get('/api/sound-packs/999/sounds')
-        .expect(200)
+      const response = await request(app).get('/api/sound-packs/999/sounds').expect(200)
 
       expect(Array.isArray(response.body)).toBe(true)
       expect(response.body).toHaveLength(0)
@@ -246,13 +251,11 @@ describe('API Endpoints', () => {
 
   describe('Sounds', () => {
     test('GET /api/sounds/default should return sounds from default pack', async () => {
-      const response = await request(app)
-        .get('/api/sounds/default')
-        .expect(200)
+      const response = await request(app).get('/api/sounds/default').expect(200)
 
       expect(Array.isArray(response.body)).toBe(true)
       expect(response.body).toHaveLength(3)
-      
+
       const soundNames = response.body.map(s => s.name)
       expect(soundNames).toContain('Test Kick')
       expect(soundNames).toContain('Test Snare')
@@ -261,10 +264,8 @@ describe('API Endpoints', () => {
 
     test('GET /api/sounds/:id/sound-packs should return sound packs containing a sound', async () => {
       const soundId = testData.soundIds[0]
-      
-      const response = await request(app)
-        .get(`/api/sounds/${soundId}/sound-packs`)
-        .expect(200)
+
+      const response = await request(app).get(`/api/sounds/${soundId}/sound-packs`).expect(200)
 
       expect(Array.isArray(response.body)).toBe(true)
       expect(response.body).toHaveLength(1)
@@ -272,9 +273,7 @@ describe('API Endpoints', () => {
     })
 
     test('GET /api/sounds/:id/sound-packs should return empty array for non-existent sound', async () => {
-      const response = await request(app)
-        .get('/api/sounds/999/sound-packs')
-        .expect(200)
+      const response = await request(app).get('/api/sounds/999/sound-packs').expect(200)
 
       expect(Array.isArray(response.body)).toBe(true)
       expect(response.body).toHaveLength(0)
@@ -284,13 +283,16 @@ describe('API Endpoints', () => {
   describe('Many-to-Many Relationships', () => {
     test('POST /api/sound-packs/:packId/sounds/:soundId should add sound to pack', async () => {
       // Create a second sound pack
-      const pack2Result = await testDb.run(`
+      const pack2Result = await testDb.run(
+        `
         INSERT INTO sound_packs (name, description, category_id, author, is_default)
         VALUES (?, ?, ?, ?, ?)
-      `, ['Second Pack', 'Second test pack', testData.categoryId, 'Test Author', 0])
+      `,
+        ['Second Pack', 'Second test pack', testData.categoryId, 'Test Author', 0]
+      )
 
       const soundId = testData.soundIds[0]
-      
+
       const response = await request(app)
         .post(`/api/sound-packs/${pack2Result.lastID}/sounds/${soundId}`)
         .expect(200)
@@ -298,17 +300,20 @@ describe('API Endpoints', () => {
       expect(response.body).toHaveProperty('message', 'Sound added to sound pack successfully')
 
       // Verify the relationship was created
-      const relationships = await testDb.query(`
+      const relationships = await testDb.query(
+        `
         SELECT * FROM sound_packs_sounds 
         WHERE sound_pack_id = ? AND sound_id = ?
-      `, [pack2Result.lastID, soundId])
+      `,
+        [pack2Result.lastID, soundId]
+      )
 
       expect(relationships).toHaveLength(1)
     })
 
     test('POST /api/sound-packs/:packId/sounds/:soundId should return 409 for duplicate relationship', async () => {
       const soundId = testData.soundIds[0]
-      
+
       const response = await request(app)
         .post(`/api/sound-packs/${testData.soundPackId}/sounds/${soundId}`)
         .expect(409)
@@ -318,7 +323,7 @@ describe('API Endpoints', () => {
 
     test('DELETE /api/sound-packs/:packId/sounds/:soundId should remove sound from pack', async () => {
       const soundId = testData.soundIds[0]
-      
+
       const response = await request(app)
         .delete(`/api/sound-packs/${testData.soundPackId}/sounds/${soundId}`)
         .expect(200)
@@ -326,18 +331,19 @@ describe('API Endpoints', () => {
       expect(response.body).toHaveProperty('message', 'Sound removed from sound pack successfully')
 
       // Verify the relationship was removed
-      const relationships = await testDb.query(`
+      const relationships = await testDb.query(
+        `
         SELECT * FROM sound_packs_sounds 
         WHERE sound_pack_id = ? AND sound_id = ?
-      `, [testData.soundPackId, soundId])
+      `,
+        [testData.soundPackId, soundId]
+      )
 
       expect(relationships).toHaveLength(0)
     })
 
     test('DELETE /api/sound-packs/:packId/sounds/:soundId should return 404 for non-existent relationship', async () => {
-      const response = await request(app)
-        .delete('/api/sound-packs/999/sounds/999')
-        .expect(404)
+      const response = await request(app).delete('/api/sound-packs/999/sounds/999').expect(404)
 
       expect(response.body).toHaveProperty('error', 'Sound not found in this sound pack')
     })
@@ -346,10 +352,13 @@ describe('API Endpoints', () => {
   describe('Data Integrity', () => {
     test('should maintain referential integrity when sound is in multiple packs', async () => {
       // Create a second sound pack
-      const pack2Result = await testDb.run(`
+      const pack2Result = await testDb.run(
+        `
         INSERT INTO sound_packs (name, description, category_id, author, is_default)
         VALUES (?, ?, ?, ?, ?)
-      `, ['Second Pack', 'Second test pack', testData.categoryId, 'Test Author', 0])
+      `,
+        ['Second Pack', 'Second test pack', testData.categoryId, 'Test Author', 0]
+      )
 
       const soundId = testData.soundIds[0]
 
@@ -371,19 +380,20 @@ describe('API Endpoints', () => {
       expect(pack2Sounds.body.some(s => s.id === soundId)).toBe(true)
 
       // Verify sound shows both packs
-      const soundPacks = await request(app)
-        .get(`/api/sounds/${soundId}/sound-packs`)
-        .expect(200)
+      const soundPacks = await request(app).get(`/api/sounds/${soundId}/sound-packs`).expect(200)
 
       expect(soundPacks.body).toHaveLength(2)
     })
 
     test('should handle concurrent operations correctly', async () => {
       // Create multiple sound packs
-      const pack2Result = await testDb.run(`
+      const pack2Result = await testDb.run(
+        `
         INSERT INTO sound_packs (name, description, category_id, author, is_default)
         VALUES (?, ?, ?, ?, ?)
-      `, ['Concurrent Pack', 'Concurrent test pack', testData.categoryId, 'Test Author', 0])
+      `,
+        ['Concurrent Pack', 'Concurrent test pack', testData.categoryId, 'Test Author', 0]
+      )
 
       const soundId = testData.soundIds[0]
 
@@ -391,17 +401,17 @@ describe('API Endpoints', () => {
       const operations = [
         request(app).post(`/api/sound-packs/${pack2Result.lastID}/sounds/${soundId}`),
         request(app).get(`/api/sounds/${soundId}/sound-packs`),
-        request(app).get(`/api/sound-packs/${testData.soundPackId}/sounds`)
+        request(app).get(`/api/sound-packs/${testData.soundPackId}/sounds`),
       ]
 
       const results = await Promise.all(operations)
-      
+
       // First operation should succeed
       expect(results[0].status).toBe(200)
-      
+
       // Other operations should also succeed
       expect(results[1].status).toBe(200)
       expect(results[2].status).toBe(200)
     })
   })
-}) 
+})

@@ -55,7 +55,7 @@ app.get('/api/sound-packs/default', async (req, res) => {
     const soundPack = await database.get(`
       SELECT * FROM sound_packs WHERE is_default = 1 LIMIT 1
     `)
-    
+
     if (!soundPack) {
       return res.status(404).json({ error: 'Default sound pack not found' })
     }
@@ -71,12 +71,15 @@ app.get('/api/sound-packs/default', async (req, res) => {
 app.get('/api/sound-packs/:id/sounds', async (req, res) => {
   try {
     const { id } = req.params
-    const sounds = await database.query(`
+    const sounds = await database.query(
+      `
       SELECT s.* FROM sounds s 
       JOIN sound_packs_sounds sps ON s.id = sps.sound_id 
       WHERE sps.sound_pack_id = ? 
       ORDER BY s.drum_type
-    `, [id])
+    `,
+      [id]
+    )
     res.json(sounds)
   } catch (error) {
     console.error('Error fetching sounds:', error)
@@ -122,14 +125,17 @@ app.get('/api/sounds/default', async (req, res) => {
 app.get('/api/sounds/:id/sound-packs', async (req, res) => {
   try {
     const { id } = req.params
-    const soundPacks = await database.query(`
+    const soundPacks = await database.query(
+      `
       SELECT sp.*, c.name as category_name 
       FROM sound_packs sp 
       LEFT JOIN categories c ON sp.category_id = c.id 
       JOIN sound_packs_sounds sps ON sp.id = sps.sound_pack_id 
       WHERE sps.sound_id = ? 
       ORDER BY sp.is_default DESC, sp.created_at DESC
-    `, [id])
+    `,
+      [id]
+    )
     res.json(soundPacks)
   } catch (error) {
     console.error('Error fetching sound packs for sound:', error)
@@ -141,22 +147,28 @@ app.get('/api/sounds/:id/sound-packs', async (req, res) => {
 app.post('/api/sound-packs/:packId/sounds/:soundId', async (req, res) => {
   try {
     const { packId, soundId } = req.params
-    
+
     // Check if relationship already exists
-    const existing = await database.get(`
+    const existing = await database.get(
+      `
       SELECT 1 FROM sound_packs_sounds 
       WHERE sound_pack_id = ? AND sound_id = ?
-    `, [packId, soundId])
-    
+    `,
+      [packId, soundId]
+    )
+
     if (existing) {
       return res.status(409).json({ error: 'Sound is already in this sound pack' })
     }
-    
-    await database.run(`
+
+    await database.run(
+      `
       INSERT INTO sound_packs_sounds (sound_pack_id, sound_id)
       VALUES (?, ?)
-    `, [packId, soundId])
-    
+    `,
+      [packId, soundId]
+    )
+
     res.json({ message: 'Sound added to sound pack successfully' })
   } catch (error) {
     console.error('Error adding sound to sound pack:', error)
@@ -168,16 +180,19 @@ app.post('/api/sound-packs/:packId/sounds/:soundId', async (req, res) => {
 app.delete('/api/sound-packs/:packId/sounds/:soundId', async (req, res) => {
   try {
     const { packId, soundId } = req.params
-    
-    const result = await database.run(`
+
+    const result = await database.run(
+      `
       DELETE FROM sound_packs_sounds 
       WHERE sound_pack_id = ? AND sound_id = ?
-    `, [packId, soundId])
-    
+    `,
+      [packId, soundId]
+    )
+
     if (result.changes === 0) {
       return res.status(404).json({ error: 'Sound not found in this sound pack' })
     }
-    
+
     res.json({ message: 'Sound removed from sound pack successfully' })
   } catch (error) {
     console.error('Error removing sound from sound pack:', error)
@@ -189,7 +204,10 @@ app.delete('/api/sound-packs/:packId/sounds/:soundId', async (req, res) => {
 app.post('/api/sounds/generate', async (req, res) => {
   try {
     if (!soundGenerationService) {
-      return res.status(503).json({ error: 'Sound generation service not available. Please check ELEVENLABS_API_KEY environment variable.' })
+      return res.status(503).json({
+        error:
+          'Sound generation service not available. Please check ELEVENLABS_API_KEY environment variable.',
+      })
     }
 
     const { prompt, duration, name, drumType } = req.body
@@ -215,7 +233,9 @@ app.post('/api/sounds/generate', async (req, res) => {
     `)
 
     if (!generatedCategory) {
-      return res.status(500).json({ error: 'Generated category not found. Please run database migrations.' })
+      return res
+        .status(500)
+        .json({ error: 'Generated category not found. Please run database migrations.' })
     }
 
     // Create a sound pack for generated sounds if it doesn't exist
@@ -224,43 +244,54 @@ app.post('/api/sounds/generate', async (req, res) => {
     `)
 
     if (!generatedSoundPack) {
-      const result = await database.run(`
+      const result = await database.run(
+        `
         INSERT INTO sound_packs (name, description, category_id, author)
         VALUES ('Generated Sounds', 'AI-generated drum sounds', ?, 'AI Generated')
-      `, [generatedCategory.id])
-      
+      `,
+        [generatedCategory.id]
+      )
+
       generatedSoundPack = { id: result.lastID }
     }
 
     // Insert the new sound into the database
-    const soundResult = await database.run(`
+    const soundResult = await database.run(
+      `
       INSERT INTO sounds (
         name, type, file_path, drum_type, is_generated, prompt,
         created_at, updated_at
       ) VALUES (?, 'sample', ?, ?, 1, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
-    `, [name, generatedSound.filePath, drumType, prompt])
+    `,
+      [name, generatedSound.filePath, drumType, prompt]
+    )
 
     // Add the sound to the sound pack
-    await database.run(`
+    await database.run(
+      `
       INSERT INTO sound_packs_sounds (sound_pack_id, sound_id)
       VALUES (?, ?)
-    `, [generatedSoundPack.id, soundResult.lastID])
+    `,
+      [generatedSoundPack.id, soundResult.lastID]
+    )
 
     // Return the complete sound object
-    const newSound = await database.get(`
+    const newSound = await database.get(
+      `
       SELECT * FROM sounds WHERE id = ?
-    `, [soundResult.lastID])
+    `,
+      [soundResult.lastID]
+    )
 
     res.json({
       ...newSound,
-      audioUrl: generatedSound.filePath
+      audioUrl: generatedSound.filePath,
     })
-
   } catch (error) {
     console.error('Error generating sound:', error)
-    res.status(500).json({ 
-      error: 'Failed to generate sound', 
-      details: error.message 
+    res.status(500).json({
+      error: 'Failed to generate sound',
+      details: error.message,
     })
   }
 })

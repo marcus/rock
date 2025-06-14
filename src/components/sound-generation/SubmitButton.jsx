@@ -17,14 +17,14 @@ function SubmitButton({ isLoading, disabled, onClick }) {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        gap: '0.5rem'
+        gap: '0.5rem',
       }}
-      onMouseEnter={(e) => {
+      onMouseEnter={e => {
         if (!disabled && !isLoading) {
           e.target.style.backgroundColor = '#2563eb'
         }
       }}
-      onMouseLeave={(e) => {
+      onMouseLeave={e => {
         if (!disabled && !isLoading) {
           e.target.style.backgroundColor = '#3b82f6'
         }
@@ -32,24 +32,30 @@ function SubmitButton({ isLoading, disabled, onClick }) {
     >
       {isLoading ? (
         <>
-          <div style={{
-            width: '16px',
-            height: '16px',
-            border: '2px solid transparent',
-            borderTop: '2px solid white',
-            borderRadius: '50%',
-            animation: 'spin 1s linear infinite'
-          }} />
+          <div
+            style={{
+              width: '16px',
+              height: '16px',
+              border: '2px solid transparent',
+              borderTop: '2px solid white',
+              borderRadius: '50%',
+              animation: 'spin 1s linear infinite',
+            }}
+          />
           Generating Sound...
         </>
       ) : (
         '🎵 Generate Sound'
       )}
-      
+
       <style jsx>{`
         @keyframes spin {
-          0% { transform: rotate(0deg); }
-          100% { transform: rotate(360deg); }
+          0% {
+            transform: rotate(0deg);
+          }
+          100% {
+            transform: rotate(360deg);
+          }
         }
       `}</style>
     </button>

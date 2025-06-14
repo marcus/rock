@@ -1,11 +1,13 @@
 function AcceptRejectControls({ onAccept, onReject, onCancel }) {
   return (
-    <div style={{
-      display: 'flex',
-      gap: '0.75rem',
-      justifyContent: 'space-between',
-      marginTop: '1.5rem'
-    }}>
+    <div
+      style={{
+        display: 'flex',
+        gap: '0.75rem',
+        justifyContent: 'space-between',
+        marginTop: '1.5rem',
+      }}
+    >
       <button
         onClick={onReject}
         style={{
@@ -18,14 +20,14 @@ function AcceptRejectControls({ onAccept, onReject, onCancel }) {
           fontSize: '0.875rem',
           fontWeight: '600',
           cursor: 'pointer',
-          transition: 'background-color 0.2s'
+          transition: 'background-color 0.2s',
         }}
-        onMouseEnter={(e) => e.target.style.backgroundColor = '#d97706'}
-        onMouseLeave={(e) => e.target.style.backgroundColor = '#f59e0b'}
+        onMouseEnter={e => (e.target.style.backgroundColor = '#d97706')}
+        onMouseLeave={e => (e.target.style.backgroundColor = '#f59e0b')}
       >
         🔄 Reject & Try Again
       </button>
-      
+
       <button
         onClick={onCancel}
         style={{
@@ -38,14 +40,14 @@ function AcceptRejectControls({ onAccept, onReject, onCancel }) {
           fontSize: '0.875rem',
           fontWeight: '600',
           cursor: 'pointer',
-          transition: 'background-color 0.2s'
+          transition: 'background-color 0.2s',
         }}
-        onMouseEnter={(e) => e.target.style.backgroundColor = '#4b5563'}
-        onMouseLeave={(e) => e.target.style.backgroundColor = '#6b7280'}
+        onMouseEnter={e => (e.target.style.backgroundColor = '#4b5563')}
+        onMouseLeave={e => (e.target.style.backgroundColor = '#6b7280')}
       >
         ❌ Cancel
       </button>
-      
+
       <button
         onClick={onAccept}
         style={{
@@ -58,10 +60,10 @@ function AcceptRejectControls({ onAccept, onReject, onCancel }) {
           fontSize: '0.875rem',
           fontWeight: '600',
           cursor: 'pointer',
-          transition: 'background-color 0.2s'
+          transition: 'background-color 0.2s',
         }}
-        onMouseEnter={(e) => e.target.style.backgroundColor = '#059669'}
-        onMouseLeave={(e) => e.target.style.backgroundColor = '#10b981'}
+        onMouseEnter={e => (e.target.style.backgroundColor = '#059669')}
+        onMouseLeave={e => (e.target.style.backgroundColor = '#10b981')}
       >
         ✅ Add to Track
       </button>

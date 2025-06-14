@@ -8,7 +8,7 @@ Place your drum sample MP3 files in this directory structure:
 public/audio/
 ├── drums/
 │   ├── kick.mp3           # Kick drum sample
-│   ├── snare.mp3          # Snare drum sample  
+│   ├── snare.mp3          # Snare drum sample
 │   ├── hihat-closed.mp3   # Closed hi-hat sample
 │   ├── hihat-open.mp3     # Open hi-hat sample
 │   ├── crash.mp3          # Crash cymbal sample

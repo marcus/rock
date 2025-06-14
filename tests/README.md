@@ -14,12 +14,14 @@ This directory contains comprehensive tests for Roy's Rock Machine's migration s
 ### Test Categories
 
 #### Migration System Tests
+
 - Migration runner functionality
 - Schema migration verification
 - Data migration integrity
 - Many-to-many relationship support
 
 #### API Endpoint Tests
+
 - Health check endpoint
 - Sound pack CRUD operations
 - Sound retrieval and management
@@ -27,6 +29,7 @@ This directory contains comprehensive tests for Roy's Rock Machine's migration s
 - Data integrity and concurrent operations
 
 #### Database Tests
+
 - Schema initialization
 - CRUD operations
 - Constraint enforcement
@@ -83,6 +86,7 @@ The tests use an in-memory SQLite database (`TestDatabase` class) that:
 ## Key Features Tested
 
 ### Migration System
+
 - ✅ Migration tracking and execution
 - ✅ Schema transformation (sound_pack_id → join table)
 - ✅ Data migration integrity
@@ -90,6 +94,7 @@ The tests use an in-memory SQLite database (`TestDatabase` class) that:
 - ✅ Foreign key constraint handling
 
 ### API Functionality
+
 - ✅ All CRUD operations for sound packs and sounds
 - ✅ Many-to-many relationship management
 - ✅ Error handling and edge cases
@@ -97,6 +102,7 @@ The tests use an in-memory SQLite database (`TestDatabase` class) that:
 - ✅ Concurrent operation handling
 
 ### Database Operations
+
 - ✅ Schema validation
 - ✅ Constraint enforcement
 - ✅ Transaction handling
@@ -154,21 +160,25 @@ beforeEach(async () => {
 ## Debugging Tests
 
 ### Verbose Output
+
 ```bash
 npm test -- --verbose
 ```
 
 ### Debug Specific Test
+
 ```bash
 npm test -- --testNamePattern="specific test name" --verbose
 ```
 
 ### Database Debugging
+
 The test database helper includes console output suppression. To see database operations during testing, modify `tests/setup.js`.
 
 ## Continuous Integration
 
 The test suite is designed to:
+
 - Run in CI/CD environments
 - Use in-memory databases for speed
 - Provide clear failure messages
@@ -177,8 +187,9 @@ The test suite is designed to:
 ## Future Enhancements
 
 Potential areas for test expansion:
+
 - Integration tests with the frontend
 - Performance stress testing
 - Database migration rollback testing
 - API rate limiting tests
-- WebSocket functionality tests (if added) 
+- WebSocket functionality tests (if added)

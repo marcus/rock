@@ -12,15 +12,15 @@ const defaultSounds = [
         pitchDecay: 0.05,
         octaves: 10,
         oscillator: { type: 'sine' },
-        envelope: { attack: 0.001, decay: 0.4, sustain: 0.01, release: 1.4 }
+        envelope: { attack: 0.001, decay: 0.4, sustain: 0.01, release: 1.4 },
       },
       note: 'C1',
       duration: '8n',
-      cleanup_delay: 2000
+      cleanup_delay: 2000,
     }),
     synthesis_engine: 'tone.js',
     energy_level: 5,
-    color: '#FF0000'
+    color: '#FF0000',
   },
   {
     name: 'Snare Drum',
@@ -30,18 +30,18 @@ const defaultSounds = [
       synthType: 'NoiseSynth',
       config: {
         noise: { type: 'white' },
-        envelope: { attack: 0.001, decay: 0.2, sustain: 0 }
+        envelope: { attack: 0.001, decay: 0.2, sustain: 0 },
       },
       filter: {
         frequency: 1000,
-        type: 'bandpass'
+        type: 'bandpass',
       },
       duration: '8n',
-      cleanup_delay: 1000
+      cleanup_delay: 1000,
     }),
     synthesis_engine: 'tone.js',
     energy_level: 4,
-    color: '#FFD700'
+    color: '#FFD700',
   },
   {
     name: 'Closed Hi-Hat',
@@ -51,18 +51,18 @@ const defaultSounds = [
       synthType: 'NoiseSynth',
       config: {
         noise: { type: 'white' },
-        envelope: { attack: 0.001, decay: 0.1, sustain: 0 }
+        envelope: { attack: 0.001, decay: 0.1, sustain: 0 },
       },
       filter: {
         frequency: 8000,
-        type: 'highpass'
+        type: 'highpass',
       },
       duration: '32n',
-      cleanup_delay: 500
+      cleanup_delay: 500,
     }),
     synthesis_engine: 'tone.js',
     energy_level: 2,
-    color: '#00FF00'
+    color: '#00FF00',
   },
   {
     name: 'Open Hi-Hat',
@@ -72,18 +72,18 @@ const defaultSounds = [
       synthType: 'NoiseSynth',
       config: {
         noise: { type: 'white' },
-        envelope: { attack: 0.001, decay: 0.4, sustain: 0 }
+        envelope: { attack: 0.001, decay: 0.4, sustain: 0 },
       },
       filter: {
         frequency: 6000,
-        type: 'highpass'
+        type: 'highpass',
       },
       duration: '4n',
-      cleanup_delay: 1000
+      cleanup_delay: 1000,
     }),
     synthesis_engine: 'tone.js',
     energy_level: 3,
-    color: '#00FFFF'
+    color: '#00FFFF',
   },
   {
     name: 'Crash Cymbal',
@@ -93,18 +93,18 @@ const defaultSounds = [
       synthType: 'NoiseSynth',
       config: {
         noise: { type: 'white' },
-        envelope: { attack: 0.001, decay: 1.5, sustain: 0 }
+        envelope: { attack: 0.001, decay: 1.5, sustain: 0 },
       },
       filter: {
         frequency: 3000,
-        type: 'highpass'
+        type: 'highpass',
       },
       duration: '2n',
-      cleanup_delay: 2000
+      cleanup_delay: 2000,
     }),
     synthesis_engine: 'tone.js',
     energy_level: 5,
-    color: '#FF00FF'
+    color: '#FF00FF',
   },
   {
     name: 'Hand Clap',
@@ -114,20 +114,20 @@ const defaultSounds = [
       synthType: 'NoiseSynth',
       config: {
         noise: { type: 'white' },
-        envelope: { attack: 0.001, decay: 0.03, sustain: 0 }
+        envelope: { attack: 0.001, decay: 0.03, sustain: 0 },
       },
       filter: {
         frequency: 1100,
         type: 'bandpass',
-        Q: 12
+        Q: 12,
       },
       duration: '64n',
       multiple_hits: [0, 0.01, 0.02],
-      cleanup_delay: 500
+      cleanup_delay: 500,
     }),
     synthesis_engine: 'tone.js',
     energy_level: 3,
-    color: '#FFA500'
+    color: '#FFA500',
   },
   {
     name: 'Cowbell',
@@ -139,26 +139,26 @@ const defaultSounds = [
         type: 'Synth',
         config: {
           oscillator: { type: 'triangle' },
-          envelope: { attack: 0.001, decay: 0.4, sustain: 0.1, release: 0.3 }
+          envelope: { attack: 0.001, decay: 0.4, sustain: 0.1, release: 0.3 },
         },
         note: 'D4',
-        filter: { frequency: 800, type: 'bandpass', Q: 8 }
+        filter: { frequency: 800, type: 'bandpass', Q: 8 },
       },
       synth2: {
         type: 'Synth',
         config: {
           oscillator: { type: 'sawtooth' },
-          envelope: { attack: 0.001, decay: 0.3, sustain: 0.05, release: 0.2 }
+          envelope: { attack: 0.001, decay: 0.3, sustain: 0.05, release: 0.2 },
         },
         note: 'A4',
-        filter: { frequency: 1200, type: 'bandpass', Q: 6 }
+        filter: { frequency: 1200, type: 'bandpass', Q: 6 },
       },
       duration: '4n',
-      cleanup_delay: 1500
+      cleanup_delay: 1500,
     }),
     synthesis_engine: 'tone.js',
     energy_level: 4,
-    color: '#FFFF00'
+    color: '#FFFF00',
   },
   {
     name: 'Tom Drum',
@@ -170,23 +170,23 @@ const defaultSounds = [
         pitchDecay: 0.1,
         octaves: 6,
         oscillator: { type: 'sine' },
-        envelope: { attack: 0.001, decay: 0.4, sustain: 0.01, release: 1 }
+        envelope: { attack: 0.001, decay: 0.4, sustain: 0.01, release: 1 },
       },
       note: 'G2',
       duration: '4n',
-      cleanup_delay: 1500
+      cleanup_delay: 1500,
     }),
     synthesis_engine: 'tone.js',
     energy_level: 4,
-    color: '#8B4513'
-  }
+    color: '#8B4513',
+  },
 ]
 
 export async function seedDefaultSoundPack() {
   try {
     // Check if default sound pack already exists
     const existingPack = await database.get('SELECT id FROM sound_packs WHERE is_default = 1')
-    
+
     if (existingPack) {
       console.log('Default sound pack already exists, skipping seed')
       return
@@ -205,41 +205,50 @@ export async function seedDefaultSoundPack() {
     }
 
     // Create default sound pack
-    const packResult = await database.run(`
+    const packResult = await database.run(
+      `
       INSERT INTO sound_packs (name, description, category_id, author, is_default)
       VALUES (?, ?, ?, ?, ?)
-    `, [
-      'Default Synthesis Pack',
-      'Default synthesized drum sounds from Roy\'s Rock Machine',
-      category.id,
-      'Roy\'s Rock Machine',
-      1
-    ])
+    `,
+      [
+        'Default Synthesis Pack',
+        "Default synthesized drum sounds from Roy's Rock Machine",
+        category.id,
+        "Roy's Rock Machine",
+        1,
+      ]
+    )
 
     const soundPackId = packResult.lastID
 
     // Insert all default sounds and create relationships
     for (const sound of defaultSounds) {
-      const soundResult = await database.run(`
+      const soundResult = await database.run(
+        `
         INSERT INTO sounds (
           name, type, synthesis_params, synthesis_engine, 
           drum_type, energy_level, color
         ) VALUES (?, ?, ?, ?, ?, ?, ?)
-      `, [
-        sound.name,
-        sound.type,
-        sound.synthesis_params,
-        sound.synthesis_engine,
-        sound.drum_type,
-        sound.energy_level,
-        sound.color
-      ])
+      `,
+        [
+          sound.name,
+          sound.type,
+          sound.synthesis_params,
+          sound.synthesis_engine,
+          sound.drum_type,
+          sound.energy_level,
+          sound.color,
+        ]
+      )
 
       // Create the relationship in the join table
-      await database.run(`
+      await database.run(
+        `
         INSERT INTO sound_packs_sounds (sound_pack_id, sound_id)
         VALUES (?, ?)
-      `, [soundPackId, soundResult.lastID])
+      `,
+        [soundPackId, soundResult.lastID]
+      )
     }
 
     console.log(`Successfully created default sound pack with ${defaultSounds.length} sounds`)

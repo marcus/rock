@@ -10,20 +10,20 @@ export class SampleManager {
   async loadCustomSample(name, file) {
     try {
       await audioEngine.ensureInitialized()
-      
+
       const arrayBuffer = await file.arrayBuffer()
       const audioBuffer = await Tone.getContext().decodeAudioData(arrayBuffer)
-      
+
       // Create a Tone.Player for the custom sample
       const player = new Tone.Player(audioBuffer).connect(audioEngine.getDestination())
-      
+
       this.samples.set(name, player)
       this.loadedFiles.set(name, {
         name: file.name,
         type: 'custom',
-        size: file.size
+        size: file.size,
       })
-      
+
       return true
     } catch (error) {
       console.error(`Failed to load custom sample ${name}:`, error)
@@ -34,17 +34,17 @@ export class SampleManager {
   async loadCustomSampleFromUrl(name, url) {
     try {
       await audioEngine.ensureInitialized()
-      
+
       const player = new Tone.Player(url).connect(audioEngine.getDestination())
       await Tone.loaded()
-      
+
       this.samples.set(name, player)
       this.loadedFiles.set(name, {
         name: url.split('/').pop(),
         type: 'url',
-        url
+        url,
       })
-      
+
       return true
     } catch (error) {
       console.error(`Failed to load sample from URL ${name}:`, error)
@@ -60,7 +60,7 @@ export class SampleManager {
     }
 
     const { volume = 1, playbackRate = 1, startTime = 0 } = options
-    
+
     if (sample instanceof Tone.Player) {
       sample.volume.value = Tone.gainToDb(volume)
       sample.playbackRate = playbackRate
@@ -103,4 +103,4 @@ export class SampleManager {
   }
 }
 
-export const sampleManager = new SampleManager() 
+export const sampleManager = new SampleManager()

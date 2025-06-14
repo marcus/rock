@@ -10,7 +10,7 @@ const mockSounds = [
   { id: 2, name: 'Snare Drum', drum_type: 'snare', type: 'sample' },
   { id: 3, name: 'Hi-Hat', drum_type: 'hihat', type: 'sample' },
   { id: 4, name: 'Crash Cymbal', drum_type: 'crash', type: 'sample' },
-  { id: 5, name: 'Cowbell', drum_type: 'cowbell', type: 'sample' }
+  { id: 5, name: 'Cowbell', drum_type: 'cowbell', type: 'sample' },
 ]
 
 describe('TrackManager Integration Tests', () => {
@@ -19,7 +19,7 @@ describe('TrackManager Integration Tests', () => {
   beforeEach(() => {
     fetch.mockResolvedValue({
       ok: true,
-      json: async () => mockSounds
+      json: async () => mockSounds,
     })
 
     mockProps = {
@@ -33,7 +33,7 @@ describe('TrackManager Integration Tests', () => {
       volumes: {},
       muted: {},
       onVolumeChange: jest.fn(),
-      onToggleMute: jest.fn()
+      onToggleMute: jest.fn(),
     }
   })
 
@@ -63,7 +63,7 @@ describe('TrackManager Integration Tests', () => {
     // Step 3: Simulate cowbell being added to tracks
     const updatedProps = {
       ...mockProps,
-      tracks: [{ id: 5, name: 'Cowbell', drum_type: 'cowbell' }]
+      tracks: [{ id: 5, name: 'Cowbell', drum_type: 'cowbell' }],
     }
     rerender(<TrackManager {...updatedProps} />)
 
@@ -76,7 +76,7 @@ describe('TrackManager Integration Tests', () => {
     // Step 5: Simulate cowbell being removed from tracks
     const removedProps = {
       ...mockProps,
-      tracks: []
+      tracks: [],
     }
     rerender(<TrackManager {...removedProps} />)
 
@@ -84,9 +84,12 @@ describe('TrackManager Integration Tests', () => {
     fireEvent.click(screen.getByText('+ Add Sound'))
 
     // Wait for the sound selector to load and check if cowbell is available
-    await waitFor(() => {
-      expect(screen.getByText('Cowbell')).toBeInTheDocument()
-    }, { timeout: 3000 })
+    await waitFor(
+      () => {
+        expect(screen.getByText('Cowbell')).toBeInTheDocument()
+      },
+      { timeout: 3000 }
+    )
 
     // This test should pass if the bug is fixed
     expect(screen.getByText('Cowbell')).toBeInTheDocument()
@@ -94,14 +97,14 @@ describe('TrackManager Integration Tests', () => {
 
   test('should handle multiple add/remove cycles correctly', async () => {
     let currentTracks = []
-    
+
     // Mock onAddTrack to update our local tracks state
-    mockProps.onAddTrack.mockImplementation((sound) => {
+    mockProps.onAddTrack.mockImplementation(sound => {
       currentTracks = [...currentTracks, sound]
     })
-    
+
     // Mock onRemoveTrack to update our local tracks state
-    mockProps.onRemoveTrack.mockImplementation((index) => {
+    mockProps.onRemoveTrack.mockImplementation(index => {
       currentTracks = currentTracks.filter((_, i) => i !== index)
     })
 
@@ -113,7 +116,7 @@ describe('TrackManager Integration Tests', () => {
       expect(screen.getByText('Kick Drum')).toBeInTheDocument()
     })
     fireEvent.click(screen.getByText('Kick Drum'))
-    
+
     // Update component with new tracks
     rerender(<TrackManager {...mockProps} tracks={currentTracks} />)
 
@@ -129,7 +132,7 @@ describe('TrackManager Integration Tests', () => {
       expect(screen.getByText('Kick Drum')).toBeInTheDocument()
     })
     fireEvent.click(screen.getByText('Kick Drum'))
-    
+
     // Update component with new tracks
     rerender(<TrackManager {...mockProps} tracks={currentTracks} />)
 
@@ -153,7 +156,7 @@ describe('TrackManager Integration Tests', () => {
     // Start with kick drum already in tracks
     const propsWithTrack = {
       ...mockProps,
-      tracks: [{ id: 1, name: 'Kick Drum', drum_type: 'kick' }]
+      tracks: [{ id: 1, name: 'Kick Drum', drum_type: 'kick' }],
     }
 
     render(<TrackManager {...propsWithTrack} />)
@@ -172,10 +175,10 @@ describe('TrackManager Integration Tests', () => {
     const soundItems = screen.getAllByText('Kick Drum')
     // Should only find it in the track label, not in the sound selector
     expect(soundItems).toHaveLength(1) // Only in track label, not in sound selector
-    
+
     // Other sounds should be available
     expect(screen.getByText('Snare Drum')).toBeInTheDocument()
     expect(screen.getByText('Hi-Hat')).toBeInTheDocument()
     expect(screen.getByText('Cowbell')).toBeInTheDocument()
   })
-}) 
+})

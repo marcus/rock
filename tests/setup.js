@@ -14,5 +14,5 @@ global.console = {
   debug: () => {},
   info: () => {},
   warn: () => {},
-  error: () => {}
-} 
+  error: () => {},
+}

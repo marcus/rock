@@ -22,10 +22,10 @@ export class SampleLoader {
           this.samples.set(name, player)
           resolve(player)
         },
-        onerror: (error) => {
+        onerror: error => {
           console.warn(`Failed to load sample ${name} from ${url}:`, error)
           reject(error)
-        }
+        },
       })
     })
 
@@ -34,13 +34,13 @@ export class SampleLoader {
   }
 
   async loadSamples(sampleMap) {
-    const promises = Object.entries(sampleMap).map(([name, url]) => 
+    const promises = Object.entries(sampleMap).map(([name, url]) =>
       this.loadSample(name, url).catch(error => {
         console.warn(`Skipping sample ${name}:`, error)
         return null
       })
     )
-    
+
     await Promise.allSettled(promises)
   }
 

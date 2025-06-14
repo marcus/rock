@@ -14,25 +14,25 @@ export class DrumSoundsAPI {
 
   async initialize() {
     if (this.isInitialized) return
-    
+
     try {
       // Fetch sounds from API
       const response = await fetch('/api/sounds/default')
       if (!response.ok) {
         throw new Error(`Failed to fetch sounds: ${response.statusText}`)
       }
-      
+
       this.soundsData = await response.json()
-      
+
       // Initialize instruments based on API data
       this.initializeInstruments()
-      
+
       // Load any samples if they exist
       await this.loadSamples()
-      
+
       this.isInitialized = true
       this.soundsLoaded = true
-      
+
       console.log('DrumSoundsAPI initialized with', this.soundsData.length, 'sounds')
     } catch (error) {
       console.error('Failed to initialize DrumSoundsAPI:', error)
@@ -44,18 +44,16 @@ export class DrumSoundsAPI {
 
   async loadSamples() {
     // Filter sounds that use samples
-    const sampleSounds = this.soundsData.filter(sound => 
-      sound.type === 'sample' && sound.file_path
-    )
-    
+    const sampleSounds = this.soundsData.filter(sound => sound.type === 'sample' && sound.file_path)
+
     if (sampleSounds.length === 0) return
-    
+
     try {
       const samplePaths = {}
       sampleSounds.forEach(sound => {
         samplePaths[this.getDrumKey(sound.drum_type, sound.id)] = sound.file_path
       })
-      
+
       await sampleLoader.loadSamples(samplePaths)
 
       // After samples are loaded, create persistent Tone.Player instances for each sample.
@@ -82,7 +80,7 @@ export class DrumSoundsAPI {
       if (sound.type === 'synthesis' && sound.synthesis_params) {
         const drumKey = this.getDrumKey(sound.drum_type, sound.id)
         const synthParams = JSON.parse(sound.synthesis_params)
-        
+
         this.instruments.set(drumKey, () => this.createSynthesisInstrument(synthParams))
       }
     })
@@ -93,19 +91,19 @@ export class DrumSoundsAPI {
     if (soundId) {
       return `${drumType}_${soundId}`
     }
-    
+
     // Map database drum_type to legacy key names for default sounds
     const keyMap = {
-      'kick': 'kick',
-      'snare': 'snare', 
-      'hihat_closed': 'hatClosed',
-      'hihat_open': 'hatOpen',
-      'crash': 'crash',
-      'clap': 'clap',
-      'cowbell': 'cowbell',
-      'tom_low': 'tom',
-      'tom_mid': 'tom',
-      'tom_high': 'tom'
+      kick: 'kick',
+      snare: 'snare',
+      hihat_closed: 'hatClosed',
+      hihat_open: 'hatOpen',
+      crash: 'crash',
+      clap: 'clap',
+      cowbell: 'cowbell',
+      tom_low: 'tom',
+      tom_mid: 'tom',
+      tom_high: 'tom',
     }
     return keyMap[drumType] || drumType
   }
@@ -113,23 +111,24 @@ export class DrumSoundsAPI {
   createSynthesisInstrument(synthParams) {
     try {
       if (synthParams.synthType === 'MembraneSynth') {
-        const synth = new Tone.MembraneSynth(synthParams.config).connect(audioEngine.getDestination())
+        const synth = new Tone.MembraneSynth(synthParams.config).connect(
+          audioEngine.getDestination()
+        )
         synth.triggerAttackRelease(synthParams.note, synthParams.duration)
         setTimeout(() => synth.dispose(), synthParams.cleanup_delay)
-      }
-      else if (synthParams.synthType === 'NoiseSynth') {
+      } else if (synthParams.synthType === 'NoiseSynth') {
         const synth = new Tone.NoiseSynth(synthParams.config).connect(audioEngine.getDestination())
-        
+
         if (synthParams.filter) {
           const filter = new Tone.Filter(
-            synthParams.filter.frequency, 
+            synthParams.filter.frequency,
             synthParams.filter.type,
             synthParams.filter.Q
           ).connect(audioEngine.getDestination())
           synth.connect(filter)
-          
+
           synth.triggerAttackRelease(synthParams.duration)
-          
+
           setTimeout(() => {
             synth.dispose()
             filter.dispose()
@@ -143,33 +142,36 @@ export class DrumSoundsAPI {
           } else {
             synth.triggerAttackRelease(synthParams.duration)
           }
-          
-          setTimeout(() => synth.dispose(), synthParams.cleanup_delay)  
+
+          setTimeout(() => synth.dispose(), synthParams.cleanup_delay)
         }
-      }
-      else if (synthParams.synthType === 'Dual') {
+      } else if (synthParams.synthType === 'Dual') {
         // For cowbell - dual synth setup
-        const synth1 = new Tone.Synth(synthParams.synth1.config).connect(audioEngine.getDestination())
-        const synth2 = new Tone.Synth(synthParams.synth2.config).connect(audioEngine.getDestination())
-        
+        const synth1 = new Tone.Synth(synthParams.synth1.config).connect(
+          audioEngine.getDestination()
+        )
+        const synth2 = new Tone.Synth(synthParams.synth2.config).connect(
+          audioEngine.getDestination()
+        )
+
         const filter1 = new Tone.Filter(
           synthParams.synth1.filter.frequency,
           synthParams.synth1.filter.type,
           synthParams.synth1.filter.Q
         ).connect(audioEngine.getDestination())
-        
+
         const filter2 = new Tone.Filter(
           synthParams.synth2.filter.frequency,
           synthParams.synth2.filter.type,
           synthParams.synth2.filter.Q
         ).connect(audioEngine.getDestination())
-        
+
         synth1.connect(filter1)
         synth2.connect(filter2)
-        
+
         synth1.triggerAttackRelease(synthParams.synth1.note, synthParams.duration)
         synth2.triggerAttackRelease(synthParams.synth2.note, synthParams.duration)
-        
+
         setTimeout(() => {
           synth1.dispose()
           synth2.dispose()
@@ -186,19 +188,17 @@ export class DrumSoundsAPI {
     if (!this.isInitialized) {
       await this.initialize()
     }
-    
+
     await audioEngine.ensureInitialized()
-    
+
     // Wait for sounds to load if they haven't yet
     while (!this.soundsLoaded) {
       await new Promise(resolve => setTimeout(resolve, 50))
     }
 
     // Find the sound data
-    const soundData = this.soundsData.find(sound => 
-      this.getDrumKey(sound.drum_type) === soundName
-    )
-    
+    const soundData = this.soundsData.find(sound => this.getDrumKey(sound.drum_type) === soundName)
+
     if (!soundData) {
       console.warn(`Sound ${soundName} not found`)
       return
@@ -220,7 +220,7 @@ export class DrumSoundsAPI {
       if (options.volume !== undefined) {
         const currentVolume = audioEngine.getMasterVolume()
         audioEngine.setMasterVolume(options.volume)
-        
+
         // Reset volume after a short delay
         setTimeout(() => {
           audioEngine.setMasterVolume(currentVolume)
@@ -252,40 +252,41 @@ export class DrumSoundsAPI {
     if (!this.isInitialized) {
       return []
     }
-    
-    return this.soundsData.map(sound => this.getDrumKey(sound.drum_type, sound.id))
+
+    return this.soundsData
+      .map(sound => this.getDrumKey(sound.drum_type, sound.id))
       .filter((key, index, array) => array.indexOf(key) === index) // Remove duplicates
   }
 
   // Add a new sound to the loaded sounds
   async addSound(soundData) {
     if (!soundData) return false
-    
+
     // Check if sound is already loaded
     const existingSound = this.soundsData.find(sound => sound.id === soundData.id)
     if (existingSound) {
       console.warn(`Sound ${soundData.name} is already loaded`)
       return false
     }
-    
+
     // Add to soundsData
     this.soundsData.push(soundData)
-    
+
     // Use unique key for dynamic sounds
     const drumKey = this.getDrumKey(soundData.drum_type, soundData.id)
-    
+
     // Initialize instrument if it's a synthesis sound
     if (soundData.type === 'synthesis' && soundData.synthesis_params) {
       const synthParams = JSON.parse(soundData.synthesis_params)
       this.instruments.set(drumKey, () => this.createSynthesisInstrument(synthParams))
     }
-    
+
     // Load sample if it's a sample sound
     if (soundData.type === 'sample' && soundData.file_path) {
       try {
         const samplePaths = { [drumKey]: soundData.file_path }
         await sampleLoader.loadSamples(samplePaths)
-        
+
         // Create persistent player for the sample
         if (sampleLoader.hasSample(drumKey)) {
           const player = new Tone.Player({
@@ -299,48 +300,49 @@ export class DrumSoundsAPI {
         console.warn(`Failed to load sample for ${soundData.name}:`, error)
       }
     }
-    
+
     return true
   }
 
   // Remove a sound from the loaded sounds
   removeSound(soundData) {
     if (!soundData) return false
-    
+
     // Find and remove from soundsData
     const soundIndex = this.soundsData.findIndex(sound => sound.id === soundData.id)
     if (soundIndex === -1) {
       console.warn(`Sound ${soundData.name} not found in loaded sounds`)
       return false
     }
-    
+
     // Remove from soundsData array
     this.soundsData.splice(soundIndex, 1)
-    
+
     // Generate the drum key for cleanup
     const drumKey = this.getDrumKey(soundData.drum_type, soundData.id)
-    
+
     // Clean up instrument if it exists
     if (this.instruments.has(drumKey)) {
       this.instruments.delete(drumKey)
     }
-    
+
     // Clean up sample player if it exists
     if (this.samplePlayers.has(drumKey)) {
       const player = this.samplePlayers.get(drumKey)
       player.dispose()
       this.samplePlayers.delete(drumKey)
     }
-    
+
     console.log(`Sound ${soundData.name} removed from DrumSoundsAPI`)
     return true
   }
 
   // Get sound data by drum key
   getSoundByKey(drumKey) {
-    return this.soundsData.find(sound => 
-      this.getDrumKey(sound.drum_type, sound.id) === drumKey ||
-      this.getDrumKey(sound.drum_type) === drumKey
+    return this.soundsData.find(
+      sound =>
+        this.getDrumKey(sound.drum_type, sound.id) === drumKey ||
+        this.getDrumKey(sound.drum_type) === drumKey
     )
   }
 
@@ -366,11 +368,12 @@ export class DrumSoundsAPI {
     }
 
     // Find the sound data - check both old and new key formats
-    const soundData = this.soundsData.find(sound => 
-      this.getDrumKey(sound.drum_type, sound.id) === soundName ||
-      this.getDrumKey(sound.drum_type) === soundName
+    const soundData = this.soundsData.find(
+      sound =>
+        this.getDrumKey(sound.drum_type, sound.id) === soundName ||
+        this.getDrumKey(sound.drum_type) === soundName
     )
-    
+
     if (!soundData) {
       console.warn(`Sound ${soundName} not found`)
       return
@@ -402,11 +405,12 @@ export class DrumSoundsAPI {
   }
 
   createSynthesisInstrumentSync(soundName, volume) {
-    const soundData = this.soundsData.find(sound => 
-      this.getDrumKey(sound.drum_type, sound.id) === soundName ||
-      this.getDrumKey(sound.drum_type) === soundName
+    const soundData = this.soundsData.find(
+      sound =>
+        this.getDrumKey(sound.drum_type, sound.id) === soundName ||
+        this.getDrumKey(sound.drum_type) === soundName
     )
-    
+
     if (!soundData || !soundData.synthesis_params) {
       console.warn(`No synthesis params for ${soundName}`)
       return
@@ -415,40 +419,40 @@ export class DrumSoundsAPI {
     try {
       const synthParams = JSON.parse(soundData.synthesis_params)
       console.log(`Full synthesis params for ${soundName}:`, JSON.stringify(synthParams, null, 2))
-      
+
       if (synthParams.synthType === 'MembraneSynth') {
         const synth = new Tone.MembraneSynth(synthParams.config).toDestination()
         synth.volume.value = Tone.gainToDb(volume)
         synth.triggerAttackRelease(synthParams.note, synthParams.duration)
         setTimeout(() => synth.dispose(), synthParams.cleanup_delay)
-      }
-      else if (synthParams.synthType === 'NoiseSynth') {
+      } else if (synthParams.synthType === 'NoiseSynth') {
         const synth = new Tone.NoiseSynth(synthParams.config).toDestination()
         synth.volume.value = Tone.gainToDb(volume)
-        
+
         if (synthParams.filter) {
           console.log(`Filter config for ${soundName}:`, synthParams.filter)
-          
+
           // Fix invalid Q parameter - Q should be positive
-          const filterQ = synthParams.filter.Q && synthParams.filter.Q > 0 ? synthParams.filter.Q : 1
-          
+          const filterQ =
+            synthParams.filter.Q && synthParams.filter.Q > 0 ? synthParams.filter.Q : 1
+
           // Fix invalid rolloff parameter - must be -12, -24, -48, or -96
           let rolloff = synthParams.filter.rolloff || -12
           if (![-12, -24, -48, -96].includes(rolloff)) {
             console.warn(`Invalid rolloff ${rolloff} for ${soundName}, using -12`)
             rolloff = -12
           }
-          
+
           const filter = new Tone.Filter({
             frequency: synthParams.filter.frequency,
             type: synthParams.filter.type,
             Q: filterQ,
-            rolloff: rolloff
+            rolloff: rolloff,
           }).toDestination()
           synth.connect(filter)
-          
+
           synth.triggerAttackRelease(synthParams.duration)
-          
+
           setTimeout(() => {
             synth.dispose()
             filter.dispose()
@@ -462,55 +466,60 @@ export class DrumSoundsAPI {
           } else {
             synth.triggerAttackRelease(synthParams.duration)
           }
-          
-          setTimeout(() => synth.dispose(), synthParams.cleanup_delay)  
+
+          setTimeout(() => synth.dispose(), synthParams.cleanup_delay)
         }
-      }
-      else if (synthParams.synthType === 'Dual') {
+      } else if (synthParams.synthType === 'Dual') {
         // For cowbell - dual synth setup
         const synth1 = new Tone.Synth(synthParams.synth1.config).toDestination()
         const synth2 = new Tone.Synth(synthParams.synth2.config).toDestination()
-        
+
         synth1.volume.value = Tone.gainToDb(volume)
         synth2.volume.value = Tone.gainToDb(volume)
-        
+
         // Fix Q parameters for filters
-        const filter1Q = synthParams.synth1.filter.Q && synthParams.synth1.filter.Q > 0 ? synthParams.synth1.filter.Q : 1
-        const filter2Q = synthParams.synth2.filter.Q && synthParams.synth2.filter.Q > 0 ? synthParams.synth2.filter.Q : 1
-        
+        const filter1Q =
+          synthParams.synth1.filter.Q && synthParams.synth1.filter.Q > 0
+            ? synthParams.synth1.filter.Q
+            : 1
+        const filter2Q =
+          synthParams.synth2.filter.Q && synthParams.synth2.filter.Q > 0
+            ? synthParams.synth2.filter.Q
+            : 1
+
         // Fix rolloff parameters
         let filter1Rolloff = synthParams.synth1.filter.rolloff || -12
         if (![-12, -24, -48, -96].includes(filter1Rolloff)) {
           console.warn(`Invalid rolloff ${filter1Rolloff} for ${soundName} synth1, using -12`)
           filter1Rolloff = -12
         }
-        
+
         let filter2Rolloff = synthParams.synth2.filter.rolloff || -12
         if (![-12, -24, -48, -96].includes(filter2Rolloff)) {
           console.warn(`Invalid rolloff ${filter2Rolloff} for ${soundName} synth2, using -12`)
           filter2Rolloff = -12
         }
-        
+
         const filter1 = new Tone.Filter({
           frequency: synthParams.synth1.filter.frequency,
           type: synthParams.synth1.filter.type,
           Q: filter1Q,
-          rolloff: filter1Rolloff
+          rolloff: filter1Rolloff,
         }).toDestination()
-        
+
         const filter2 = new Tone.Filter({
           frequency: synthParams.synth2.filter.frequency,
           type: synthParams.synth2.filter.type,
           Q: filter2Q,
-          rolloff: filter2Rolloff
+          rolloff: filter2Rolloff,
         }).toDestination()
-        
+
         synth1.connect(filter1)
         synth2.connect(filter2)
-        
+
         synth1.triggerAttackRelease(synthParams.synth1.note, synthParams.duration)
         synth2.triggerAttackRelease(synthParams.synth2.note, synthParams.duration)
-        
+
         setTimeout(() => {
           synth1.dispose()
           synth2.dispose()
@@ -521,7 +530,7 @@ export class DrumSoundsAPI {
     } catch (error) {
       console.error(`Error creating synthesis instrument for ${soundName}:`, error)
       console.error('Sound data:', soundData)
-      
+
       // Try to create a fallback simple synth
       try {
         console.log(`Creating fallback synth for ${soundName}`)
@@ -543,11 +552,12 @@ export class DrumSoundsAPI {
     }
 
     // Find the sound data - check both old and new key formats
-    const soundData = this.soundsData.find(sound => 
-      this.getDrumKey(sound.drum_type, sound.id) === soundName ||
-      this.getDrumKey(sound.drum_type) === soundName
+    const soundData = this.soundsData.find(
+      sound =>
+        this.getDrumKey(sound.drum_type, sound.id) === soundName ||
+        this.getDrumKey(sound.drum_type) === soundName
     )
-    
+
     if (!soundData) {
       console.warn(`Sound ${soundName} not found`)
       return
@@ -577,11 +587,12 @@ export class DrumSoundsAPI {
   }
 
   createSynthesisInstrumentScheduled(soundName, volume, time) {
-    const soundData = this.soundsData.find(sound => 
-      this.getDrumKey(sound.drum_type, sound.id) === soundName ||
-      this.getDrumKey(sound.drum_type) === soundName
+    const soundData = this.soundsData.find(
+      sound =>
+        this.getDrumKey(sound.drum_type, sound.id) === soundName ||
+        this.getDrumKey(sound.drum_type) === soundName
     )
-    
+
     if (!soundData || !soundData.synthesis_params) {
       console.warn(`No synthesis params for ${soundName}`)
       return
@@ -589,39 +600,39 @@ export class DrumSoundsAPI {
 
     try {
       const synthParams = JSON.parse(soundData.synthesis_params)
-      
+
       if (synthParams.synthType === 'MembraneSynth') {
         const synth = new Tone.MembraneSynth(synthParams.config).toDestination()
         synth.volume.value = Tone.gainToDb(volume)
         // Schedule the attack at the exact time
         synth.triggerAttackRelease(synthParams.note, synthParams.duration, time)
         setTimeout(() => synth.dispose(), synthParams.cleanup_delay)
-      }
-      else if (synthParams.synthType === 'NoiseSynth') {
+      } else if (synthParams.synthType === 'NoiseSynth') {
         const synth = new Tone.NoiseSynth(synthParams.config).toDestination()
         synth.volume.value = Tone.gainToDb(volume)
-        
+
         if (synthParams.filter) {
           // Fix invalid Q parameter - Q should be positive
-          const filterQ = synthParams.filter.Q && synthParams.filter.Q > 0 ? synthParams.filter.Q : 1
-          
+          const filterQ =
+            synthParams.filter.Q && synthParams.filter.Q > 0 ? synthParams.filter.Q : 1
+
           // Fix invalid rolloff parameter - must be -12, -24, -48, or -96
           let rolloff = synthParams.filter.rolloff || -12
           if (![-12, -24, -48, -96].includes(rolloff)) {
             rolloff = -12
           }
-          
+
           const filter = new Tone.Filter({
             frequency: synthParams.filter.frequency,
             type: synthParams.filter.type,
             Q: filterQ,
-            rolloff: rolloff
+            rolloff: rolloff,
           }).toDestination()
           synth.connect(filter)
-          
+
           // Schedule the attack at the exact time
           synth.triggerAttackRelease(synthParams.duration, time)
-          
+
           setTimeout(() => {
             synth.dispose()
             filter.dispose()
@@ -636,54 +647,59 @@ export class DrumSoundsAPI {
             // Schedule the attack at the exact time
             synth.triggerAttackRelease(synthParams.duration, time)
           }
-          
-          setTimeout(() => synth.dispose(), synthParams.cleanup_delay)  
+
+          setTimeout(() => synth.dispose(), synthParams.cleanup_delay)
         }
-      }
-      else if (synthParams.synthType === 'Dual') {
+      } else if (synthParams.synthType === 'Dual') {
         // For cowbell - dual synth setup
         const synth1 = new Tone.Synth(synthParams.synth1.config).toDestination()
         const synth2 = new Tone.Synth(synthParams.synth2.config).toDestination()
-        
+
         synth1.volume.value = Tone.gainToDb(volume)
         synth2.volume.value = Tone.gainToDb(volume)
-        
+
         // Fix Q parameters for filters
-        const filter1Q = synthParams.synth1.filter.Q && synthParams.synth1.filter.Q > 0 ? synthParams.synth1.filter.Q : 1
-        const filter2Q = synthParams.synth2.filter.Q && synthParams.synth2.filter.Q > 0 ? synthParams.synth2.filter.Q : 1
-        
+        const filter1Q =
+          synthParams.synth1.filter.Q && synthParams.synth1.filter.Q > 0
+            ? synthParams.synth1.filter.Q
+            : 1
+        const filter2Q =
+          synthParams.synth2.filter.Q && synthParams.synth2.filter.Q > 0
+            ? synthParams.synth2.filter.Q
+            : 1
+
         // Fix rolloff parameters
         let filter1Rolloff = synthParams.synth1.filter.rolloff || -12
         if (![-12, -24, -48, -96].includes(filter1Rolloff)) {
           filter1Rolloff = -12
         }
-        
+
         let filter2Rolloff = synthParams.synth2.filter.rolloff || -12
         if (![-12, -24, -48, -96].includes(filter2Rolloff)) {
           filter2Rolloff = -12
         }
-        
+
         const filter1 = new Tone.Filter({
           frequency: synthParams.synth1.filter.frequency,
           type: synthParams.synth1.filter.type,
           Q: filter1Q,
-          rolloff: filter1Rolloff
+          rolloff: filter1Rolloff,
         }).toDestination()
-        
+
         const filter2 = new Tone.Filter({
           frequency: synthParams.synth2.filter.frequency,
           type: synthParams.synth2.filter.type,
           Q: filter2Q,
-          rolloff: filter2Rolloff
+          rolloff: filter2Rolloff,
         }).toDestination()
-        
+
         synth1.connect(filter1)
         synth2.connect(filter2)
-        
+
         // Schedule both synths at the exact time
         synth1.triggerAttackRelease(synthParams.synth1.note, synthParams.duration, time)
         synth2.triggerAttackRelease(synthParams.synth2.note, synthParams.duration, time)
-        
+
         setTimeout(() => {
           synth1.dispose()
           synth2.dispose()
@@ -693,7 +709,7 @@ export class DrumSoundsAPI {
       }
     } catch (error) {
       console.error(`Error creating synthesis instrument for ${soundName}:`, error)
-      
+
       // Try to create a fallback simple synth with scheduled timing
       try {
         const fallbackSynth = new Tone.Synth().toDestination()

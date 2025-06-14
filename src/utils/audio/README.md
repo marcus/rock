@@ -5,7 +5,12 @@ A modular audio system built with Tone.js that supports both built-in drum sound
 ## Quick Start
 
 ```javascript
-import { initAudio, playDrumSound, loadCustomSample, playCustomSample } from '../utils/audioUtils.js'
+import {
+  initAudio,
+  playDrumSound,
+  loadCustomSample,
+  playCustomSample,
+} from '../utils/audioUtils.js'
 
 // Initialize the audio system
 await initAudio()
@@ -16,23 +21,26 @@ await playDrumSound('snare', { volume: 0.8 })
 
 // Load and play custom samples
 const file = // ... File object from input
-await loadCustomSample('myKick', file)
+  await loadCustomSample('myKick', file)
 await playCustomSample('myKick', { volume: 0.9, playbackRate: 1.2 })
 ```
 
 ## Architecture
 
 ### AudioEngine
+
 - Manages Tone.js initialization
 - Handles master volume control
 - Provides audio destination for all sounds
 
 ### DrumSounds
+
 - Built-in synthesized drum sounds using Tone.js
 - Includes: kick, snare, hatClosed, hatOpen, crash, clap, cowbell, tom
 - Uses appropriate Tone.js synthesizers (MembraneSynth, NoiseSynth, etc.)
 
 ### SampleManager
+
 - Handles custom uploaded audio files (MP3, WAV, OGG, M4A)
 - Supports loading from File objects or URLs
 - Manages sample playback with options (volume, playback rate, etc.)
@@ -40,6 +48,7 @@ await playCustomSample('myKick', { volume: 0.9, playbackRate: 1.2 })
 ## API Reference
 
 ### Built-in Sounds
+
 ```javascript
 import { playDrumSound, soundNames } from '../utils/audioUtils.js'
 
@@ -51,6 +60,7 @@ await playDrumSound('kick', { volume: 0.8 })
 ```
 
 ### Custom Samples
+
 ```javascript
 import { loadCustomSample, playCustomSample, validateAudioFile } from '../utils/audioUtils.js'
 
@@ -68,12 +78,13 @@ if (success) {
   await playCustomSample('customDrum', {
     volume: 0.9,
     playbackRate: 1.2, // Speed up playback
-    startTime: 0.1     // Start 100ms from now
+    startTime: 0.1, // Start 100ms from now
   })
 }
 ```
 
 ### Volume Control
+
 ```javascript
 import { setMasterVolume, audioEngine } from '../utils/audioUtils.js'
 
@@ -85,6 +96,7 @@ const currentVolume = audioEngine.getMasterVolume()
 ```
 
 ## File Support
+
 - **Supported formats**: MP3, WAV, OGG, M4A
 - **Maximum file size**: 10MB
-- **Validation**: Built-in file validation with helpful error messages 
+- **Validation**: Built-in file validation with helpful error messages

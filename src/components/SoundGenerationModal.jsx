@@ -20,7 +20,7 @@ const DRUM_TYPES = [
   { value: 'ride', label: 'Ride' },
   { value: 'percussion', label: 'Percussion' },
   { value: 'fx', label: 'FX' },
-  { value: 'other', label: 'Other' }
+  { value: 'other', label: 'Other' },
 ]
 
 function SoundGenerationModal({ isOpen, onClose, onAcceptSound }) {
@@ -31,7 +31,6 @@ function SoundGenerationModal({ isOpen, onClose, onAcceptSound }) {
   const [isLoading, setIsLoading] = useState(false)
   const [generatedSound, setGeneratedSound] = useState(null)
   const [error, setError] = useState(null)
-  const [hasBeenRejected, setHasBeenRejected] = useState(false)
 
   const handleSubmit = async () => {
     if (!prompt.trim() || !name.trim()) {
@@ -52,7 +51,7 @@ function SoundGenerationModal({ isOpen, onClose, onAcceptSound }) {
           prompt: prompt.trim(),
           duration,
           name: name.trim(),
-          drumType
+          drumType,
         }),
       })
 
@@ -79,7 +78,6 @@ function SoundGenerationModal({ isOpen, onClose, onAcceptSound }) {
 
   const handleReject = () => {
     setGeneratedSound(null)
-    setHasBeenRejected(true)
   }
 
   const handleClose = () => {
@@ -90,7 +88,6 @@ function SoundGenerationModal({ isOpen, onClose, onAcceptSound }) {
     setIsLoading(false)
     setGeneratedSound(null)
     setError(null)
-    setHasBeenRejected(false)
     onClose()
   }
 
@@ -99,40 +96,38 @@ function SoundGenerationModal({ isOpen, onClose, onAcceptSound }) {
   if (!isOpen) return null
 
   return (
-    <div className="sound-generation-overlay" onClick={handleClose}>
-      <div className="sound-generation-modal" onClick={(e) => e.stopPropagation()}>
-        <div className="sound-generation-header">
+    <div className='sound-generation-overlay' onClick={handleClose}>
+      <div className='sound-generation-modal' onClick={e => e.stopPropagation()}>
+        <div className='sound-generation-header'>
           <h2>🎛️ Create New Sound</h2>
-          <button className="close-button" onClick={handleClose}>×</button>
+          <button className='close-button' onClick={handleClose}>
+            ×
+          </button>
         </div>
 
         {error && (
-          <div className="sound-generation-error">
+          <div className='sound-generation-error'>
             <strong>Error:</strong> {error}
           </div>
         )}
 
         {!generatedSound ? (
-          <div className="sound-generation-form">
-            <div className="form-group">
-              <label htmlFor="sound-name">Sound Name:</label>
+          <div className='sound-generation-form'>
+            <div className='form-group'>
+              <label htmlFor='sound-name'>Sound Name:</label>
               <input
-                id="sound-name"
-                type="text"
+                id='sound-name'
+                type='text'
                 value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="e.g., Heavy Kick, Crisp Snare..."
-                maxLength="50"
+                onChange={e => setName(e.target.value)}
+                placeholder='e.g., Heavy Kick, Crisp Snare...'
+                maxLength='50'
               />
             </div>
 
-            <div className="form-group">
-              <label htmlFor="drum-type">Drum Type:</label>
-              <select
-                id="drum-type"
-                value={drumType}
-                onChange={(e) => setDrumType(e.target.value)}
-              >
+            <div className='form-group'>
+              <label htmlFor='drum-type'>Drum Type:</label>
+              <select id='drum-type' value={drumType} onChange={e => setDrumType(e.target.value)}>
                 {DRUM_TYPES.map(type => (
                   <option key={type.value} value={type.value}>
                     {type.label}
@@ -141,32 +136,28 @@ function SoundGenerationModal({ isOpen, onClose, onAcceptSound }) {
               </select>
             </div>
 
-            <PromptInput
-              value={prompt}
-              onChange={setPrompt}
-              disabled={isLoading}
-            />
+            <PromptInput value={prompt} onChange={setPrompt} disabled={isLoading} />
 
-            <DurationSlider
-              value={duration}
-              onChange={setDuration}
-              disabled={isLoading}
-            />
+            <DurationSlider value={duration} onChange={setDuration} disabled={isLoading} />
 
-            <SubmitButton
-              isLoading={isLoading}
-              disabled={!canSubmit}
-              onClick={handleSubmit}
-            />
+            <SubmitButton isLoading={isLoading} disabled={!canSubmit} onClick={handleSubmit} />
           </div>
         ) : (
-          <div className="sound-generation-preview">
+          <div className='sound-generation-preview'>
             <h3>🎵 Generated Sound Preview</h3>
-            <div className="sound-details">
-              <p><strong>Name:</strong> {name}</p>
-              <p><strong>Type:</strong> {DRUM_TYPES.find(t => t.value === drumType)?.label}</p>
-              <p><strong>Prompt:</strong> "{prompt}"</p>
-              <p><strong>Duration:</strong> {duration}s</p>
+            <div className='sound-details'>
+              <p>
+                <strong>Name:</strong> {name}
+              </p>
+              <p>
+                <strong>Type:</strong> {DRUM_TYPES.find(t => t.value === drumType)?.label}
+              </p>
+              <p>
+                <strong>Prompt:</strong> "{prompt}"
+              </p>
+              <p>
+                <strong>Duration:</strong> {duration}s
+              </p>
             </div>
 
             <AudioPreview audioUrl={generatedSound.audioUrl} />

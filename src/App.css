@@ -1,522 +1,521 @@
 @import url('https://fonts.googleapis.com/css2?family=Anton&display=swap');
 
 * {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
 body {
-    font-family: 'Anton', sans-serif;
-    background-color: #FFFEF0;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 100vh;
-    padding: 2vw;
-    overflow: hidden;
+  font-family: 'Anton', sans-serif;
+  background-color: #fffef0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  padding: 2vw;
+  overflow: hidden;
 }
 
 .sequencer-container {
-    background-color: #FFFEF0;
-    border: 0.5vw solid #000;
-    padding: 2.5vw;
-    box-shadow: 0.8vw 0.8vw 0 #000;
-    width: 95vw;
-    height: 90vh;
-    max-width: none;
-    display: flex;
-    flex-direction: column;
-    justify-content: top;
-    align-items: center;
-    gap: 2vh;
-    position: relative;
+  background-color: #fffef0;
+  border: 0.5vw solid #000;
+  padding: 2.5vw;
+  box-shadow: 0.8vw 0.8vw 0 #000;
+  width: 95vw;
+  height: 90vh;
+  max-width: none;
+  display: flex;
+  flex-direction: column;
+  justify-content: top;
+  align-items: center;
+  gap: 2vh;
+  position: relative;
 }
 
 @media (max-width: 768px) {
-    .sequencer-container {
-        width: 98vw;
-        height: 95vh;
-        padding: 1.5vw;
-    }
+  .sequencer-container {
+    width: 98vw;
+    height: 95vh;
+    padding: 1.5vw;
+  }
 }
 
 .halftone-bg {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    opacity: 0.1;
-    pointer-events: none;
-    background-image: radial-gradient(circle, #000 20%, transparent 20%);
-    background-size: 10px 10px;
-    z-index: -1;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  opacity: 0.1;
+  pointer-events: none;
+  background-image: radial-gradient(circle, #000 20%, transparent 20%);
+  background-size: 10px 10px;
+  z-index: -1;
 }
 
 .title {
-    position: absolute;
-    top: 1vw;
-    left: 1vw;
-    z-index: 10;
+  position: absolute;
+  top: 1vw;
+  left: 1vw;
+  z-index: 10;
 }
 
 .title h1 {
-    font-size: 14px;
-    letter-spacing: 1px;
-    color: #FF0000;
-    text-transform: uppercase;
-    position: relative;
-    z-index: 2;
-    -webkit-text-stroke: 1px #000;
-    paint-order: stroke fill;
-    margin: 0;
+  font-size: 14px;
+  letter-spacing: 1px;
+  color: #ff0000;
+  text-transform: uppercase;
+  position: relative;
+  z-index: 2;
+  -webkit-text-stroke: 1px #000;
+  paint-order: stroke fill;
+  margin: 0;
 }
 
 .title-shadow {
-    position: absolute;
-    top: 1px;
-    left: 1px;
-    font-size: 14px;
-    letter-spacing: 1px;
-    color: #FFD700;
-    text-transform: uppercase;
-    z-index: 1;
-    -webkit-text-stroke: 1px #000;
-    paint-order: stroke fill;
+  position: absolute;
+  top: 1px;
+  left: 1px;
+  font-size: 14px;
+  letter-spacing: 1px;
+  color: #ffd700;
+  text-transform: uppercase;
+  z-index: 1;
+  -webkit-text-stroke: 1px #000;
+  paint-order: stroke fill;
 }
 
-
 .sequencer-section {
-    display: flex;
-    flex-direction: column;
-    gap: 1vh;
+  display: flex;
+  flex-direction: column;
+  gap: 1vh;
 }
 
 .controls {
-    display: flex;
-    gap: 2vw;
-    flex-wrap: nowrap;
-    justify-content: left;
-    align-items: flex-end;
-    flex-shrink: 0;
-    margin-left: 10vw;
+  display: flex;
+  gap: 2vw;
+  flex-wrap: nowrap;
+  justify-content: left;
+  align-items: flex-end;
+  flex-shrink: 0;
+  margin-left: 10vw;
 }
 
 .control-group {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.3vh;
-    min-height: 6vh;
-    justify-content: flex-end;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3vh;
+  min-height: 6vh;
+  justify-content: flex-end;
 }
 
 .control-label {
-    font-size: clamp(0.7rem, 1vw, 1rem);
-    text-transform: uppercase;
-    color: #000;
-    font-weight: bold;
+  font-size: clamp(0.7rem, 1vw, 1rem);
+  text-transform: uppercase;
+  color: #000;
+  font-weight: bold;
 }
 
 button {
-    padding: 0.6vh 1.2vw;
-    font-family: 'Anton', sans-serif;
-    font-size: clamp(0.7rem, 1vw, 1rem);
-    text-transform: uppercase;
-    background-color: #FFD700;
-    color: #000;
-    border: 0.15vw solid #000;
-    cursor: pointer;
-    position: relative;
-    transition: all 0.1s;
-    min-height: 3vh;
+  padding: 0.6vh 1.2vw;
+  font-family: 'Anton', sans-serif;
+  font-size: clamp(0.7rem, 1vw, 1rem);
+  text-transform: uppercase;
+  background-color: #ffd700;
+  color: #000;
+  border: 0.15vw solid #000;
+  cursor: pointer;
+  position: relative;
+  transition: all 0.1s;
+  min-height: 3vh;
 }
 
 .play-stop-btn {
-    font-size: clamp(1rem, 1.5vw, 1.5rem);
-    padding: 0.5vh 1vw;
-    min-width: 3vw;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+  font-size: clamp(1rem, 1.5vw, 1.5rem);
+  padding: 0.5vh 1vw;
+  min-width: 3vw;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 button:hover {
-    transform: translate(-0.2vw, -0.2vh);
-    box-shadow: 0.3vw 0.3vh 0 #000;
+  transform: translate(-0.2vw, -0.2vh);
+  box-shadow: 0.3vw 0.3vh 0 #000;
 }
 
 button:active {
-    transform: translate(0, 0);
-    box-shadow: none;
+  transform: translate(0, 0);
+  box-shadow: none;
 }
 
 button.active {
-    background-color: #FF0000;
-    color: #FFF;
+  background-color: #ff0000;
+  color: #fff;
 }
 
-input[type="range"] {
-    width: 8vw;
-    height: 0.6vh;
-    background: #FFD700;
-    outline: none;
-    border: 0.1vw solid #000;
-    -webkit-appearance: none;
+input[type='range'] {
+  width: 8vw;
+  height: 0.6vh;
+  background: #ffd700;
+  outline: none;
+  border: 0.1vw solid #000;
+  -webkit-appearance: none;
 }
 
-input[type="range"]::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    width: 1.2vw;
-    height: 1.2vw;
-    background: #0000FF;
-    border: 0.1vw solid #000;
-    cursor: pointer;
-    border-radius: 50%;
+input[type='range']::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 1.2vw;
+  height: 1.2vw;
+  background: #0000ff;
+  border: 0.1vw solid #000;
+  cursor: pointer;
+  border-radius: 50%;
 }
 
-input[type="range"]::-moz-range-thumb {
-    width: 1.2vw;
-    height: 1.2vw;
-    background: #0000FF;
-    border: 0.1vw solid #000;
-    cursor: pointer;
-    border-radius: 50%;
-    border: none;
+input[type='range']::-moz-range-thumb {
+  width: 1.2vw;
+  height: 1.2vw;
+  background: #0000ff;
+  border: 0.1vw solid #000;
+  cursor: pointer;
+  border-radius: 50%;
+  border: none;
 }
 
 .tempo-control {
-    display: flex;
-    align-items: center;
-    gap: 0.5vw;
-    white-space: nowrap;
-    margin-bottom: 1vh;
+  display: flex;
+  align-items: center;
+  gap: 0.5vw;
+  white-space: nowrap;
+  margin-bottom: 1vh;
 }
 
 .tempo-label {
-    font-size: clamp(0.7rem, 1vw, 1rem);
-    font-weight: bold;
-    color: #000;
-    text-transform: uppercase;
+  font-size: clamp(0.7rem, 1vw, 1rem);
+  font-weight: bold;
+  color: #000;
+  text-transform: uppercase;
 }
 
 .tempo-slider {
-    width: 6vw;
-    margin: 0 0.3vw;
+  width: 6vw;
+  margin: 0 0.3vw;
 }
 
 .tempo-value {
-    font-size: clamp(0.7rem, 1vw, 1rem);
-    font-weight: bold;
-    color: #000;
-    min-width: 4vw;
+  font-size: clamp(0.7rem, 1vw, 1rem);
+  font-weight: bold;
+  color: #000;
+  min-width: 4vw;
 }
 
 .volume-controls-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
 }
 
 .master-volume-control {
-    position: absolute;
-    top: -5vh;
-    right: 0.8vw;
-    width: 9vw;
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.3vh;
-    z-index: 5;
-    white-space: nowrap;
+  position: absolute;
+  top: -5vh;
+  right: 0.8vw;
+  width: 9vw;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.3vh;
+  z-index: 5;
+  white-space: nowrap;
 }
 
 .master-volume-label {
-    font-size: clamp(0.6rem, 0.9vw, 0.9rem);
-    text-transform: uppercase;
-    color: #FF0000;
-    font-weight: bold;
+  font-size: clamp(0.6rem, 0.9vw, 0.9rem);
+  text-transform: uppercase;
+  color: #ff0000;
+  font-weight: bold;
 }
 
 .master-volume-row {
-    display: flex;
-    align-items: center;
-    gap: 0.5vw;
-    width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 0.5vw;
+  width: 100%;
 }
 
 .master-volume-slider {
-    background: #FF6B6B !important;
-    width: 8vw;
-    height: 0.6vh;
-    outline: none;
-    border: 0.1vw solid #000;
-    -webkit-appearance: none;
-    flex-shrink: 0;
+  background: #ff6b6b !important;
+  width: 8vw;
+  height: 0.6vh;
+  outline: none;
+  border: 0.1vw solid #000;
+  -webkit-appearance: none;
+  flex-shrink: 0;
 }
 
 .master-mute-button {
-    padding: 0.3vh 0.8vw;
-    font-size: clamp(0.6rem, 1vw, 1rem);
-    background-color: #FF6B6B;
-    border: 0.15vw solid #000;
-    flex-shrink: 0;
-    font-family: 'Anton', sans-serif;
-    font-weight: bold;
-    cursor: pointer;
-    transition: all 0.1s;
-    color: #000;
+  padding: 0.3vh 0.8vw;
+  font-size: clamp(0.6rem, 1vw, 1rem);
+  background-color: #ff6b6b;
+  border: 0.15vw solid #000;
+  flex-shrink: 0;
+  font-family: 'Anton', sans-serif;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.1s;
+  color: #000;
 }
 
 .master-mute-button:hover {
-    transform: translate(-0.2vw, -0.2vh);
-    box-shadow: 0.3vw 0.3vh 0 #000;
+  transform: translate(-0.2vw, -0.2vh);
+  box-shadow: 0.3vw 0.3vh 0 #000;
 }
 
 .master-mute-button:active {
-    transform: translate(0, 0);
-    box-shadow: none;
+  transform: translate(0, 0);
+  box-shadow: none;
 }
 
 .master-mute-button.muted {
-    background-color: #FF0000;
-    color: #FFF;
+  background-color: #ff0000;
+  color: #fff;
 }
 
 .master-volume-slider::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    width: 1.2vw;
-    height: 1.2vw;
-    background: #FF0000;
-    border: 0.1vw solid #000;
-    cursor: pointer;
-    border-radius: 50%;
+  -webkit-appearance: none;
+  width: 1.2vw;
+  height: 1.2vw;
+  background: #ff0000;
+  border: 0.1vw solid #000;
+  cursor: pointer;
+  border-radius: 50%;
 }
 
 .master-volume-slider::-moz-range-thumb {
-    width: 1.2vw;
-    height: 1.2vw;
-    background: #FF0000;
-    border: 0.1vw solid #000;
-    cursor: pointer;
-    border-radius: 50%;
-    border: none;
+  width: 1.2vw;
+  height: 1.2vw;
+  background: #ff0000;
+  border: 0.1vw solid #000;
+  cursor: pointer;
+  border-radius: 50%;
+  border: none;
 }
 
 .grid-container {
-    display: flex;
-    flex-direction: column;
-    gap: 1vh;
-    justify-content: center;
-    flex: 1;
-    align-items: center;
+  display: flex;
+  flex-direction: column;
+  gap: 1vh;
+  justify-content: center;
+  flex: 1;
+  align-items: center;
 }
 
 .sequencer-with-master {
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .track-labels {
-    display: flex;
-    flex-direction: column;
-    gap: 0.3vh;
-    flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3vh;
+  flex-shrink: 0;
 }
 
 @media (max-width: 768px) {
-    .track-labels {
-        flex-direction: row;
-        gap: 0.5vw;
-        width: 100%;
-        justify-content: space-between;
-    }
+  .track-labels {
+    flex-direction: row;
+    gap: 0.5vw;
+    width: 100%;
+    justify-content: space-between;
+  }
 }
 
 .sequencer-row .track-label {
-    height: 100%;
-    width: 8vw;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background-color: #0000FF;
-    color: #FFF;
-    border: 0.2vw solid #000;
-    font-size: clamp(0.6rem, 1vw, 1rem);
-    text-transform: uppercase;
-    flex-shrink: 0;
+  height: 100%;
+  width: 8vw;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #0000ff;
+  color: #fff;
+  border: 0.2vw solid #000;
+  font-size: clamp(0.6rem, 1vw, 1rem);
+  text-transform: uppercase;
+  flex-shrink: 0;
 }
 
 @media (max-width: 768px) {
-    .sequencer-row .track-label {
-        width: auto;
-        padding: 0 1vw;
-        min-width: 8vw;
-        font-size: clamp(0.5rem, 2vw, 0.8rem);
-    }
+  .sequencer-row .track-label {
+    width: auto;
+    padding: 0 1vw;
+    min-width: 8vw;
+    font-size: clamp(0.5rem, 2vw, 0.8rem);
+  }
 }
 
 .sequencer-grid {
-    display: flex;
-    flex-direction: column;
-    gap: 0.3vh;
-    border: 0.3vw solid #000;
-    padding: 0.8vw;
-    background-color: #FFF;
-    position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3vh;
+  border: 0.3vw solid #000;
+  padding: 0.8vw;
+  background-color: #fff;
+  position: relative;
 }
 
 .sequencer-grid::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    right: 4vw;
-    width: 12vw;
-    height: 0;
-    pointer-events: none;
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 4vw;
+  width: 12vw;
+  height: 0;
+  pointer-events: none;
 }
 
 .sequencer-row {
-    display: flex;
-    align-items: center;
-    gap: 1vw;
-    height: 4vh;
+  display: flex;
+  align-items: center;
+  gap: 1vw;
+  height: 4vh;
 }
 
 @media (max-width: 768px) {
-    .sequencer-row {
-        height: 3vh;
-        gap: 0.5vw;
-    }
+  .sequencer-row {
+    height: 3vh;
+    gap: 0.5vw;
+  }
 }
 
 .step-row {
-    display: flex;
-    gap: 0.3vw;
-    flex: 1;
-    justify-content: center;
+  display: flex;
+  gap: 0.3vw;
+  flex: 1;
+  justify-content: center;
 }
 
 @media (max-width: 768px) {
-    .step-row {
-        gap: 0.2vw;
-    }
+  .step-row {
+    gap: 0.2vw;
+  }
 }
 
 .step-button {
-    width: 3.5vw;
-    height: 3.5vh;
-    border: 0.2vw solid #000;
-    background-color: #FFFEF0;
-    cursor: pointer;
-    position: relative;
-    transition: all 0.1s;
-    flex-shrink: 0;
+  width: 3.5vw;
+  height: 3.5vh;
+  border: 0.2vw solid #000;
+  background-color: #fffef0;
+  cursor: pointer;
+  position: relative;
+  transition: all 0.1s;
+  flex-shrink: 0;
 }
 
 @media (max-width: 768px) {
-    .step-button {
-        width: 5vw;
-        height: 2.5vh;
-    }
+  .step-button {
+    width: 5vw;
+    height: 2.5vh;
+  }
 }
 
 .step-button:hover {
-    background-color: #FFD700;
-    transform: scale(1.1);
+  background-color: #ffd700;
+  transform: scale(1.1);
 }
 
 .step-button.active {
-    background-color: #FF0000;
-    box-shadow: inset 0.2vw 0.2vh 0 #000;
+  background-color: #ff0000;
+  box-shadow: inset 0.2vw 0.2vh 0 #000;
 }
 
 .step-button.playing {
-    background-color: #00FF00 !important;
-    animation: pulse 0.2s;
+  background-color: #00ff00 !important;
+  animation: pulse 0.2s;
 }
 
 @keyframes pulse {
-    0% {
-        transform: scale(1);
-    }
+  0% {
+    transform: scale(1);
+  }
 
-    50% {
-        transform: scale(1.2);
-    }
+  50% {
+    transform: scale(1.2);
+  }
 
-    100% {
-        transform: scale(1);
-    }
+  100% {
+    transform: scale(1);
+  }
 }
 
-.step-button:nth-child(4n+1) {
-    border-left: 0.4vw solid #000;
+.step-button:nth-child(4n + 1) {
+  border-left: 0.4vw solid #000;
 }
 
 .volume-controls {
-    display: flex;
-    flex-direction: column;
-    gap: 0.3vh;
-    flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3vh;
+  flex-shrink: 0;
 }
 
 @media (max-width: 768px) {
-    .volume-controls {
-        width: 100%;
-        flex-direction: row;
-        gap: 0.5vw;
-        justify-content: space-between;
-    }
+  .volume-controls {
+    width: 100%;
+    flex-direction: row;
+    gap: 0.5vw;
+    justify-content: space-between;
+  }
 }
 
 .sequencer-row .volume-slider {
-    height: 100%;
-    display: flex;
-    align-items: center;
-    gap: 0.5vw;
-    padding: 0 0.5vw;
-    flex-shrink: 0;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  gap: 0.5vw;
+  padding: 0 0.5vw;
+  flex-shrink: 0;
 }
 
 @media (max-width: 768px) {
-    .sequencer-row .volume-slider {
-        gap: 0.3vw;
-        padding: 0 0.3vw;
-    }
+  .sequencer-row .volume-slider {
+    gap: 0.3vw;
+    padding: 0 0.3vw;
+  }
 }
 
 .sequencer-row .volume-slider input {
-    width: 8vw;
-    flex-shrink: 0;
+  width: 8vw;
+  flex-shrink: 0;
 }
 
 @media (max-width: 768px) {
-    .sequencer-row .volume-slider input {
-        width: 6vw;
-    }
+  .sequencer-row .volume-slider input {
+    width: 6vw;
+  }
 }
 
 .mute-button {
-    padding: 0.3vh 0.8vw;
-    font-size: clamp(0.6rem, 1vw, 1rem);
-    background-color: #FFFEF0;
-    border: 0.15vw solid #000;
-    flex-shrink: 0;
+  padding: 0.3vh 0.8vw;
+  font-size: clamp(0.6rem, 1vw, 1rem);
+  background-color: #fffef0;
+  border: 0.15vw solid #000;
+  flex-shrink: 0;
 }
 
 @media (max-width: 768px) {
-    .mute-button {
-        padding: 0.2vh 0.5vw;
-        font-size: clamp(0.5rem, 1.5vw, 0.8rem);
-    }
+  .mute-button {
+    padding: 0.2vh 0.5vw;
+    font-size: clamp(0.5rem, 1.5vw, 0.8rem);
+  }
 }
 
 .mute-button.muted {
-    background-color: #FF0000;
-    color: #FFF;
+  background-color: #ff0000;
+  color: #fff;
 }

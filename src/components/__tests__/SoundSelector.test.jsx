@@ -9,14 +9,14 @@ const mockSounds = [
   { id: 1, name: 'Kick Drum', drum_type: 'kick', type: 'sample' },
   { id: 2, name: 'Snare Drum', drum_type: 'snare', type: 'sample' },
   { id: 3, name: 'Hi-Hat', drum_type: 'hihat', type: 'sample' },
-  { id: 4, name: 'Crash Cymbal', drum_type: 'crash', type: 'sample' }
+  { id: 4, name: 'Crash Cymbal', drum_type: 'crash', type: 'sample' },
 ]
 
 describe('SoundSelector', () => {
   beforeEach(() => {
     fetch.mockResolvedValue({
       ok: true,
-      json: async () => mockSounds
+      json: async () => mockSounds,
     })
   })
 
@@ -50,7 +50,7 @@ describe('SoundSelector', () => {
     const mockOnSelectSound = jest.fn()
     const usedSounds = [
       { id: 1, name: 'Kick Drum', drum_type: 'kick' },
-      { id: 2, name: 'Snare Drum', drum_type: 'snare' }
+      { id: 2, name: 'Snare Drum', drum_type: 'snare' },
     ]
 
     render(
@@ -197,12 +197,12 @@ describe('SoundSelector', () => {
     // Add a cowbell sound to our mock data for this test
     const mockSoundsWithCowbell = [
       ...mockSounds,
-      { id: 5, name: 'Cowbell', drum_type: 'cowbell', type: 'sample' }
+      { id: 5, name: 'Cowbell', drum_type: 'cowbell', type: 'sample' },
     ]
 
     fetch.mockResolvedValue({
       ok: true,
-      json: async () => mockSoundsWithCowbell
+      json: async () => mockSoundsWithCowbell,
     })
 
     // Step 1: Initially no sounds are used, cowbell should be available
@@ -244,9 +244,12 @@ describe('SoundSelector', () => {
     )
 
     // Step 4: Cowbell should be available again - this is where the bug occurs
-    await waitFor(() => {
-      expect(screen.getByText('Cowbell')).toBeInTheDocument()
-    }, { timeout: 3000 })
+    await waitFor(
+      () => {
+        expect(screen.getByText('Cowbell')).toBeInTheDocument()
+      },
+      { timeout: 3000 }
+    )
   })
 
   test('should handle multiple remove-then-re-add cycles correctly', async () => {
@@ -317,18 +320,18 @@ describe('SoundSelector', () => {
 
     // Simulate the real-world scenario where usedSounds objects might have different references
     // but same data (which could cause React to not detect changes properly)
-    
+
     const cowbellSound1 = { id: 5, name: 'Cowbell', drum_type: 'cowbell' }
     const cowbellSound2 = { id: 5, name: 'Cowbell', drum_type: 'cowbell' } // Same data, different object reference
 
     const mockSoundsWithCowbell = [
       ...mockSounds,
-      { id: 5, name: 'Cowbell', drum_type: 'cowbell', type: 'sample' }
+      { id: 5, name: 'Cowbell', drum_type: 'cowbell', type: 'sample' },
     ]
 
     fetch.mockResolvedValue({
       ok: true,
-      json: async () => mockSoundsWithCowbell
+      json: async () => mockSoundsWithCowbell,
     })
 
     // Step 1: Start with no sounds used
@@ -399,7 +402,7 @@ describe('SoundSelector', () => {
       fetchCallCount++
       return Promise.resolve({
         ok: true,
-        json: async () => mockSounds
+        json: async () => mockSounds,
       })
     })
 
@@ -454,7 +457,7 @@ describe('SoundSelector', () => {
     // Mock the DrumSoundsAPI methods that would be called in the real app
     const mockDrumSoundsAPI = {
       addSound: jest.fn().mockResolvedValue(true),
-      removeSound: jest.fn().mockReturnValue(true)
+      removeSound: jest.fn().mockReturnValue(true),
     }
 
     // Mock the global drumSoundsInstance
@@ -518,4 +521,4 @@ describe('SoundSelector', () => {
     // Clean up the global mock
     delete global.drumSoundsInstance
   })
-}) 
+})

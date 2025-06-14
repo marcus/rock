@@ -29,7 +29,7 @@ function App() {
     toggleMute,
     setIsPlaying,
     setCurrentStep,
-    initializeApp
+    initializeApp,
   } = useAppStore()
 
   // Audio refs
@@ -52,7 +52,7 @@ function App() {
     if (!isPlaying) {
       Tone.Transport.stop()
       Tone.Transport.cancel()
-      
+
       if (toneSequenceRef.current) {
         toneSequenceRef.current.dispose()
         toneSequenceRef.current = null
@@ -84,20 +84,20 @@ function App() {
   }, [])
 
   // Track management handlers
-  const handleAddTrack = async (soundData) => {
+  const handleAddTrack = async soundData => {
     return await addTrack(soundData)
   }
 
-  const handleRemoveTrack = (trackIndex) => {
+  const handleRemoveTrack = trackIndex => {
     removeTrack(trackIndex)
   }
 
   const playStep = useCallback((step, time) => {
     if (!audioContextRef.current || !masterGainRef.current || tracksRef.current.length === 0) return
-    
+
     const currentPattern = patternRef.current
     const currentTracks = tracksRef.current
-    
+
     for (let trackIndex = 0; trackIndex < currentTracks.length; trackIndex++) {
       if (currentPattern.steps[trackIndex]?.[step] && !currentPattern.muted[trackIndex]) {
         const track = currentTracks[trackIndex]
@@ -105,7 +105,7 @@ function App() {
           // Generate the sound key for this track
           const soundKey = drumSoundsInstance.getDrumKey(track.drum_type, track.id)
           const volume = currentPattern.volumes[trackIndex] || 0.8
-          
+
           // Use the scheduled playback method for precise timing
           drumSoundsInstance.playSoundScheduled(soundKey, volume, time)
         }
@@ -120,16 +120,20 @@ function App() {
     }
 
     // Create Tone.js sequence that runs every 16th note
-    toneSequenceRef.current = new Tone.Sequence((time, step) => {
-      // Schedule audio playback at the exact time
-      playStep(step, time)
-      
-      // Schedule UI updates separately using Tone.Draw for visual feedback
-      Tone.Draw.schedule(() => {
-        currentStepRef.current = step
-        setCurrentStep(step)
-      }, time)
-    }, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15], "16n")
+    toneSequenceRef.current = new Tone.Sequence(
+      (time, step) => {
+        // Schedule audio playback at the exact time
+        playStep(step, time)
+
+        // Schedule UI updates separately using Tone.Draw for visual feedback
+        Tone.Draw.schedule(() => {
+          currentStepRef.current = step
+          setCurrentStep(step)
+        }, time)
+      },
+      [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15],
+      '16n'
+    )
 
     toneSequenceRef.current.start(0)
   }, [playStep, setCurrentStep])
@@ -139,70 +143,70 @@ function App() {
     if (!drumSoundsInstance.isInitialized) {
       await drumSoundsInstance.initialize()
     }
-    
+
     // Configure Tone.js for optimal timing after user gesture
     if (Tone.context.state === 'suspended') {
       await Tone.start()
     }
-    
+
     // Configure Tone.js for tighter timing in Safari
     if (Tone.Transport.lookAhead > 0.05) {
       Tone.Transport.lookAhead = 0.05
     }
-    
+
     if (!audioContextRef.current) {
       const { audioContext, masterGain } = await initAudio()
       audioContextRef.current = audioContext
       masterGainRef.current = masterGain
       masterGain.gain.value = masterMuted ? 0 : masterVolume / 100
-      
+
       if (audioContext.state === 'suspended') {
         await audioContext.resume()
       }
-      
+
       await new Promise(resolve => setTimeout(resolve, 100))
     }
-    
+
     const newIsPlaying = !isPlaying
     isPlayingRef.current = newIsPlaying
     setIsPlaying(newIsPlaying)
-    
+
     if (newIsPlaying) {
       // Set up Tone.js transport and sequence
       Tone.Transport.bpm.value = tempo
       setupToneSequence()
-      
+
       // Reset to step 0
       currentStepRef.current = 0
       setCurrentStep(0)
-      
+
       // Start Tone.js transport
       Tone.Transport.start()
     } else {
       // Stop transport and clean up
       Tone.Transport.stop()
       Tone.Transport.cancel()
-      
+
       if (toneSequenceRef.current) {
         toneSequenceRef.current.dispose()
         toneSequenceRef.current = null
       }
-      
+
       currentStepRef.current = 0
       setCurrentStep(0)
     }
   }
 
-  const handleTempoChange = (newTempo) => {
+  const handleTempoChange = newTempo => {
     updateTempo(newTempo)
-    
+
     // Update Tone.js transport tempo if playing
     if (isPlaying) {
       Tone.Transport.bpm.value = newTempo
     }
   }
 
-  const handleMasterVolumeChange = (volume) => {
+  const handleMasterVolumeChange = volume => {
     updateMasterVolume(volume)
     if (masterGainRef.current) {
       masterGainRef.current.gain.value = masterMuted ? 0 : volume / 100
@@ -218,26 +222,26 @@ function App() {
   }
 
   return (
-    <div className="App">
-      <div className="halftone-bg"></div>
-      <div className="sequencer-container">
-        <div className="title">
-          <span className="title-shadow">ROY'S ROCK MACHINE</span>
+    <div className='App'>
+      <div className='halftone-bg'></div>
+      <div className='sequencer-container'>
+        <div className='title'>
+          <span className='title-shadow'>ROY'S ROCK MACHINE</span>
           <h1>ROY'S ROCK MACHINE</h1>
         </div>
-        
-        <div className="sequencer-section">
-          <Controls 
+
+        <div className='sequencer-section'>
+          <Controls
             isPlaying={isPlaying}
             tempo={tempo}
             onTogglePlayback={togglePlayback}
             onTempoChange={handleTempoChange}
             onClear={clearPattern}
           />
-          
-          <div className="grid-container">
-            <div className="sequencer-with-master">
-              <MasterVolumeControl 
+
+          <div className='grid-container'>
+            <div className='sequencer-with-master'>
+              <MasterVolumeControl
                 masterVolume={masterVolume}
                 masterMuted={masterMuted}
                 onVolumeChange={handleMasterVolumeChange}

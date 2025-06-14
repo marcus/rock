@@ -18,11 +18,11 @@ class Database {
 
     // Enable verbose mode for debugging
     sqlite3.verbose()
-    
+
     // Create database file in server directory
     const dbPath = join(__dirname, 'roysrock.db')
-    
-    this.db = new sqlite3.Database(dbPath, (err) => {
+
+    this.db = new sqlite3.Database(dbPath, err => {
       if (err) {
         console.error('Error opening database:', err.message)
         throw err
@@ -42,13 +42,13 @@ class Database {
       SELECT name FROM sqlite_master 
       WHERE type='table' AND name NOT LIKE 'sqlite_%'
     `)
-    
+
     // If no tables exist, run the initial schema
     if (tables.length === 0) {
       console.log('Fresh database detected, running initial schema...')
       await this.runInitialSchema()
     }
-    
+
     // Then run any pending migrations
     const migrationRunner = new MigrationRunner(this)
     await migrationRunner.runMigrations()
@@ -59,8 +59,8 @@ class Database {
       // Read and execute the schema file
       const schemaPath = join(__dirname, './schema.sql')
       const schema = readFileSync(schemaPath, 'utf8')
-      
-      this.db.exec(schema, (err) => {
+
+      this.db.exec(schema, err => {
         if (err) {
           console.error('Error running initial schema:', err.message)
           reject(err)
@@ -86,7 +86,7 @@ class Database {
 
   async run(sql, params = []) {
     return new Promise((resolve, reject) => {
-      this.db.run(sql, params, function(err) {
+      this.db.run(sql, params, function (err) {
         if (err) {
           reject(err)
         } else {
@@ -110,7 +110,7 @@ class Database {
 
   close() {
     if (this.db) {
-      this.db.close((err) => {
+      this.db.close(err => {
         if (err) {
           console.error('Error closing database:', err.message)
         } else {

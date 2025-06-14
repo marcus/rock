@@ -5,7 +5,7 @@
   gap: 0.3vh;
   border: 0.3vw solid #000;
   padding: 0.8vw;
-  background-color: #FFF;
+  background-color: #fff;
   position: relative;
 }
 
@@ -34,8 +34,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: #0000FF;
-  color: #FFF;
+  background-color: #0000ff;
+  color: #fff;
   border: 0.2vw solid #000;
   font-size: clamp(0.6rem, 1vw, 1rem);
   text-transform: uppercase;
@@ -49,8 +49,8 @@
   height: 1.5vw;
   min-width: 15px;
   min-height: 15px;
-  background-color: #FF0000;
-  color: #FFF;
+  background-color: #ff0000;
+  color: #fff;
   border: 0.1vw solid #000;
   font-size: clamp(0.5rem, 0.7vw, 0.7rem);
   font-family: 'Anton', sans-serif;
@@ -65,7 +65,7 @@
 }
 
 .remove-track-button:hover {
-  background-color: #CC0000;
+  background-color: #cc0000;
   transform: translate(-0.1vw, -0.1vh);
   box-shadow: 0.2vw 0.2vh 0 #000;
 }
@@ -86,7 +86,7 @@
   width: 3.5vw;
   height: 3.5vh;
   border: 0.2vw solid #000;
-  background-color: #FFFEF0;
+  background-color: #fffef0;
   cursor: pointer;
   position: relative;
   transition: all 0.1s;
@@ -94,21 +94,21 @@
 }
 
 .step-button:hover {
-  background-color: #FFD700;
+  background-color: #ffd700;
   transform: scale(1.1);
 }
 
 .step-button.active {
-  background-color: #FF0000;
+  background-color: #ff0000;
   box-shadow: inset 0.2vw 0.2vh 0 #000;
 }
 
 .step-button.playing {
-  background-color: #00FF00 !important;
+  background-color: #00ff00 !important;
   animation: pulse 0.2s;
 }
 
-.step-button:nth-child(4n+1) {
+.step-button:nth-child(4n + 1) {
   border-left: 0.4vw solid #000;
 }
 
@@ -136,7 +136,7 @@
 .volume-slider {
   width: 8vw;
   height: 0.6vh;
-  background: #FFD700;
+  background: #ffd700;
   outline: none;
   border: 0.1vw solid #000;
   -webkit-appearance: none;
@@ -147,7 +147,7 @@
   -webkit-appearance: none;
   width: 1.2vw;
   height: 1.2vw;
-  background: #0000FF;
+  background: #0000ff;
   border: 0.1vw solid #000;
   cursor: pointer;
   border-radius: 50%;
@@ -156,7 +156,7 @@
 .volume-slider::-moz-range-thumb {
   width: 1.2vw;
   height: 1.2vw;
-  background: #0000FF;
+  background: #0000ff;
   border: 0.1vw solid #000;
   cursor: pointer;
   border-radius: 50%;
@@ -166,7 +166,7 @@
 .mute-button {
   padding: 0.3vh 0.8vw;
   font-size: clamp(0.6rem, 1vw, 1rem);
-  background-color: #FFFEF0;
+  background-color: #fffef0;
   border: 0.15vw solid #000;
   flex-shrink: 0;
   font-family: 'Anton', sans-serif;
@@ -187,8 +187,8 @@
 }
 
 .mute-button.muted {
-  background-color: #FF0000;
-  color: #FFF;
+  background-color: #ff0000;
+  color: #fff;
 }
 
 .add-track-row {
@@ -201,7 +201,7 @@
 }
 
 .add-track-button {
-  background: #FFD700;
+  background: #ffd700;
   border: 0.15vw solid #000;
   color: #000;
   border-radius: 0;
@@ -275,4 +275,4 @@
     padding: 0.2vh 0.5vw;
     font-size: clamp(0.5rem, 1.5vw, 0.8rem);
   }
-} 
+}

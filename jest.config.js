@@ -9,7 +9,7 @@ export default {
     '**/__tests__/**/*.test.jsx',
     '**/__tests__/**/*.spec.jsx',
     '**/__tests__/**/*.test.js',
-    '**/__tests__/**/*.spec.js'
+    '**/__tests__/**/*.spec.js',
   ],
   collectCoverageFrom: [
     'server/**/*.js',
@@ -17,12 +17,12 @@ export default {
     '!server/node_modules/**',
     '!server/db/roysrock.db*',
     '!**/tests/**',
-    '!**/__tests__/**'
+    '!**/__tests__/**',
   ],
   setupFilesAfterEnv: ['<rootDir>/tests/setup.js'],
   testTimeout: 10000,
   verbose: true,
   moduleNameMapper: {
-    '\\.(css|less|scss|sass)$': 'identity-obj-proxy'
-  }
-} 
+    '\\.(css|less|scss|sass)$': 'identity-obj-proxy',
+  },
+}
