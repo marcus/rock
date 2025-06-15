@@ -54,7 +54,13 @@ echo "Domain: ${DOMAIN_NAME}"
 
 # Step 1: Prepare server
 echo -e "\n${GREEN}Preparing server for deployment...${NC}"
-ssh $SERVER_USER@$SERVER_IP "mkdir -p $SERVER_DIR/db $SERVER_DIR/public/audio/generated"
+ssh $SERVER_USER@$SERVER_IP "
+    mkdir -p $SERVER_DIR/db $SERVER_DIR/public/audio/generated && \
+    chmod 755 $SERVER_DIR/public && \
+    chmod 755 $SERVER_DIR/public/audio && \
+    chmod 777 $SERVER_DIR/public/audio/generated && \
+    chown -R \$USER:\$USER $SERVER_DIR/public
+"
 
 # Copy deployment files
 echo "Copying deployment files to server..."

@@ -158,6 +158,134 @@
   margin-bottom: 1.5vh;
 }
 
+/* Audio Preview Styles */
+.audio-preview-container {
+  background-color: #e8e8e8;
+  padding: 1rem;
+  border: 0.15vw solid #000;
+  border-radius: 0;
+  margin-bottom: 1.5vh;
+}
+
+.audio-preview-label {
+  display: block;
+  margin-bottom: 1vh;
+  font-weight: 700;
+  color: #000;
+  font-family: 'Anton', sans-serif;
+  text-transform: uppercase;
+  font-size: clamp(0.8rem, 1vw, 1rem);
+}
+
+.audio-preview-error {
+  padding: 0.8rem;
+  background-color: #ff6b6b;
+  border: 0.15vw solid #000;
+  color: #000;
+  margin-bottom: 1vh;
+  font-family: 'Anton', sans-serif;
+  font-weight: bold;
+  text-transform: uppercase;
+  font-size: clamp(0.7rem, 0.9vw, 0.9rem);
+}
+
+.audio-preview-controls {
+  display: flex;
+  justify-content: center;
+  margin-top: 1vh;
+}
+
+.play-button {
+  background-color: #0000ff;
+  border: 0.15vw solid #000;
+  color: #fff;
+  padding: 1vh 2vw;
+  font-family: 'Anton', sans-serif;
+  font-weight: bold;
+  font-size: clamp(0.8rem, 1vw, 1rem);
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.1s ease;
+  box-shadow: 0.2vw 0.2vh 0 #000;
+  border-radius: 0;
+}
+
+.play-button:hover {
+  background-color: #2222ff;
+  transform: translate(-0.1vw, -0.1vh);
+  box-shadow: 0.3vw 0.3vh 0 #000;
+}
+
+.play-button:active {
+  transform: translate(0, 0);
+  box-shadow: none;
+}
+
+.play-button.loading {
+  background-color: #6b7280;
+  cursor: not-allowed;
+}
+
+/* Accept/Reject Controls */
+.accept-reject-controls {
+  display: flex;
+  gap: 1vw;
+  justify-content: space-between;
+  margin-top: 1.5vh;
+}
+
+.accept-reject-controls button {
+  flex: 1;
+  padding: 1vh 1.5vw;
+  font-family: 'Anton', sans-serif;
+  font-weight: bold;
+  font-size: clamp(0.7rem, 0.9vw, 0.9rem);
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.1s ease;
+  border: 0.15vw solid #000;
+  box-shadow: 0.2vw 0.2vh 0 #000;
+  border-radius: 0;
+}
+
+.reject-button {
+  background-color: #ffd700;
+  color: #000;
+}
+
+.reject-button:hover {
+  background-color: #ffed4e;
+  transform: translate(-0.1vw, -0.1vh);
+  box-shadow: 0.3vw 0.3vh 0 #000;
+}
+
+.cancel-button {
+  background-color: #fffef0;
+  color: #000;
+}
+
+.cancel-button:hover {
+  background-color: #f0f0f0;
+  transform: translate(-0.1vw, -0.1vh);
+  box-shadow: 0.3vw 0.3vh 0 #000;
+}
+
+.accept-button {
+  background-color: #00ff00;
+  color: #000;
+}
+
+.accept-button:hover {
+  background-color: #33ff33;
+  transform: translate(-0.1vw, -0.1vh);
+  box-shadow: 0.3vw 0.3vh 0 #000;
+}
+
+.accept-reject-controls button:active {
+  transform: translate(0, 0);
+  box-shadow: none;
+}
+
 .sound-details p {
   margin: 0.5rem 0;
   color: #2c3e50;

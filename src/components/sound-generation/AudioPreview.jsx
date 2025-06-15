@@ -95,91 +95,34 @@ function AudioPreview({ audioUrl }) {
   }
 
   return (
-    <div
-      style={{
-        padding: '1rem',
-        backgroundColor: '#f9fafb',
-        borderRadius: '6px',
-        border: '1px solid #e5e7eb',
-        marginBottom: '1.5rem',
-      }}
-    >
-      <label
-        style={{
-          display: 'block',
-          marginBottom: '0.5rem',
-          fontWeight: '600',
-          color: '#374151',
-        }}
-      >
-        🎧 Audio Preview:
+    <div className="audio-preview-container">
+      <label className="audio-preview-label">
+        Audio Preview:
       </label>
 
       {error && (
-        <div
-          style={{
-            padding: '0.5rem',
-            backgroundColor: '#fef2f2',
-            border: '1px solid #fecaca',
-            borderRadius: '6px',
-            color: '#dc2626',
-            marginBottom: '0.5rem',
-            fontSize: '0.875rem',
-          }}
-        >
+        <div className="audio-preview-error">
           {error}
         </div>
       )}
 
-      <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', marginBottom: '0.5rem' }}>
-        <audio
-          ref={audioRef}
-          controls
-          onPlay={handlePlay}
-          style={{
-            flex: '1',
-            height: '40px',
-          }}
-        >
-          <source src={actualAudioUrl} type='audio/mpeg' />
-          Your browser does not support the audio element.
-        </audio>
-
+      <div className="audio-preview-controls">
         <button
           onClick={handleManualPlay}
           disabled={isLoading}
-          style={{
-            padding: '0.5rem 1rem',
-            backgroundColor: isLoading ? '#9ca3af' : '#3b82f6',
-            color: 'white',
-            border: 'none',
-            borderRadius: '6px',
-            cursor: isLoading ? 'not-allowed' : 'pointer',
-            fontSize: '0.875rem',
-            whiteSpace: 'nowrap',
-          }}
+          className={`play-button ${isLoading ? 'loading' : ''}`}
         >
-          {isLoading ? '⏳' : '▶️ Play'}
+          {isLoading ? 'Loading...' : 'PLAY'}
         </button>
       </div>
 
-      <div
-        style={{
-          fontSize: '0.75rem',
-          color: '#6b7280',
-          marginTop: '0.25rem',
-        }}
+      <audio
+        ref={audioRef}
+        onPlay={handlePlay}
+        style={{ display: 'none' }}
       >
-        Audio URL:{' '}
-        <a
-          href={actualAudioUrl}
-          target='_blank'
-          rel='noopener noreferrer'
-          style={{ color: '#3b82f6' }}
-        >
-          {actualAudioUrl}
-        </a>
-      </div>
+        <source src={actualAudioUrl} type='audio/mpeg' />
+      </audio>
     </div>
   )
 }
