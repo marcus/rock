@@ -78,14 +78,17 @@ body::before {
   .title {
     top: 0.1vh;
     left: 0.2vw;
+    max-width: 20vw;
   }
 
   .title h1 {
-    font-size: 8px;
+    font-size: 6px;
+    letter-spacing: 0.5px;
   }
 
   .title-shadow {
-    font-size: 8px;
+    font-size: 6px;
+    letter-spacing: 0.5px;
   }
 }
 
@@ -107,6 +110,7 @@ body::before {
   top: 1vw;
   left: 1vw;
   z-index: 10;
+  max-width: 30vw;
 }
 
 .title h1 {
@@ -140,22 +144,37 @@ body::before {
   gap: 1vh;
 }
 
+.header-controls-row {
+  display: flex;
+  align-items: center;
+  gap: 2vw;
+  justify-content: space-between;
+  width: 100%;
+  flex-shrink: 0;
+  margin-bottom: 1vh;
+  margin-left: 32vw;
+}
+
 .controls {
   display: flex;
   gap: 2vw;
   flex-wrap: nowrap;
-  justify-content: left;
   align-items: flex-end;
   flex-shrink: 0;
-  margin-left: 10vw;
 }
 
 /* Mobile Landscape Controls */
 @media (max-width: 1024px) and (orientation: landscape) {
+  .header-controls-row {
+    gap: 1vw;
+    margin-bottom: 0.5vh;
+    margin-left: 22vw;
+    width: 78vw;
+  }
+
   .controls {
     gap: 0.8vw;
-    margin-left: 1vw;
-    margin-bottom: 0.5vh;
+    margin: 0;
   }
 
   .control-group {
@@ -317,23 +336,18 @@ input[type='range']::-moz-range-thumb {
 }
 
 .master-volume-control {
-  position: absolute;
-  top: -6vh;
-  right: 2.2vw;
   width: 9vw;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   gap: 0.3vh;
-  z-index: 5;
   white-space: nowrap;
+  flex-shrink: 0;
 }
 
 /* Mobile Landscape Master Volume */
 @media (max-width: 1024px) and (orientation: landscape) {
   .master-volume-control {
-    top: -3vh;
-    right: 0.5vw;
     width: 12vw;
   }
 
@@ -442,17 +456,10 @@ input[type='range']::-moz-range-thumb {
 .grid-container {
   display: flex;
   flex-direction: column;
-  gap: 1vh;
   justify-content: center;
   flex: 1;
   align-items: center;
-}
-
-.sequencer-with-master {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+  min-height: 0;
 }
 
 .track-labels {

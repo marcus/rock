@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import Modal from './Modal'
 import './TrackSettingsModal.css'
 
 function TrackSettingsModal({ trackId, trackName, trackSettings, onSave, onClose, onRealTimeUpdate }) {
@@ -110,118 +111,116 @@ function TrackSettingsModal({ trackId, trackName, trackSettings, onSave, onClose
     updateSettingsAndApply(resetSettings)
   }
 
+  const footer = (
+    <>
+      <button className='reset-button' onClick={handleReset}>
+        Reset
+      </button>
+      <div className='action-buttons'>
+        <button className='cancel-button' onClick={handleCancel}>
+          Cancel
+        </button>
+        <button className='save-button' onClick={handleSave}>
+          Save
+        </button>
+      </div>
+    </>
+  )
+
   return (
-    <div className='modal-overlay' onClick={handleCancel}>
-      <div className='modal-content' onClick={e => e.stopPropagation()}>
-        <div className='modal-header'>
-          <h2>Track Settings</h2>
-          <h3>{trackName}</h3>
-          <button className='close-button' onClick={handleCancel}>
-            ×
-          </button>
-        </div>
-
-        <div className='modal-body'>
-          <div className='setting-group'>
-            <label>
-              Gain (dB)
-              <span className='setting-value'>{settings.gain_db.toFixed(1)}</span>
-            </label>
-            <input
-              type='range'
-              min='-60'
-              max='12'
-              step='0.1'
-              value={settings.gain_db}
-              onChange={e => handleGainChange(e.target.value)}
-              className='setting-slider'
-            />
-            <div className='range-labels'>
-              <span>-60</span>
-              <span>0</span>
-              <span>+12</span>
-            </div>
-          </div>
-
-          <div className='setting-group'>
-            <label>
-              Pitch (semitones)
-              <span className='setting-value'>{settings.pitch_semitones.toFixed(1)}</span>
-            </label>
-            <input
-              type='range'
-              min='-24'
-              max='24'
-              step='0.1'
-              value={settings.pitch_semitones}
-              onChange={e => handlePitchChange(e.target.value)}
-              className='setting-slider'
-            />
-            <div className='range-labels'>
-              <span>-24</span>
-              <span>0</span>
-              <span>+24</span>
-            </div>
-          </div>
-
-          <div className='setting-group'>
-            <label>
-              Filter Cutoff (Hz)
-              <span className='setting-value'>{Math.round(settings.filter.cutoff_hz)}</span>
-            </label>
-            <input
-              type='range'
-              min='20'
-              max='20000'
-              step='10'
-              value={settings.filter.cutoff_hz}
-              onChange={e => handleCutoffChange(e.target.value)}
-              className='setting-slider'
-            />
-            <div className='range-labels'>
-              <span>20</span>
-              <span>1k</span>
-              <span>20k</span>
-            </div>
-          </div>
-
-          <div className='setting-group'>
-            <label>
-              Filter Q
-              <span className='setting-value'>{settings.filter.resonance_q.toFixed(1)}</span>
-            </label>
-            <input
-              type='range'
-              min='0.1'
-              max='10.0'
-              step='0.1'
-              value={settings.filter.resonance_q}
-              onChange={e => handleResonanceChange(e.target.value)}
-              className='setting-slider'
-            />
-            <div className='range-labels'>
-              <span>0.1</span>
-              <span>1.0</span>
-              <span>10.0</span>
-            </div>
-          </div>
-        </div>
-
-        <div className='modal-footer'>
-          <button className='reset-button' onClick={handleReset}>
-            Reset
-          </button>
-          <div className='action-buttons'>
-            <button className='cancel-button' onClick={handleCancel}>
-              Cancel
-            </button>
-            <button className='save-button' onClick={handleSave}>
-              Save
-            </button>
-          </div>
+    <Modal
+      isOpen={true}
+      onClose={handleCancel}
+      title="Track Settings"
+      subtitle={trackName}
+      footer={footer}
+      size="medium"
+      className="track-settings-modal"
+    >
+      <div className='setting-group'>
+        <label>
+          Gain (dB)
+          <span className='setting-value'>{settings.gain_db.toFixed(1)}</span>
+        </label>
+        <input
+          type='range'
+          min='-60'
+          max='12'
+          step='0.1'
+          value={settings.gain_db}
+          onChange={e => handleGainChange(e.target.value)}
+          className='setting-slider'
+        />
+        <div className='range-labels'>
+          <span>-60</span>
+          <span>0</span>
+          <span>+12</span>
         </div>
       </div>
-    </div>
+
+      <div className='setting-group'>
+        <label>
+          Pitch (semitones)
+          <span className='setting-value'>{settings.pitch_semitones.toFixed(1)}</span>
+        </label>
+        <input
+          type='range'
+          min='-24'
+          max='24'
+          step='0.1'
+          value={settings.pitch_semitones}
+          onChange={e => handlePitchChange(e.target.value)}
+          className='setting-slider'
+        />
+        <div className='range-labels'>
+          <span>-24</span>
+          <span>0</span>
+          <span>+24</span>
+        </div>
+      </div>
+
+      <div className='setting-group'>
+        <label>
+          Filter Cutoff (Hz)
+          <span className='setting-value'>{Math.round(settings.filter.cutoff_hz)}</span>
+        </label>
+        <input
+          type='range'
+          min='20'
+          max='20000'
+          step='10'
+          value={settings.filter.cutoff_hz}
+          onChange={e => handleCutoffChange(e.target.value)}
+          className='setting-slider'
+        />
+        <div className='range-labels'>
+          <span>20</span>
+          <span>1k</span>
+          <span>20k</span>
+        </div>
+      </div>
+
+      <div className='setting-group'>
+        <label>
+          Filter Q
+          <span className='setting-value'>{settings.filter.resonance_q.toFixed(1)}</span>
+        </label>
+        <input
+          type='range'
+          min='0.1'
+          max='10.0'
+          step='0.1'
+          value={settings.filter.resonance_q}
+          onChange={e => handleResonanceChange(e.target.value)}
+          className='setting-slider'
+        />
+        <div className='range-labels'>
+          <span>0.1</span>
+          <span>1.0</span>
+          <span>10.0</span>
+        </div>
+      </div>
+    </Modal>
   )
 }
 

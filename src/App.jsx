@@ -237,38 +237,38 @@ function App() {
         </div>
 
         <div className='sequencer-section'>
-          <Controls
-            isPlaying={isPlaying}
-            tempo={tempo}
-            onTogglePlayback={togglePlayback}
-            onTempoChange={handleTempoChange}
-            onClear={clearPattern}
-          />
+          <div className='header-controls-row'>
+            <Controls
+              isPlaying={isPlaying}
+              tempo={tempo}
+              onTogglePlayback={togglePlayback}
+              onTempoChange={handleTempoChange}
+              onClear={clearPattern}
+            />
+            <MasterVolumeControl
+              masterVolume={masterVolume}
+              masterMuted={masterMuted}
+              onVolumeChange={handleMasterVolumeChange}
+              onToggleMute={handleMasterMute}
+            />
+          </div>
 
           <div className='grid-container'>
-            <div className='sequencer-with-master'>
-              <MasterVolumeControl
-                masterVolume={masterVolume}
-                masterMuted={masterMuted}
-                onVolumeChange={handleMasterVolumeChange}
-                onToggleMute={handleMasterMute}
-              />
-              <TrackManager
-                tracks={tracks}
-                onAddTrack={handleAddTrack}
-                onRemoveTrack={handleRemoveTrack}
-                maxTracks={40}
-                pattern={pattern.steps}
-                currentStep={isPlaying ? currentStep : -1}
-                onToggleStep={toggleStep}
-                volumes={pattern.volumes}
-                muted={pattern.muted}
-                onVolumeChange={updateTrackVolume}
-                onToggleMute={toggleMute}
-                onUpdateTrackSettings={updateTrackSettings}
-                onRealTimeUpdateTrackSettings={updateTrackSettingsRealTime}
-              />
-            </div>
+            <TrackManager
+              tracks={tracks}
+              onAddTrack={handleAddTrack}
+              onRemoveTrack={handleRemoveTrack}
+              maxTracks={40}
+              pattern={pattern.steps}
+              currentStep={isPlaying ? currentStep : -1}
+              onToggleStep={toggleStep}
+              volumes={pattern.volumes}
+              muted={pattern.muted}
+              onVolumeChange={updateTrackVolume}
+              onToggleMute={toggleMute}
+              onUpdateTrackSettings={updateTrackSettings}
+              onRealTimeUpdateTrackSettings={updateTrackSettingsRealTime}
+            />
           </div>
         </div>
       </div>

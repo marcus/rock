@@ -82,23 +82,23 @@
   text-transform: uppercase;
 }
 
-.sound-generation-form {
-  padding: 1.5rem;
+.sound-generation-modal .sound-generation-form {
+  padding: 0;
 }
 
-.form-group {
-  margin-bottom: 1.5rem;
+.sound-generation-modal .form-group {
+  margin-bottom: 1.2rem;
 }
 
-.form-group label {
+.sound-generation-modal .form-group label {
   display: block;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.4rem;
   font-weight: 700;
   color: #000;
   font-family: 'Roboto', sans-serif;
   font-stretch: 75%;
   text-transform: uppercase;
-  font-size: clamp(0.7rem, 1vw, 1rem);
+  font-size: clamp(0.6rem, 0.9vw, 0.8rem);
 }
 
 .form-group input,
@@ -124,18 +124,18 @@
   box-shadow: 0.2vw 0.2vh 0 #000;
 }
 
-.sound-generation-preview {
-  padding: 1.5rem;
+.sound-generation-modal .sound-generation-preview {
+  padding: 0;
 }
 
-.sound-generation-preview h3 {
-  margin: 0 0 1rem 0;
+.sound-generation-modal .sound-generation-preview h3 {
+  margin: 0 0 0.8rem 0;
   color: #000;
   font-family: 'Roboto', sans-serif;
   font-stretch: 75%;
   font-weight: 700;
   text-transform: uppercase;
-  font-size: 1.2rem;
+  font-size: clamp(0.9rem, 1.2vw, 1.1rem);
 }
 
 .sound-details {

@@ -138,3 +138,62 @@ The application uses SQLite with the following key tables:
 - **Memory Management**: Proper cleanup of Tone.js objects and event listeners
 - **Efficient Rendering**: Uses React keys and memoization where appropriate
 - **Audio Optimization**: Persistent Tone.Player instances for samples to avoid latency
+
+
+## Component Architecture Analysis
+
+### Current Structure Overview
+
+**Main App Components:**
+- **App.jsx**: Core sequencer logic, audio initialization, state management via Zustand
+- **TrackManager.jsx**: Dynamic track list with step grids, track controls, and modal integration
+- **SoundSelector.jsx**: Modal for sound selection with filtering and AI generation integration
+- **TrackSettingsModal.jsx**: Per-track audio effect settings (gain, pitch, filter)
+- **SoundGenerationModal.jsx**: AI sound creation interface
+- **Controls.jsx**: Transport controls (play/stop, tempo, clear)
+- **MasterVolumeControl.jsx**: Global volume and mute controls
+- **OrientationPrompt.jsx**: Mobile orientation guidance
+
+### Layout Architecture
+
+**Desktop Layout:**
+```
+[Logo] [Play] [Tempo] [Clear] [Master Vol]
+         [Track Manager Grid]
+```
+
+**Current Mobile Issues:**
+- Controls overlap or stack vertically on landscape mobile
+- Grid doesn't fit container properly on iPhone 15 Pro landscape
+- Track names wrap instead of truncating
+- Modal fonts too large for mobile screens
+- Inconsistent modal centering
+
+### Modal System
+
+**Current Modals (3 separate implementations):**
+1. **SoundSelector**: Uses `.sound-selector-overlay` + `.sound-selector-modal`
+2. **TrackSettingsModal**: Uses `.modal-overlay` + `.modal-content`
+3. **SoundGenerationModal**: Uses `.sound-generation-overlay` + `.sound-generation-modal`
+
+**Problems:**
+- Inconsistent styling across modals
+- Different responsive behavior
+- Duplicated CSS for similar functionality
+- Modal fonts not optimized for mobile
+
+### Mobile Layout Requirements
+
+**Landscape Mobile (Priority):**
+- Header: Logo + Controls + Master Volume in single horizontal row
+- Grid: Maximum space allocation with minimal padding
+- Track labels: Truncate text, no wrapping
+- Modals: Smaller fonts, more compact layout
+
+**Responsive Breakpoints:**
+- Mobile Portrait: `@media (max-width: 768px) and (orientation: portrait)`
+- Mobile Landscape: `@media (max-width: 1024px) and (orientation: landscape)`
+
+### Design ###
+- Use a pop art design and colors inspired by Roy Lichtenstein.
+- Do not use emoji anywhere in the design unless explicitly requested.

@@ -43,6 +43,9 @@
   font-family: 'Roboto', sans-serif;
   font-stretch: 75%;
   font-weight: 700;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .track-label.clickable {
@@ -299,20 +302,22 @@
 @media (max-width: 1024px) and (orientation: landscape) {
   .track-manager {
     width: 100%;
-    padding: 0.1vw;
+    padding: 0.2vw;
     border: 0.1vw solid #000;
+    max-height: 75vh;
+    overflow-y: auto;
   }
 
   .track-row {
-    height: 4vh;
-    gap: 0.2vw;
+    height: 3.5vh;
+    gap: 0.15vw;
   }
 
   .track-label {
-    width: 12vw;
-    font-size: clamp(0.5rem, 1.3vw, 0.8rem);
+    width: 10vw;
+    font-size: clamp(0.5rem, 1.1vw, 0.7rem);
     border: 0.1vw solid #000;
-    padding: 0 0.5vw;
+    padding: 0 0.3vw;
   }
 
   .remove-track-button {
@@ -331,11 +336,11 @@
   }
 
   .step-button {
-    width: 4.8vw;
-    height: 3vh;
+    width: 4.5vw;
+    height: 2.8vh;
     border: 0.1vw solid #000;
-    max-width: 45px;
-    min-width: 35px;
+    max-width: 40px;
+    min-width: 30px;
   }
 
   .step-button:nth-child(4n + 1) {
@@ -348,7 +353,7 @@
   }
 
   .volume-slider {
-    width: 10vw;
+    width: 8vw;
     height: 0.4vh;
     border: 0.1vw solid #000;
   }
