@@ -147,17 +147,42 @@ body::before {
 .header-controls-row {
   display: flex;
   align-items: center;
-  gap: 2vw;
-  justify-content: space-between;
-  width: 100%;
+  gap: 1.5vw;
+  justify-content: flex-start;
+  width: calc(100% - 32vw);
   flex-shrink: 0;
   margin-bottom: 1vh;
   margin-left: 32vw;
+  overflow: visible;
+}
+
+/* Hide master volume on mobile, show on desktop */
+@media (min-width: 1025px) {
+  .header-controls-row .master-volume-control {
+    display: flex;
+  }
+}
+
+/* Larger desktop screens - more space available */
+@media (min-width: 1400px) {
+  .header-controls-row {
+    gap: 2vw;
+    margin-left: 30vw;
+    width: calc(100% - 30vw);
+  }
+  
+  .controls {
+    gap: 2vw;
+  }
+  
+  .master-volume-control {
+    width: 9vw;
+  }
 }
 
 .controls {
   display: flex;
-  gap: 2vw;
+  gap: 1.5vw;
   flex-wrap: nowrap;
   align-items: flex-end;
   flex-shrink: 0;
@@ -317,7 +342,8 @@ input[type='range']::-moz-range-thumb {
 }
 
 .tempo-slider {
-  width: 6vw;
+  width: 5vw;
+  min-width: 60px;
   margin: 0 0.3vw;
 }
 
@@ -336,13 +362,21 @@ input[type='range']::-moz-range-thumb {
 }
 
 .master-volume-control {
-  width: 9vw;
+  width: 8vw;
+  min-width: 120px;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   gap: 0.3vh;
   white-space: nowrap;
   flex-shrink: 0;
+}
+
+/* Default to hidden on mobile, will be shown on desktop via media query */
+@media (max-width: 1024px) {
+  .header-controls-row .master-volume-control {
+    display: none;
+  }
 }
 
 /* Mobile Landscape Master Volume */
@@ -396,11 +430,13 @@ input[type='range']::-moz-range-thumb {
 
 .master-volume-slider {
   background: #ff6b6b !important;
-  width: 8vw;
+  width: 6vw;
+  min-width: 80px;
   height: 0.6vh;
   outline: none;
   border: 0.1vw solid #000;
   -webkit-appearance: none;
+  appearance: none;
   flex-shrink: 0;
 }
 
@@ -592,9 +628,9 @@ input[type='range']::-moz-range-thumb {
 }
 
 .step-button {
-  width: 3.5vw;
-  height: 3.5vh;
-  border: 0.2vw solid #000;
+  width: 4vw;
+  height: 4vh;
+  border: 0.15vw solid #000;
   background-color: #fffef0;
   cursor: pointer;
   position: relative;
@@ -655,7 +691,7 @@ input[type='range']::-moz-range-thumb {
 }
 
 .step-button:nth-child(4n + 1) {
-  border-left: 0.4vw solid #000;
+  border-left: 0.3vw solid #000;
 }
 
 .volume-controls {

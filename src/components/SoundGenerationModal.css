@@ -14,6 +14,7 @@
 .sound-generation-modal {
   background: #fffef0;
   border: 0.5vw solid #000;
+  border-radius: 0;
   box-shadow: 0.8vw 0.8vw 0 #000;
   width: 90%;
   max-width: 500px;
@@ -21,47 +22,54 @@
   overflow-y: auto;
   font-family: 'Roboto', sans-serif;
   font-stretch: 75%;
+  display: flex;
+  flex-direction: column;
 }
 
 .sound-generation-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1.5rem;
-  border-bottom: 0.3vw solid #000;
-  background-color: #ffd700;
+  padding: 2vh 2vw;
+  border-bottom: 0.2vw solid #000;
+  background-color: #fffef0;
+  flex-shrink: 0;
 }
 
 .sound-generation-header h2 {
-  margin: 0;
-  color: #000;
-  font-size: 1.5rem;
-  font-family: 'Roboto', sans-serif;
-  font-stretch: 75%;
-  font-weight: 700;
+  margin: 0 3vw 0 0;
+  color: #ff0000;
+  font-size: clamp(1rem, 1.5vw, 1.5rem);
+  font-family: 'Anton', sans-serif;
+  font-weight: bold;
   text-transform: uppercase;
+  -webkit-text-stroke: 1px #000;
+  paint-order: stroke fill;
 }
 
 .close-button {
   background: #ff0000;
   border: 0.15vw solid #000;
-  font-size: 1.5rem;
-  cursor: pointer;
   color: #fff;
-  padding: 0.3vh 0.8vw;
-  width: 2rem;
-  height: 2rem;
+  font-size: clamp(1rem, 1.5vw, 1.5rem);
+  cursor: pointer;
+  padding: 0;
+  width: 3vw;
+  height: 3vh;
+  min-width: 30px;
+  min-height: 25px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: 'Roboto', sans-serif;
-  font-stretch: 75%;
-  font-weight: 700;
-  transition: all 0.1s;
+  font-family: 'Anton', sans-serif;
+  font-weight: bold;
+  transition: all 0.1s ease;
+  box-shadow: 0.2vw 0.2vh 0 #000;
 }
 
 .close-button:hover {
-  transform: translate(-0.2vw, -0.2vh);
+  background: #cc0000;
+  transform: translate(-0.1vw, -0.1vh);
   box-shadow: 0.3vw 0.3vh 0 #000;
 }
 
@@ -71,7 +79,7 @@
 }
 
 .sound-generation-error {
-  margin: 1rem 1.5rem;
+  margin: 1rem 2vw;
   padding: 1rem;
   background-color: #ff6b6b;
   border: 0.15vw solid #000;
@@ -83,22 +91,23 @@
 }
 
 .sound-generation-modal .sound-generation-form {
-  padding: 0;
+  padding: 2vh 2vw;
+  flex: 1;
 }
 
 .sound-generation-modal .form-group {
-  margin-bottom: 1.2rem;
+  margin-bottom: 1.5vh;
 }
 
 .sound-generation-modal .form-group label {
   display: block;
-  margin-bottom: 0.4rem;
+  margin-bottom: 0.5vh;
   font-weight: 700;
   color: #000;
   font-family: 'Roboto', sans-serif;
   font-stretch: 75%;
   text-transform: uppercase;
-  font-size: clamp(0.6rem, 0.9vw, 0.8rem);
+  font-size: clamp(0.7rem, 1vw, 0.9rem);
 }
 
 .form-group input,
@@ -107,8 +116,9 @@
   width: 100%;
   padding: 0.75rem;
   border: 0.15vw solid #000;
+  border-radius: 0;
   background: #fff;
-  font-size: 1rem;
+  font-size: clamp(0.8rem, 1vw, 1rem);
   font-family: 'Roboto', sans-serif;
   font-stretch: 75%;
   transition: all 0.1s;
@@ -125,24 +135,27 @@
 }
 
 .sound-generation-modal .sound-generation-preview {
-  padding: 0;
+  padding: 2vh 2vw;
+  border-top: 0.2vw solid #000;
+  background: #fffef0;
+  flex-shrink: 0;
 }
 
 .sound-generation-modal .sound-generation-preview h3 {
-  margin: 0 0 0.8rem 0;
+  margin: 0 0 1vh 0;
   color: #000;
-  font-family: 'Roboto', sans-serif;
-  font-stretch: 75%;
-  font-weight: 700;
+  font-family: 'Anton', sans-serif;
+  font-weight: normal;
   text-transform: uppercase;
-  font-size: clamp(0.9rem, 1.2vw, 1.1rem);
+  font-size: clamp(0.8rem, 1.2vw, 1.2rem);
 }
 
 .sound-details {
   background-color: #e8e8e8;
   padding: 1rem;
   border: 0.15vw solid #000;
-  margin-bottom: 1.5rem;
+  border-radius: 0;
+  margin-bottom: 1.5vh;
 }
 
 .sound-details p {
@@ -160,40 +173,51 @@
 }
 
 /* Mobile Portrait */
-@media (max-width: 640px) and (orientation: portrait) {
+@media (max-width: 768px) and (orientation: portrait) {
   .sound-generation-modal {
     width: 95%;
-    margin: 1rem;
+    max-height: 85vh;
     border: 0.3vw solid #000;
     box-shadow: 0.5vw 0.5vw 0 #000;
   }
 
-  .sound-generation-header,
-  .sound-generation-form,
-  .sound-generation-preview {
-    padding: 1rem;
-  }
-
   .sound-generation-header {
+    padding: 2vh 4vw;
     border-bottom: 0.2vw solid #000;
   }
 
+  .sound-generation-header h2 {
+    font-size: clamp(1.2rem, 4vw, 2rem);
+    margin-right: 8vw;
+  }
+
   .close-button {
-    border: 0.1vw solid #000;
+    width: 8vw;
+    height: 6vh;
+    min-width: 35px;
+    min-height: 30px;
+    font-size: clamp(1.2rem, 3vw, 1.5rem);
+    border: 0.2vw solid #000;
+  }
+
+  .sound-generation-form,
+  .sound-generation-preview {
+    padding: 2vh 4vw;
   }
 
   .sound-generation-error {
-    border: 0.1vw solid #000;
+    margin: 1rem 4vw;
+    border: 0.2vw solid #000;
   }
 
   .form-group input,
   .form-group select,
   .form-group textarea {
-    border: 0.1vw solid #000;
+    border: 0.2vw solid #000;
   }
 
   .sound-details {
-    border: 0.1vw solid #000;
+    border: 0.2vw solid #000;
   }
 }
 
@@ -201,62 +225,56 @@
 @media (max-width: 1024px) and (orientation: landscape) {
   .sound-generation-modal {
     width: 90%;
-    max-width: 600px;
     max-height: 85vh;
     border: 0.2vw solid #000;
     box-shadow: 0.4vw 0.4vw 0 #000;
   }
 
   .sound-generation-header {
-    padding: 1rem;
-    border-bottom: 0.2vw solid #000;
+    padding: 1vh 2vw;
+    border-bottom: 0.1vw solid #000;
   }
 
   .sound-generation-header h2 {
-    font-size: 1.2rem;
+    font-size: clamp(0.8rem, 1.8vw, 1.2rem);
+    margin-right: 4vw;
+  }
+
+  .close-button {
+    width: 3vw;
+    height: 3vh;
+    min-width: 25px;
+    min-height: 20px;
+    font-size: clamp(0.8rem, 1.5vw, 1.2rem);
+    border: 0.1vw solid #000;
   }
 
   .sound-generation-form,
   .sound-generation-preview {
-    padding: 1rem;
+    padding: 1vh 2vw;
   }
 
-  .form-group {
-    margin-bottom: 1rem;
+  .sound-generation-preview {
+    border-top: 0.1vw solid #000;
   }
 
   .form-group label {
-    font-size: clamp(0.6rem, 1.2vw, 0.9rem);
+    font-size: clamp(0.6rem, 1.2vw, 0.8rem);
   }
 
   .form-group input,
   .form-group select,
   .form-group textarea {
-    padding: 0.5rem;
-    font-size: 0.9rem;
-    border: 0.1vw solid #000;
-  }
-
-  .close-button {
-    width: 1.8rem;
-    height: 1.8rem;
-    font-size: 1.2rem;
+    font-size: clamp(0.7rem, 1.2vw, 0.9rem);
     border: 0.1vw solid #000;
   }
 
   .sound-generation-error {
-    margin: 0.8rem 1rem;
-    padding: 0.8rem;
+    margin: 0.5rem 2vw;
     border: 0.1vw solid #000;
   }
 
   .sound-details {
-    padding: 0.8rem;
     border: 0.1vw solid #000;
-    margin-bottom: 1rem;
-  }
-
-  .sound-details p {
-    margin: 0.3rem 0;
   }
 }

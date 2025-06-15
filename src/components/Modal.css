@@ -104,6 +104,8 @@
   padding: 2vh 2vw;
   flex: 1;
   overflow-y: auto;
+  font-family: 'Roboto', sans-serif;
+  font-stretch: 75%;
 }
 
 .modal-footer {

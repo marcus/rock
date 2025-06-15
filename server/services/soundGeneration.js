@@ -1,4 +1,4 @@
-import { writeFileSync } from 'fs'
+import { writeFileSync, mkdirSync, existsSync } from 'fs'
 import { join, dirname } from 'path'
 import { fileURLToPath } from 'url'
 import {
@@ -78,14 +78,27 @@ export class SoundGenerationService {
     // Generate unique filename
     const timestamp = Date.now()
     const filename = `generated_${timestamp}.mp3`
-    const filePath = join(__dirname, '..', '..', 'public', 'audio', filename)
+    const audioDir = join(__dirname, '..', '..', 'public', 'audio', 'generated')
+    const filePath = join(audioDir, filename)
+
+    // Ensure directory exists
+    if (!existsSync(audioDir)) {
+      console.log(`Creating directory: ${audioDir}`)
+      mkdirSync(audioDir, { recursive: true })
+    }
 
     // Save the file
-    writeFileSync(filePath, Buffer.from(audioBuffer))
+    try {
+      writeFileSync(filePath, Buffer.from(audioBuffer))
+      console.log(`Generated sound saved to: ${filePath}`)
+    } catch (error) {
+      console.error(`Failed to save generated sound to ${filePath}:`, error)
+      throw new Error(`Failed to save generated sound: ${error.message}`)
+    }
 
     return {
       filename,
-      filePath: `/audio/${filename}`, // Public URL path
+      filePath: `/audio/generated/${filename}`, // Public URL path
       prompt: validatedPrompt,
       duration: validatedDuration,
     }
