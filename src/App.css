@@ -58,6 +58,16 @@ body::before {
     height: 95vh;
     padding: 1.5vw;
   }
+
+  .logo {
+    top: 0.5vh;
+    left: 0.5vw;
+    max-width: 25vw;
+  }
+
+  .logo img {
+    height: 2vh;
+  }
 }
 
 /* Mobile Landscape - Optimized for drum sequencer */
@@ -76,20 +86,14 @@ body::before {
     box-shadow: 0.2vw 0.2vw 0 #000;
   }
 
-  .title {
+  .logo {
     top: 0.1vh;
     left: 0.2vw;
     max-width: 20vw;
   }
 
-  .title h1 {
-    font-size: 6px;
-    letter-spacing: 0.5px;
-  }
-
-  .title-shadow {
-    font-size: 6px;
-    letter-spacing: 0.5px;
+  .logo img {
+    height: 2vh;
   }
 }
 
@@ -106,7 +110,7 @@ body::before {
   z-index: -1;
 }
 
-.title {
+.logo {
   position: absolute;
   top: 1vw;
   left: 1vw;
@@ -114,29 +118,11 @@ body::before {
   max-width: 30vw;
 }
 
-.title h1 {
-  font-size: 14px;
-  letter-spacing: 1px;
-  color: #ff0000;
-  text-transform: uppercase;
-  position: relative;
-  z-index: 2;
-  -webkit-text-stroke: 1px #000;
-  paint-order: stroke fill;
-  margin: 0;
-}
-
-.title-shadow {
-  position: absolute;
-  top: 1px;
-  left: 1px;
-  font-size: 14px;
-  letter-spacing: 1px;
-  color: #ffd700;
-  text-transform: uppercase;
-  z-index: 1;
-  -webkit-text-stroke: 1px #000;
-  paint-order: stroke fill;
+.logo img {
+  height: 6vh;
+  width: auto;
+  max-width: 100%;
+  object-fit: contain;
 }
 
 .sequencer-section {
@@ -178,6 +164,16 @@ body::before {
   
   .master-volume-control {
     width: 9vw;
+  }
+
+  .logo {
+    top: 1.5vw;
+    left: 1.5vw;
+    max-width: 28vw;
+  }
+
+  .logo img {
+    height: 8vh;
   }
 }
 

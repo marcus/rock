@@ -231,9 +231,8 @@ function App() {
       <OrientationPrompt />
       <div className='halftone-bg'></div>
       <div className='sequencer-container'>
-        <div className='title'>
-          <span className='title-shadow'>ROY'S ROCK MACHINE</span>
-          <h1>ROY'S ROCK MACHINE</h1>
+        <div className='logo'>
+          <img src='/img/logo.png' alt="Roy's Rock Machine" />
         </div>
 
         <div className='sequencer-section'>
