@@ -132,23 +132,80 @@ for i in $(seq 1 $MAX_ATTEMPTS); do
     fi
 done
 
-# Step 5: Check health endpoint
+# Step 5: Check health endpoint with detailed information
 echo -e "\n${GREEN}Checking health endpoint...${NC}"
 MAX_HEALTH_ATTEMPTS=6
 for i in $(seq 1 $MAX_HEALTH_ATTEMPTS); do
-    if curl -s -f -m 5 https://$DOMAIN_NAME/api/health > /dev/null; then
-        echo -e "${GREEN}Deployment successful! Health check passed.${NC}"
+    echo "Health check attempt $i..."
+    
+    # Get the health response and store it
+    HEALTH_RESPONSE=$(curl -s -m 10 https://$DOMAIN_NAME/api/health 2>/dev/null)
+    CURL_EXIT_CODE=$?
+    
+    if [ $CURL_EXIT_CODE -eq 0 ] && [ -n "$HEALTH_RESPONSE" ]; then
+        echo -e "${GREEN}Health endpoint responded!${NC}"
+        echo "Health response: $HEALTH_RESPONSE"
+        
+        # Check if the response indicates any issues
+        if echo "$HEALTH_RESPONSE" | grep -q '"status":"error"'; then
+            echo -e "${RED}Health check shows error status${NC}"
+        elif echo "$HEALTH_RESPONSE" | grep -q '"status":"degraded"'; then
+            echo -e "${YELLOW}Health check shows degraded status${NC}"
+        else
+            echo -e "${GREEN}Deployment successful! Health check passed.${NC}"
+        fi
+        
+        # Show ElevenLabs API status specifically
+        if echo "$HEALTH_RESPONSE" | grep -q '"elevenlabs":"no_api_key"'; then
+            echo -e "${YELLOW}Warning: No ElevenLabs API key detected - AI sound generation will not work${NC}"
+        elif echo "$HEALTH_RESPONSE" | grep -q '"elevenlabs":"error'; then
+            echo -e "${RED}Warning: ElevenLabs API key validation failed${NC}"
+        elif echo "$HEALTH_RESPONSE" | grep -q '"elevenlabs":"ok"'; then
+            echo -e "${GREEN}ElevenLabs API key is working correctly${NC}"
+        fi
+        
         break
     fi
     
     if [ $i -eq $MAX_HEALTH_ATTEMPTS ]; then
-        echo -e "${YELLOW}Health check failed, but deployment might still be successful.${NC}"
-        echo "Check the logs with: ssh $SERVER_USER@$SERVER_IP 'cd $SERVER_DIR && docker-compose logs web'"
+        echo -e "${YELLOW}Health check failed after $MAX_HEALTH_ATTEMPTS attempts.${NC}"
+        echo "CURL exit code: $CURL_EXIT_CODE"
+        echo "Response: $HEALTH_RESPONSE"
+        echo ""
+        echo "Debugging steps:"
+        echo "1. Check container logs: ssh $SERVER_USER@$SERVER_IP 'cd $SERVER_DIR && docker-compose logs web'"
+        echo "2. Check if container is running: ssh $SERVER_USER@$SERVER_IP 'docker ps'"
+        echo "3. Check nginx/proxy logs if using reverse proxy"
+        echo "4. Test direct connection: curl -v https://$DOMAIN_NAME/api/health"
     else
-        echo "Health check attempt $i failed, retrying in 5 seconds..."
+        echo "Health check attempt $i failed (exit code: $CURL_EXIT_CODE), retrying in 5 seconds..."
         sleep 5
     fi
 done
+
+# Additional debugging information
+echo -e "\n${GREEN}Gathering deployment information...${NC}"
+
+# Test debug endpoint if available
+echo "Testing debug endpoint..."
+DEBUG_RESPONSE=$(curl -s -m 5 "https://$DOMAIN_NAME/api/debug?debug=1" 2>/dev/null)
+if [ -n "$DEBUG_RESPONSE" ]; then
+    echo "Debug response: $DEBUG_RESPONSE"
+else
+    echo "Debug endpoint not accessible"
+fi
+
+ssh $SERVER_USER@$SERVER_IP "
+    echo ''
+    echo 'Container status:'
+    docker ps --format 'table {{.Names}}\t{{.Status}}\t{{.Ports}}'
+    echo ''
+    echo 'Recent container logs (last 10 lines):'
+    cd $SERVER_DIR && docker-compose logs --tail=10 web 2>/dev/null || echo 'No logs available'
+    echo ''
+    echo 'Environment check:'
+    cd $SERVER_DIR && docker-compose exec -T web printenv | grep -E '^(NODE_ENV|PORT|ELEVENLABS_API_KEY)=' 2>/dev/null || echo 'Could not check environment variables'
+"
 
 # Clean up local Docker resources after successful deployment
 if [ "$PRUNE_IMAGES" = true ]; then

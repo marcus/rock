@@ -322,9 +322,102 @@ app.post('/api/sounds/generate', async (req, res) => {
   }
 })
 
-// Health check endpoint
-app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString() })
+// Debug endpoint for troubleshooting (only in development or with debug flag)
+app.get('/api/debug', async (req, res) => {
+  // Only allow in development or with explicit debug parameter
+  if (process.env.NODE_ENV === 'production' && !req.query.debug) {
+    return res.status(403).json({ error: 'Debug endpoint not available in production' })
+  }
+
+  const debug = {
+    environment: {
+      nodeEnv: process.env.NODE_ENV,
+      port: PORT,
+      hasElevenLabsKey: !!process.env.ELEVENLABS_API_KEY,
+      elevenLabsKeyLength: process.env.ELEVENLABS_API_KEY ? process.env.ELEVENLABS_API_KEY.length : 0,
+      elevenLabsKeyPrefix: process.env.ELEVENLABS_API_KEY ? process.env.ELEVENLABS_API_KEY.substring(0, 8) + '...' : 'none'
+    },
+    services: {
+      soundGenerationService: !!soundGenerationService,
+      database: 'testing...'
+    },
+    timestamp: new Date().toISOString()
+  }
+
+  // Test database
+  try {
+    const soundCount = await database.get('SELECT COUNT(*) as count FROM sounds')
+    debug.services.database = `ok (${soundCount.count} sounds)`
+  } catch (error) {
+    debug.services.database = `error: ${error.message}`
+  }
+
+  res.json(debug)
+})
+
+// Health check endpoint with comprehensive checks
+app.get('/api/health', async (req, res) => {
+  const health = {
+    status: 'ok',
+    timestamp: new Date().toISOString(),
+    services: {
+      database: 'unknown',
+      elevenlabs: 'unknown',
+      server: 'ok'
+    },
+    environment: {
+      nodeEnv: process.env.NODE_ENV,
+      port: PORT,
+      hasElevenLabsKey: !!process.env.ELEVENLABS_API_KEY
+    }
+  }
+
+  // Test database connection
+  try {
+    await database.get('SELECT 1')
+    health.services.database = 'ok'
+  } catch (error) {
+    health.services.database = 'error'
+    health.status = 'degraded'
+    console.error('Database health check failed:', error.message)
+  }
+
+  // Test ElevenLabs API if key is available
+  if (process.env.ELEVENLABS_API_KEY) {
+    try {
+      const response = await fetch('https://api.elevenlabs.io/v1/models', {
+        method: 'GET',
+        headers: {
+          'Xi-Api-Key': process.env.ELEVENLABS_API_KEY,
+          'Accept': 'application/json'
+        },
+        timeout: 5000
+      })
+
+      if (response.ok) {
+        health.services.elevenlabs = 'ok'
+      } else {
+        health.services.elevenlabs = `error_${response.status}`
+        health.status = 'degraded'
+        console.error(`ElevenLabs API returned status ${response.status}`)
+      }
+    } catch (error) {
+      health.services.elevenlabs = 'error'
+      health.status = 'degraded'
+      console.error('ElevenLabs API health check failed:', error.message)
+    }
+  } else {
+    health.services.elevenlabs = 'no_api_key'
+    // Don't mark as degraded if no API key - it's optional
+  }
+
+  // Set overall status
+  if (health.services.database === 'error') {
+    health.status = 'error'
+  }
+
+  const statusCode = health.status === 'error' ? 503 : 200
+  res.status(statusCode).json(health)
 })
 
 // Catch-all handler for React Router (must be last)

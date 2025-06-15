@@ -16,7 +16,8 @@
       "Bash(grep:*)",
       "Bash(ssh:*)",
       "Bash(NODE_ENV=production node server/index.js)",
-      "Bash(./deploy.sh)"
+      "Bash(./deploy.sh)",
+      "Bash(chmod:*)"
     ],
     "deny": []
   }
