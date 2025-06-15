@@ -58,8 +58,7 @@ ssh $SERVER_USER@$SERVER_IP "
     mkdir -p $SERVER_DIR/db $SERVER_DIR/public/audio/generated && \
     chmod 755 $SERVER_DIR/public && \
     chmod 755 $SERVER_DIR/public/audio && \
-    chmod 777 $SERVER_DIR/public/audio/generated && \
-    chown -R \$USER:\$USER $SERVER_DIR/public
+    chmod 777 $SERVER_DIR/public/audio/generated
 "
 
 # Copy deployment files
