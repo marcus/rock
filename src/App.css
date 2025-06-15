@@ -1,4 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Anton&family=Roboto:wght@400;700&display=swap');
+@import './styles/shared.css';
 
 * {
   margin: 0;
@@ -515,39 +516,15 @@ input[type='range']::-moz-range-thumb {
   }
 }
 
+/* Track label base styles moved to shared.css */
 .sequencer-row .track-label {
-  height: 100%;
   width: 8vw;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background-color: #e8e8e8;
-  color: #2c3e50;
-  border: 0.2vw solid #000;
-  font-family: 'Roboto', sans-serif;
-  font-stretch: 75%;
-  font-weight: 700;
-  font-size: clamp(0.6rem, 1vw, 1rem);
-  text-transform: uppercase;
-  flex-shrink: 0;
-}
-
-/* Mobile Portrait Track Label */
-@media (max-width: 768px) and (orientation: portrait) {
-  .sequencer-row .track-label {
-    width: auto;
-    padding: 0 1vw;
-    min-width: 8vw;
-    font-size: clamp(0.5rem, 2vw, 0.8rem);
-  }
 }
 
 /* Mobile Landscape Track Label */
 @media (max-width: 1024px) and (orientation: landscape) {
   .sequencer-row .track-label {
     width: 12vw;
-    font-size: clamp(0.5rem, 1.3vw, 0.8rem);
-    border: 0.1vw solid #000;
   }
 }
 
@@ -603,39 +580,12 @@ input[type='range']::-moz-range-thumb {
   }
 }
 
-.step-row {
-  display: flex;
-  gap: 0.3vw;
-  flex: 1;
-  justify-content: center;
-}
+/* Step row styles moved to shared.css */
 
-/* Mobile Portrait Step Row */
-@media (max-width: 768px) and (orientation: portrait) {
-  .step-row {
-    gap: 0.2vw;
-  }
-}
-
-/* Mobile Landscape Step Row */
-@media (max-width: 1024px) and (orientation: landscape) {
-  .step-row {
-    gap: 0.15vw;
-    flex: 1;
-    justify-content: center;
-    align-items: center;
-  }
-}
-
+/* Step button base styles moved to shared.css */
 .step-button {
   width: 4vw;
   height: 4vh;
-  border: 0.15vw solid #000;
-  background-color: #fffef0;
-  cursor: pointer;
-  position: relative;
-  transition: all 0.1s;
-  flex-shrink: 0;
 }
 
 /* Mobile Portrait Step Button */
@@ -651,47 +601,7 @@ input[type='range']::-moz-range-thumb {
   .step-button {
     width: 4.8vw;
     height: 3.5vh;
-    border: 0.1vw solid #000;
-    max-width: 45px;
-    min-width: 35px;
   }
-
-  .step-button:nth-child(4n + 1) {
-    border-left: 0.2vw solid #000;
-  }
-}
-
-.step-button:hover {
-  background-color: #ffd700;
-  transform: scale(1.1);
-}
-
-.step-button.active {
-  background-color: #ff0000;
-  box-shadow: inset 0.2vw 0.2vh 0 #000;
-}
-
-.step-button.playing {
-  background-color: #00ff00 !important;
-  animation: pulse 0.2s;
-}
-
-@keyframes pulse {
-  0% {
-    transform: scale(1);
-  }
-
-  50% {
-    transform: scale(1.2);
-  }
-
-  100% {
-    transform: scale(1);
-  }
-}
-
-.step-button:nth-child(4n + 1) {
-  border-left: 0.3vw solid #000;
 }
 
 .volume-controls {
@@ -754,6 +664,7 @@ input[type='range']::-moz-range-thumb {
   }
 }
 
+/* Volume slider input sizing */
 .sequencer-row .volume-slider input {
   width: 8vw;
   flex-shrink: 0;
@@ -766,32 +677,4 @@ input[type='range']::-moz-range-thumb {
   }
 }
 
-.mute-button {
-  padding: 0.3vh 0.8vw;
-  font-size: clamp(0.6rem, 1vw, 1rem);
-  background-color: #fffef0;
-  border: 0.15vw solid #000;
-  flex-shrink: 0;
-}
-
-/* Mobile Portrait Mute Button */
-@media (max-width: 768px) and (orientation: portrait) {
-  .mute-button {
-    padding: 0.2vh 0.5vw;
-    font-size: clamp(0.5rem, 1.5vw, 0.8rem);
-  }
-}
-
-/* Mobile Landscape Mute Button */
-@media (max-width: 1024px) and (orientation: landscape) {
-  .mute-button {
-    padding: 0.2vh 0.4vw;
-    font-size: clamp(0.5rem, 1.2vw, 0.7rem);
-    border: 0.1vw solid #000;
-  }
-}
-
-.mute-button.muted {
-  background-color: #ff0000;
-  color: #fff;
-}
+/* Mute button styles moved to shared.css */
