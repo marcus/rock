@@ -18,6 +18,10 @@ const useAppStore = create((set, get) => ({
   tempo: 120,
   masterVolume: 80,
   masterMuted: false,
+  
+  // Initialization state
+  isInitializing: false,
+  isInitialized: false,
 
   // Utility function to save state to localStorage
   saveState: () => {
@@ -174,32 +178,79 @@ const useAppStore = create((set, get) => ({
 
   // Initialize app with default tracks
   initializeApp: async () => {
-    // Initialize drum sounds API early
-    await drumSoundsInstance.initialize()
-
-    // Try to load saved state first
-    const savedState = loadAppState()
-
-    if (savedState && savedState.tracks && savedState.tracks.length > 0) {
-      // Restore saved state
-      // Re-add all saved sounds to DrumSoundsAPI
-      for (const track of savedState.tracks) {
-        await drumSoundsInstance.addSound(track)
-      }
-
-      set({
-        tracks: savedState.tracks,
-        pattern: savedState.pattern,
-        tempo: savedState.tempo || 120,
-        masterVolume: savedState.masterVolume || 80,
-        masterMuted: savedState.masterMuted || false,
-      })
-
+    const state = get()
+    console.log('initializeApp called, isInitializing:', state.isInitializing, 'isInitialized:', state.isInitialized)
+    
+    // Prevent double initialization
+    if (state.isInitializing || state.isInitialized) {
+      console.log('App already initializing or initialized, skipping')
       return
     }
+    
+    // Set initializing flag
+    set({ isInitializing: true })
+    
+    try {
+      // Initialize drum sounds API early
+      await drumSoundsInstance.initialize()
 
-    // If no saved state, create default setup
-    const defaultSounds = drumSoundsInstance.getAllSounds()
+      // Try to load saved state first
+      const savedState = loadAppState()
+      console.log('Loaded saved state:', savedState)
+
+      if (savedState && savedState.tracks && savedState.tracks.length > 0) {
+        console.log('Restoring saved state with', savedState.tracks.length, 'tracks')
+        try {
+          // Restore saved state
+          // Re-add all saved sounds to DrumSoundsAPI
+          for (const track of savedState.tracks) {
+            console.log('Adding saved track:', track.name)
+            const success = await drumSoundsInstance.addSound(track)
+            if (!success) {
+              console.warn('Failed to add saved track:', track.name)
+            }
+          }
+
+          set({
+            tracks: savedState.tracks,
+            pattern: savedState.pattern,
+            tempo: savedState.tempo || 120,
+            masterVolume: savedState.masterVolume || 80,
+            masterMuted: savedState.masterMuted || false,
+            isInitializing: false,
+            isInitialized: true,
+          })
+
+          console.log('App initialized from saved state with', savedState.tracks.length, 'tracks')
+          return
+        } catch (error) {
+          console.error('Error restoring saved state, falling back to default:', error)
+          // Fall through to default initialization
+        }
+      }
+
+      // If no saved state, create default setup
+      const defaultSounds = drumSoundsInstance.getAllSounds()
+      
+      // Check if we have sounds available
+      if (defaultSounds.length === 0) {
+        console.warn('No sounds available for initialization, this is expected on first load')
+        // Set empty state that will be populated when tracks are manually added
+        set({
+          tracks: [],
+          pattern: {
+            steps: [],
+            tempo: 120,
+            volumes: [],
+            muted: [],
+          },
+          isInitializing: false,
+          isInitialized: true,
+        })
+        console.log('App initialized with empty state - no default sounds available')
+        return
+      }
+    
     const initialTracks = defaultSounds.slice(0, 8) // Start with first 8 sounds
 
     // Set up default pattern for initial tracks
@@ -272,13 +323,32 @@ const useAppStore = create((set, get) => ({
       ]
     }
 
+    console.log('Setting initial tracks:', initialTracks.length, 'tracks')
     set({
       tracks: initialTracks,
       pattern: defaultPattern,
+      isInitializing: false,
+      isInitialized: true,
     })
 
     // Save the initial state
     get().saveState()
+    console.log('App initialization completed with', initialTracks.length, 'tracks')
+    } catch (error) {
+      console.error('Failed to initialize app:', error)
+      // Set minimal state to prevent app crash
+      set({
+        tracks: [],
+        pattern: {
+          steps: [],
+          tempo: 120,
+          volumes: [],
+          muted: [],
+        },
+        isInitializing: false,
+        isInitialized: true,
+      })
+    }
   },
 }))
 

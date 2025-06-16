@@ -12,6 +12,7 @@ function TrackSettingsModal({ trackId, trackName, trackSettings, onSave, onClose
       cutoff_hz: 20000,
       resonance_q: 0.7,
     },
+    reverb_send: 0,
     ...trackSettings,
   }))
 
@@ -22,6 +23,7 @@ function TrackSettingsModal({ trackId, trackName, trackSettings, onSave, onClose
       cutoff_hz: 20000,
       resonance_q: 0.7,
     },
+    reverb_send: 0,
     ...trackSettings,
   }))
 
@@ -35,6 +37,7 @@ function TrackSettingsModal({ trackId, trackName, trackSettings, onSave, onClose
           cutoff_hz: 20000,
           resonance_q: 0.7,
         },
+        reverb_send: 0,
         ...trackSettings,
       }
       setSettings(newSettings)
@@ -100,6 +103,14 @@ function TrackSettingsModal({ trackId, trackName, trackSettings, onSave, onClose
     updateSettingsAndApply(newSettings)
   }
 
+  const handleReverbSendChange = value => {
+    const newSettings = {
+      ...settings,
+      reverb_send: parseFloat(value),
+    }
+    updateSettingsAndApply(newSettings)
+  }
+
   const handleReset = () => {
     const resetSettings = {
       gain_db: 0,
@@ -108,6 +119,7 @@ function TrackSettingsModal({ trackId, trackName, trackSettings, onSave, onClose
         cutoff_hz: 20000,
         resonance_q: 0.7,
       },
+      reverb_send: 0,
     }
     updateSettingsAndApply(resetSettings)
   }
@@ -219,6 +231,27 @@ function TrackSettingsModal({ trackId, trackName, trackSettings, onSave, onClose
           <span>0.1</span>
           <span>1.0</span>
           <span>10.0</span>
+        </div>
+      </div>
+
+      <div className='setting-group'>
+        <label>
+          Reverb Send
+          <span className='setting-value'>{settings.reverb_send.toFixed(2)}</span>
+        </label>
+        <input
+          type='range'
+          min='0'
+          max='1'
+          step='0.01'
+          value={settings.reverb_send}
+          onChange={e => handleReverbSendChange(e.target.value)}
+          className='setting-slider'
+        />
+        <div className='range-labels'>
+          <span>0</span>
+          <span>0.5</span>
+          <span>1</span>
         </div>
       </div>
     </Modal>

@@ -47,7 +47,7 @@ function App() {
   // Initialize app with default tracks
   useEffect(() => {
     initializeApp()
-  }, [initializeApp])
+  }, []) // Empty dependency array - only run once on mount
 
   // Sync refs with state
   useEffect(() => {
@@ -142,11 +142,6 @@ function App() {
   }, [playStep, setCurrentStep])
 
   const togglePlayback = async () => {
-    // Ensure drumSoundsInstance is initialized before playback
-    if (!drumSoundsInstance.isInitialized) {
-      await drumSoundsInstance.initialize()
-    }
-
     // Configure Tone.js for optimal timing after user gesture
     if (Tone.context.state === 'suspended') {
       await Tone.start()

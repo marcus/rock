@@ -10,6 +10,54 @@ export class DrumSoundsAPI {
     this.isInitialized = false
     // Persistent Tone.Player instances for each loaded sample to avoid Safari scheduling latency
     this.samplePlayers = new Map()
+    // Reverb system
+    this.reverbBuffer = null
+    this.convolver = null
+    this.reverbSend = null
+    this.dryGain = null
+    this.reverbInitialized = false
+  }
+
+  async initializeReverb() {
+    if (this.reverbInitialized) return
+    
+    try {
+      // Ensure audio context is started
+      await Tone.start()
+      
+      // Create impulse response buffer for reverb using current context sample rate
+      const sampleRate = Tone.getContext().sampleRate
+      const length = Math.floor(sampleRate * 2) // 2 seconds of reverb
+      const impulse = new Float32Array(length)
+      
+      // Create a decaying noise impulse response
+      for (let i = 0; i < length; i++) {
+        const decay = Math.pow(1 - i / length, 2)
+        impulse[i] = (Math.random() * 2 - 1) * decay
+      }
+      
+      // Create audio buffer with correct sample rate
+      this.reverbBuffer = Tone.getContext().createBuffer(1, length, sampleRate)
+      this.reverbBuffer.copyToChannel(impulse, 0)
+      
+      // Create convolver node
+      this.convolver = new Tone.Convolver()
+      this.convolver.buffer = this.reverbBuffer
+      
+      // Create gain nodes for wet/dry mix
+      this.reverbSend = new Tone.Gain(0) // Start with no reverb
+      this.dryGain = new Tone.Gain(1)
+      
+      // Connect reverb chain
+      this.reverbSend.connect(this.convolver)
+      this.convolver.connect(audioEngine.getDestination())
+      this.dryGain.connect(audioEngine.getDestination())
+      
+      this.reverbInitialized = true
+      console.log('Reverb system initialized with sample rate:', sampleRate)
+    } catch (error) {
+      console.error('Failed to initialize reverb:', error)
+    }
   }
 
   async initialize() {
@@ -34,6 +82,8 @@ export class DrumSoundsAPI {
       this.soundsLoaded = true
 
       console.log('DrumSoundsAPI initialized with', this.soundsData.length, 'sounds')
+      
+      // Don't initialize reverb here - it will be initialized lazily when first needed
     } catch (error) {
       console.error('Failed to initialize DrumSoundsAPI:', error)
       // Fallback to empty state
@@ -358,6 +408,21 @@ export class DrumSoundsAPI {
     // Dispose persistent sample players
     this.samplePlayers.forEach(player => player.dispose())
     this.samplePlayers.clear()
+    
+    // Dispose reverb system
+    if (this.convolver) {
+      this.convolver.dispose()
+      this.convolver = null
+    }
+    if (this.reverbSend) {
+      this.reverbSend.dispose()
+      this.reverbSend = null
+    }
+    if (this.dryGain) {
+      this.dryGain.dispose()
+      this.dryGain = null
+    }
+    this.reverbBuffer = null
   }
 
   // Legacy-compatible method that accepts audioContext and gain for perfect timing
@@ -551,10 +616,15 @@ export class DrumSoundsAPI {
   }
 
   // New method for scheduled playback with precise timing - fixes Safari timing issues
-  playSoundScheduled(soundName, volume, time, trackSettings = null) {
+  async playSoundScheduled(soundName, volume, time, trackSettings = null) {
     if (!this.isInitialized || !this.soundsLoaded) {
       console.warn(`Sound system not ready for ${soundName}`)
       return
+    }
+    
+    // Ensure reverb is initialized if needed
+    if (!this.reverbInitialized && trackSettings?.reverb_send > 0) {
+      await this.initializeReverb()
     }
 
     // Find the sound data - check both old and new key formats
@@ -604,23 +674,43 @@ export class DrumSoundsAPI {
       player.playbackRate = 1 // Reset to normal pitch
     }
 
-    // Create effects chain if needed
-    let effectsChain = audioEngine.getDestination()
+    // Create effects chain and reverb send
     const effectsToDispose = []
+    let dryChain = this.reverbInitialized ? this.dryGain : audioEngine.getDestination()
+    let wetChain = this.reverbInitialized ? this.reverbSend : null
 
     // Apply filter settings if provided
     if (trackSettings?.filter && (trackSettings.filter.cutoff_hz !== 20000 || trackSettings.filter.resonance_q !== 0.7)) {
-      const filter = new Tone.Filter({
+      const dryFilter = new Tone.Filter({
         frequency: trackSettings.filter.cutoff_hz,
         type: 'lowpass',
         Q: trackSettings.filter.resonance_q
-      }).connect(effectsChain)
+      }).connect(dryChain)
       
-      // Disconnect from current destination and connect through filter
-      player.disconnect()
-      player.connect(filter)
-      effectsChain = filter
-      effectsToDispose.push(filter)
+      dryChain = dryFilter
+      effectsToDispose.push(dryFilter)
+      
+      if (wetChain) {
+        const wetFilter = new Tone.Filter({
+          frequency: trackSettings.filter.cutoff_hz,
+          type: 'lowpass',
+          Q: trackSettings.filter.resonance_q
+        }).connect(wetChain)
+        
+        wetChain = wetFilter
+        effectsToDispose.push(wetFilter)
+      }
+    }
+
+    // Apply reverb send level and connect player
+    const reverbSend = trackSettings?.reverb_send || 0
+    player.disconnect()
+    
+    if (this.reverbInitialized && reverbSend > 0 && wetChain) {
+      wetChain.gain.setValueAtTime(reverbSend, time - 0.01)
+      player.fan(dryChain, wetChain)
+    } else {
+      player.connect(dryChain)
     }
 
     // Set volume just before scheduled time to avoid clicks
@@ -658,16 +748,27 @@ export class DrumSoundsAPI {
       const adjustedParams = this.applySynthTrackSettings(synthParams, trackSettings)
 
       if (adjustedParams.synthType === 'MembraneSynth') {
-        const synth = new Tone.MembraneSynth(adjustedParams.config).connect(
-          audioEngine.getDestination()
-        )
+        const synth = new Tone.MembraneSynth(adjustedParams.config)
         synth.volume.value = Tone.gainToDb(volume)
+        
+        // Connect to dry and wet chains for reverb
+        const reverbSend = trackSettings?.reverb_send || 0
+        if (this.reverbInitialized && reverbSend > 0) {
+          this.reverbSend.gain.setValueAtTime(reverbSend, time - 0.01)
+          synth.fan(this.dryGain, this.reverbSend)
+        } else {
+          synth.connect(this.reverbInitialized ? this.dryGain : audioEngine.getDestination())
+        }
+        
         // Schedule the attack at the exact time
         synth.triggerAttackRelease(adjustedParams.note, adjustedParams.duration, time)
         setTimeout(() => synth.dispose(), adjustedParams.cleanup_delay)
       } else if (adjustedParams.synthType === 'NoiseSynth') {
-        const synth = new Tone.NoiseSynth(adjustedParams.config).connect(audioEngine.getDestination())
+        const synth = new Tone.NoiseSynth(adjustedParams.config)
         synth.volume.value = Tone.gainToDb(volume)
+
+        // Connect to dry and wet chains for reverb
+        const reverbSend = trackSettings?.reverb_send || 0
 
         if (adjustedParams.filter) {
           // Fix invalid Q parameter - Q should be positive
@@ -685,8 +786,15 @@ export class DrumSoundsAPI {
             type: adjustedParams.filter.type,
             Q: filterQ,
             rolloff: rolloff,
-          }).connect(audioEngine.getDestination())
+          })
+          
           synth.connect(filter)
+          if (this.reverbInitialized && reverbSend > 0) {
+            this.reverbSend.gain.setValueAtTime(reverbSend, time - 0.01)
+            filter.fan(this.dryGain, this.reverbSend)
+          } else {
+            filter.connect(this.reverbInitialized ? this.dryGain : audioEngine.getDestination())
+          }
 
           // Schedule the attack at the exact time
           synth.triggerAttackRelease(adjustedParams.duration, time)
@@ -696,6 +804,13 @@ export class DrumSoundsAPI {
             filter.dispose()
           }, adjustedParams.cleanup_delay)
         } else {
+          if (this.reverbInitialized && reverbSend > 0) {
+            this.reverbSend.gain.setValueAtTime(reverbSend, time - 0.01)
+            synth.fan(this.dryGain, this.reverbSend)
+          } else {
+            synth.connect(this.reverbInitialized ? this.dryGain : audioEngine.getDestination())
+          }
+          
           if (adjustedParams.multiple_hits) {
             // For clap - multiple hits, all scheduled relative to the base time
             adjustedParams.multiple_hits.forEach(delay => {
@@ -710,15 +825,14 @@ export class DrumSoundsAPI {
         }
       } else if (adjustedParams.synthType === 'Dual') {
         // For cowbell - dual synth setup
-        const synth1 = new Tone.Synth(adjustedParams.synth1.config).connect(
-          audioEngine.getDestination()
-        )
-        const synth2 = new Tone.Synth(adjustedParams.synth2.config).connect(
-          audioEngine.getDestination()
-        )
+        const synth1 = new Tone.Synth(adjustedParams.synth1.config)
+        const synth2 = new Tone.Synth(adjustedParams.synth2.config)
 
         synth1.volume.value = Tone.gainToDb(volume)
         synth2.volume.value = Tone.gainToDb(volume)
+
+        // Connect to dry and wet chains for reverb
+        const reverbSend = trackSettings?.reverb_send || 0
 
         // Fix Q parameters for filters
         const filter1Q =
@@ -746,17 +860,26 @@ export class DrumSoundsAPI {
           type: adjustedParams.synth1.filter.type,
           Q: filter1Q,
           rolloff: filter1Rolloff,
-        }).connect(audioEngine.getDestination())
+        })
 
         const filter2 = new Tone.Filter({
           frequency: adjustedParams.synth2.filter.frequency,
           type: adjustedParams.synth2.filter.type,
           Q: filter2Q,
           rolloff: filter2Rolloff,
-        }).connect(audioEngine.getDestination())
+        })
 
         synth1.connect(filter1)
         synth2.connect(filter2)
+        
+        if (this.reverbInitialized && reverbSend > 0) {
+          this.reverbSend.gain.setValueAtTime(reverbSend, time - 0.01)
+          filter1.fan(this.dryGain, this.reverbSend)
+          filter2.fan(this.dryGain, this.reverbSend)
+        } else {
+          filter1.connect(this.reverbInitialized ? this.dryGain : audioEngine.getDestination())
+          filter2.connect(this.reverbInitialized ? this.dryGain : audioEngine.getDestination())
+        }
 
         // Schedule both synths at the exact time
         synth1.triggerAttackRelease(adjustedParams.synth1.note, adjustedParams.duration, time)
