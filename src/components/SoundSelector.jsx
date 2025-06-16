@@ -12,6 +12,11 @@ function SoundSelector({ isOpen, onClose, onSelectSound, usedSounds = [] }) {
   const [showGenerateFilter, setShowGenerateFilter] = useState(false)
   const [isGenerationModalOpen, setIsGenerationModalOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
+  const [currentAudio, setCurrentAudio] = useState(null)
+  const [playingSound, setPlayingSound] = useState(null)
+  const [progress, setProgress] = useState(0)
+  const [previewDisabled, setPreviewDisabled] = useState(false)
+  const [failureCount, setFailureCount] = useState(0)
 
   // Create a stable reference for used sound IDs to ensure useEffect triggers correctly
   const usedSoundIds = useMemo(() => {
@@ -77,6 +82,23 @@ function SoundSelector({ isOpen, onClose, onSelectSound, usedSounds = [] }) {
     }
   }, [isOpen, fetchAvailableSounds])
 
+  // Cleanup audio when modal closes
+  useEffect(() => {
+    if (!isOpen) {
+      stopSound()
+    }
+  }, [isOpen])
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (currentAudio) {
+        currentAudio.pause()
+        currentAudio.currentTime = 0
+      }
+    }
+  }, [])
+
   const handleSoundSelect = sound => {
     onSelectSound(sound)
     onClose()
@@ -113,6 +135,127 @@ function SoundSelector({ isOpen, onClose, onSelectSound, usedSounds = [] }) {
   const handleGeneratedSoundAccept = generatedSound => {
     onSelectSound(generatedSound)
     setIsGenerationModalOpen(false)
+  }
+
+
+  const playSound = async (sound) => {
+    try {
+      // Stop any currently playing audio
+      if (currentAudio) {
+        currentAudio.pause()
+        currentAudio.currentTime = 0
+        setCurrentAudio(null)
+      }
+
+      // Check if sound has audio_url for preview
+      if (!sound.audio_url) {
+        console.log('Sound preview not available - no audio URL provided')
+        return
+      }
+
+      // Skip if previews are disabled due to repeated failures
+      if (previewDisabled) {
+        console.log('Audio preview disabled')
+        return
+      }
+
+      setPlayingSound(sound.id)
+      setProgress(0)
+
+      // Create audio element
+      const audio = new Audio()
+      audio.preload = 'metadata'
+      audio.volume = 0.3 // Lower volume for preview
+      audio.src = sound.audio_url
+      
+      console.log('Loading audio from:', sound.audio_url)
+      setCurrentAudio(audio)
+
+      // Wait for audio to be ready
+      await new Promise((resolve, reject) => {
+        const handleLoad = () => {
+          audio.removeEventListener('canplaythrough', handleLoad)
+          audio.removeEventListener('error', handleError)
+          resolve()
+        }
+        
+        const handleError = (e) => {
+          audio.removeEventListener('canplaythrough', handleLoad)
+          audio.removeEventListener('error', handleError)
+          reject(e)
+        }
+        
+        audio.addEventListener('canplaythrough', handleLoad, { once: true })
+        audio.addEventListener('error', handleError, { once: true })
+        
+        // Timeout after 3 seconds
+        setTimeout(() => reject(new Error('Audio load timeout')), 3000)
+      })
+
+      // Reset failure count on successful load
+      if (failureCount > 0) {
+        setFailureCount(0)
+      }
+
+      // Update progress during playback
+      const updateProgress = () => {
+        if (audio.duration && audio.currentTime) {
+          const progressPercent = (audio.currentTime / audio.duration) * 100
+          setProgress(progressPercent)
+        }
+      }
+
+      audio.addEventListener('timeupdate', updateProgress)
+      audio.addEventListener('ended', () => {
+        setPlayingSound(null)
+        setProgress(0)
+        setCurrentAudio(null)
+      })
+
+      // Play with user gesture context
+      await audio.play()
+      
+    } catch (error) {
+      console.log('Audio preview failed for sound:', sound.name, '-', error.message || error)
+      
+      // Increment failure count and disable previews if too many failures
+      const newFailureCount = failureCount + 1
+      setFailureCount(newFailureCount)
+      
+      if (newFailureCount >= 3) {
+        setPreviewDisabled(true)
+        console.log('Audio preview disabled due to repeated failures')
+      }
+      
+      setPlayingSound(null)
+      setProgress(0)
+      setCurrentAudio(null)
+    }
+  }
+
+  const stopSound = () => {
+    if (currentAudio) {
+      currentAudio.pause()
+      currentAudio.currentTime = 0
+    }
+    setPlayingSound(null)
+    setProgress(0)
+    setCurrentAudio(null)
+  }
+
+  const handleSoundHover = (sound) => {
+    // Stop any currently playing sound
+    if (currentAudio) {
+      stopSound()
+    }
+    
+    // Play sound immediately on hover
+    playSound(sound)
+  }
+
+  const handleSoundLeave = () => {
+    // Stop sound when leaving
+    stopSound()
   }
 
   return (
@@ -171,8 +314,26 @@ function SoundSelector({ isOpen, onClose, onSelectSound, usedSounds = [] }) {
         {!loading && !error && (
           <div className='sounds-grid'>
             {getFilteredSounds().map(sound => (
-              <div key={sound.id} className='sound-item' onClick={() => handleSoundSelect(sound)}>
+              <div 
+                key={sound.id} 
+                className='sound-item' 
+                onClick={() => handleSoundSelect(sound)}
+                onMouseEnter={() => handleSoundHover(sound)}
+                onMouseLeave={handleSoundLeave}
+              >
+                {playingSound === sound.id && (
+                  <div 
+                    className='sound-progress-bar' 
+                    style={{ width: `${progress}%` }}
+                  />
+                )}
                 <div className='sound-name'>{sound.name}</div>
+                {!sound.audio_url && (
+                  <div className='sound-preview-unavailable'>Preview not available</div>
+                )}
+                {previewDisabled && (
+                  <div className='sound-preview-unavailable'>Preview disabled</div>
+                )}
                 <div className='sound-details'>
                   <span className='sound-type'>{sound.drum_type.replace('_', ' ')}</span>
                   <span 

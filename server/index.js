@@ -57,6 +57,29 @@ async function initializeServer() {
   }
 }
 
+// Helper function to add audio URLs to sounds
+function addAudioUrls(sounds, req) {
+  const protocol = req.secure || req.headers['x-forwarded-proto'] === 'https' ? 'https' : 'http'
+  const host = req.headers.host
+  const baseUrl = `${protocol}://${host}`
+  
+  return sounds.map(sound => {
+    if (!sound.file_path) return { ...sound, audio_url: null }
+    
+    // Remove leading /audio/ if it exists in file_path to avoid duplication
+    const cleanPath = sound.file_path.startsWith('audio/') 
+      ? sound.file_path.substring(6) // Remove 'audio/' prefix
+      : sound.file_path.startsWith('/audio/') 
+        ? sound.file_path.substring(7) // Remove '/audio/' prefix
+        : sound.file_path
+    
+    return {
+      ...sound,
+      audio_url: `${baseUrl}/audio/${cleanPath}`
+    }
+  })
+}
+
 // API Routes
 
 // Get all sound packs
@@ -106,7 +129,9 @@ app.get('/api/sound-packs/:id/sounds', async (req, res) => {
     `,
       [id]
     )
-    res.json(sounds)
+    
+    const soundsWithUrls = addAudioUrls(sounds, req)
+    res.json(soundsWithUrls)
   } catch (error) {
     console.error('Error fetching sounds:', error)
     res.status(500).json({ error: 'Failed to fetch sounds' })
@@ -120,7 +145,9 @@ app.get('/api/sounds', async (req, res) => {
       SELECT * FROM sounds 
       ORDER BY drum_type, name
     `)
-    res.json(sounds)
+    
+    const soundsWithUrls = addAudioUrls(sounds, req)
+    res.json(soundsWithUrls)
   } catch (error) {
     console.error('Error fetching all sounds:', error)
     res.status(500).json({ error: 'Failed to fetch sounds' })
@@ -139,7 +166,9 @@ app.get('/api/sounds/default', async (req, res) => {
       ORDER BY s.drum_type
     `)
     console.log(`Found ${sounds.length} default sounds`)
-    res.json(sounds)
+    
+    const soundsWithUrls = addAudioUrls(sounds, req)
+    res.json(soundsWithUrls)
   } catch (error) {
     console.error('Error fetching default sounds:', error)
     console.error('Error details:', error.message)

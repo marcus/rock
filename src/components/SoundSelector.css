@@ -190,10 +190,38 @@
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+  overflow: hidden;
+}
+
+.sound-selector-modal .sound-progress-bar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  background: #ffd700;
+  opacity: 0.6;
+  z-index: 1;
+  transition: width 0.1s ease;
+  pointer-events: none;
+}
+
+.sound-selector-modal .sound-item .sound-name,
+.sound-selector-modal .sound-item .sound-details,
+.sound-selector-modal .sound-item .sound-preview-unavailable {
+  position: relative;
+  z-index: 2;
+}
+
+.sound-selector-modal .sound-preview-unavailable {
+  font-size: clamp(0.4rem, 0.5vw, 0.5rem);
+  color: #888;
+  font-family: 'Roboto', sans-serif;
+  font-stretch: 75%;
+  font-style: italic;
+  margin-top: 0.2vh;
 }
 
 .sound-item:hover {
-  background: #ffd700;
   transform: translate(-0.1vw, -0.1vh);
   box-shadow: 0.2vw 0.2vh 0 #000;
 }
