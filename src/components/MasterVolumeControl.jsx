@@ -1,3 +1,5 @@
+import Button from './Button'
+
 function MasterVolumeControl({ masterVolume, masterMuted, onVolumeChange, onToggleMute }) {
   return (
     <div className='master-volume-control'>
@@ -11,12 +13,14 @@ function MasterVolumeControl({ masterVolume, masterMuted, onVolumeChange, onTogg
           onChange={e => onVolumeChange(parseInt(e.target.value))}
           className='master-volume-slider'
         />
-        <button
+        <Button
+          variant="pink"
+          size="small"
           className={`master-mute-button ${masterMuted ? 'muted' : ''}`}
           onClick={onToggleMute}
         >
           M
-        </button>
+        </Button>
       </div>
     </div>
   )

@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo, useCallback } from 'react'
 import Modal from './Modal'
+import Button from './Button'
 import SoundGenerationModal from './SoundGenerationModal'
 import './SoundSelector.css'
 
@@ -10,6 +11,7 @@ function SoundSelector({ isOpen, onClose, onSelectSound, usedSounds = [] }) {
   const [selectedCategory, setSelectedCategory] = useState('all')
   const [showGenerateFilter, setShowGenerateFilter] = useState(false)
   const [isGenerationModalOpen, setIsGenerationModalOpen] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
 
   // Create a stable reference for used sound IDs to ensure useEffect triggers correctly
   const usedSoundIds = useMemo(() => {
@@ -96,6 +98,15 @@ function SoundSelector({ isOpen, onClose, onSelectSound, usedSounds = [] }) {
       filtered = filtered.filter(sound => sound.is_generated)
     }
 
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase()
+      filtered = filtered.filter(sound => 
+        sound.name.toLowerCase().includes(query) ||
+        sound.drum_type.toLowerCase().includes(query) ||
+        (sound.prompt && sound.prompt.toLowerCase().includes(query))
+      )
+    }
+
     return filtered
   }
 
@@ -113,14 +124,25 @@ function SoundSelector({ isOpen, onClose, onSelectSound, usedSounds = [] }) {
       className="sound-selector-modal"
     >
       <div className='sound-selector-actions'>
-        <button className='create-sound-button' onClick={() => setIsGenerationModalOpen(true)}>
+        <Button variant="secondary" onClick={() => setIsGenerationModalOpen(true)}>
           + Create New Sound
-        </button>
+        </Button>
       </div>
 
       <div className='sound-selector-filters'>
+        <div className='filter-group search-group'>
+          <label>SEARCH:</label>
+          <input
+            type='text'
+            placeholder='Search sounds by name, type, or description...'
+            value={searchQuery}
+            onChange={e => setSearchQuery(e.target.value)}
+            className='search-input'
+          />
+        </div>
+
         <div className='filter-group'>
-          <label>Category:</label>
+          <label>CATEGORY:</label>
           <select value={selectedCategory} onChange={e => setSelectedCategory(e.target.value)}>
             {getUniqueCategories().map(category => (
               <option key={category} value={category}>
@@ -137,7 +159,7 @@ function SoundSelector({ isOpen, onClose, onSelectSound, usedSounds = [] }) {
               checked={showGenerateFilter}
               onChange={e => setShowGenerateFilter(e.target.checked)}
             />
-            Show only AI-generated sounds
+            SHOW ONLY AI-GENERATED SOUNDS
           </label>
         </div>
       </div>
@@ -151,13 +173,18 @@ function SoundSelector({ isOpen, onClose, onSelectSound, usedSounds = [] }) {
             {getFilteredSounds().map(sound => (
               <div key={sound.id} className='sound-item' onClick={() => handleSoundSelect(sound)}>
                 <div className='sound-name'>{sound.name}</div>
-                <div className='sound-type'>{sound.drum_type.replace('_', ' ')}</div>
-                <div className='sound-meta'>
-                  {sound.is_generated
-                    ? 'AI Generated'
-                    : sound.type === 'sample'
-                      ? 'Sample'
-                      : 'Synth'}
+                <div className='sound-details'>
+                  <span className='sound-type'>{sound.drum_type.replace('_', ' ')}</span>
+                  <span 
+                    className='sound-meta' 
+                    data-type={sound.is_generated ? 'ai' : sound.type === 'sample' ? 'sample' : 'synth'}
+                  >
+                    {sound.is_generated
+                      ? 'AI'
+                      : sound.type === 'sample'
+                        ? 'Sample'
+                        : 'Synth'}
+                  </span>
                 </div>
               </div>
             ))}

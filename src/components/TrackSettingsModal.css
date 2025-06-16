@@ -95,19 +95,21 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  color: #000;
-  font-family: 'Anton', sans-serif;
-  font-weight: bold;
+  color: #333;
+  font-family: 'Roboto', sans-serif;
+  font-stretch: 75%;
+  font-weight: 500;
   margin-bottom: 0.8vh;
-  font-size: clamp(0.7rem, 1vw, 0.9rem);
-  text-transform: uppercase;
+  font-size: clamp(0.8rem, 1vw, 0.95rem);
+  text-transform: none;
 }
 
 .track-settings-modal .setting-value {
   color: #0000ff;
-  font-family: 'Anton', sans-serif;
-  font-size: clamp(0.7rem, 1vw, 0.9rem);
-  font-weight: bold;
+  font-family: 'Roboto', sans-serif;
+  font-stretch: 75%;
+  font-size: clamp(0.75rem, 0.9vw, 0.85rem);
+  font-weight: 600;
 }
 
 .track-settings-modal .setting-slider {
@@ -169,10 +171,11 @@
 .track-settings-modal .range-labels {
   display: flex;
   justify-content: space-between;
-  font-size: clamp(0.5rem, 0.7vw, 0.7rem);
-  color: #000;
-  font-family: 'Anton', sans-serif;
-  font-weight: bold;
+  font-size: clamp(0.6rem, 0.7vw, 0.7rem);
+  color: #666;
+  font-family: 'Roboto', sans-serif;
+  font-stretch: 75%;
+  font-weight: 400;
   margin-top: 0.3vh;
 }
 

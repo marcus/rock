@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import Button from './Button'
 import SoundSelector from './SoundSelector'
 import TrackSettingsModal from './TrackSettingsModal'
 import './TrackManager.css'
@@ -54,13 +55,15 @@ function TrackManager({
               >
                 {track.name || `Track ${trackIndex + 1}`}
               </div>
-              <button
+              <Button
+                variant="red"
+                size="small"
                 className='remove-track-button'
                 onClick={() => onRemoveTrack(trackIndex)}
                 title='Remove track'
               >
                 ×
-              </button>
+              </Button>
             </div>
 
             <div className='step-row'>
@@ -90,21 +93,27 @@ function TrackManager({
                 onChange={e => onVolumeChange(trackIndex, parseInt(e.target.value))}
                 className='volume-slider'
               />
-              <button
+              <Button
+                variant="pink"
+                size="small"
                 className={`mute-button ${muted[trackIndex] ? 'muted' : ''}`}
                 onClick={() => onToggleMute(trackIndex)}
               >
                 M
-              </button>
+              </Button>
             </div>
           </div>
         ))}
 
         {canAddTrack && (
           <div className='add-track-row'>
-            <button className='add-track-button' onClick={() => setShowSoundSelector(true)}>
+            <Button 
+              variant="yellow" 
+              className='add-track-button' 
+              onClick={() => setShowSoundSelector(true)}
+            >
               + Add Sound
-            </button>
+            </Button>
             <div className='track-count'>
               {tracks.length} / {maxTracks} tracks
             </div>

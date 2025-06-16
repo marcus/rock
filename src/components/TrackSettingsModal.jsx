@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import Modal from './Modal'
+import Button from './Button'
 import './TrackSettingsModal.css'
 
 function TrackSettingsModal({ trackId, trackName, trackSettings, onSave, onClose, onRealTimeUpdate }) {
@@ -113,16 +114,16 @@ function TrackSettingsModal({ trackId, trackName, trackSettings, onSave, onClose
 
   const footer = (
     <>
-      <button className='reset-button' onClick={handleReset}>
+      <Button variant="default" onClick={handleReset}>
         Reset
-      </button>
+      </Button>
       <div className='action-buttons'>
-        <button className='cancel-button' onClick={handleCancel}>
+        <Button variant="default" onClick={handleCancel}>
           Cancel
-        </button>
-        <button className='save-button' onClick={handleSave}>
+        </Button>
+        <Button variant="primary" onClick={handleSave}>
           Save
-        </button>
+        </Button>
       </div>
     </>
   )

@@ -1,10 +1,9 @@
 import { useState } from 'react'
 import Modal from './Modal'
+import Button from './Button'
 import PromptInput from './sound-generation/PromptInput'
 import DurationSlider from './sound-generation/DurationSlider'
-import SubmitButton from './sound-generation/SubmitButton'
 import AudioPreview from './sound-generation/AudioPreview'
-import AcceptRejectControls from './sound-generation/AcceptRejectControls'
 import './SoundGenerationModal.css'
 
 const DRUM_TYPES = [
@@ -111,7 +110,7 @@ function SoundGenerationModal({ isOpen, onClose, onAcceptSound }) {
       {!generatedSound ? (
         <div className='sound-generation-form'>
           <div className='form-group'>
-            <label htmlFor='sound-name'>Sound Name:</label>
+            <label htmlFor='sound-name'>SOUND NAME:</label>
             <input
               id='sound-name'
               type='text'
@@ -123,7 +122,7 @@ function SoundGenerationModal({ isOpen, onClose, onAcceptSound }) {
           </div>
 
           <div className='form-group'>
-            <label htmlFor='drum-type'>Drum Type:</label>
+            <label htmlFor='drum-type'>DRUM TYPE:</label>
             <select id='drum-type' value={drumType} onChange={e => setDrumType(e.target.value)}>
               {DRUM_TYPES.map(type => (
                 <option key={type.value} value={type.value}>
@@ -137,7 +136,14 @@ function SoundGenerationModal({ isOpen, onClose, onAcceptSound }) {
 
           <DurationSlider value={duration} onChange={setDuration} disabled={isLoading} />
 
-          <SubmitButton isLoading={isLoading} disabled={!canSubmit} onClick={handleSubmit} />
+          <Button 
+            variant="primary" 
+            loading={isLoading} 
+            disabled={!canSubmit} 
+            onClick={handleSubmit}
+          >
+            Generate Sound
+          </Button>
         </div>
       ) : (
         <div className='sound-generation-preview'>
@@ -159,11 +165,17 @@ function SoundGenerationModal({ isOpen, onClose, onAcceptSound }) {
 
           <AudioPreview audioUrl={generatedSound.audioUrl} />
 
-          <AcceptRejectControls
-            onAccept={handleAccept}
-            onReject={handleReject}
-            onCancel={handleClose}
-          />
+          <div className='accept-reject-controls'>
+            <Button variant="warning" onClick={handleReject}>
+              Try Again
+            </Button>
+            <Button variant="default" onClick={handleClose}>
+              Cancel
+            </Button>
+            <Button variant="success" onClick={handleAccept}>
+              Accept
+            </Button>
+          </div>
         </div>
       )}
     </Modal>

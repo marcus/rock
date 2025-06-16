@@ -5,8 +5,7 @@ function PromptInput({ value, onChange, disabled = false }) {
   return (
     <div className='form-group'>
       <label htmlFor='prompt-input'>
-        Sound Description:
-        <span className='char-count'>{remainingChars} characters remaining</span>
+        SOUND DESCRIPTION:
       </label>
       <textarea
         id='prompt-input'
@@ -21,12 +20,16 @@ function PromptInput({ value, onChange, disabled = false }) {
           minHeight: '100px',
         }}
       />
+      <div className='char-count'>{remainingChars} characters remaining</div>
       <style>{`
         .char-count {
-          float: right;
-          font-size: 0.875rem;
+          font-size: clamp(0.6rem, 0.7vw, 0.7rem);
           color: ${remainingChars < 50 ? '#dc2626' : '#6b7280'};
           font-weight: normal;
+          font-family: 'Roboto', sans-serif;
+          font-stretch: 75%;
+          margin-top: 0.3vh;
+          text-align: right;
         }
 
         textarea {

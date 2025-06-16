@@ -1,10 +1,17 @@
+import Button from './Button'
+
 function Controls({ isPlaying, tempo, onTogglePlayback, onTempoChange, onClear }) {
   return (
     <div className='controls'>
       <div className='control-group'>
-        <button className={`play-stop-btn ${isPlaying ? 'active' : ''}`} onClick={onTogglePlayback}>
+        <Button 
+          variant="yellow" 
+          active={isPlaying}
+          onClick={onTogglePlayback}
+          className="play-stop-btn"
+        >
           {isPlaying ? 'STOP' : 'PLAY'}
-        </button>
+        </Button>
       </div>
 
       <div className='control-group'>
@@ -23,7 +30,9 @@ function Controls({ isPlaying, tempo, onTogglePlayback, onTempoChange, onClear }
       </div>
 
       <div className='control-group'>
-        <button onClick={onClear}>CLEAR</button>
+        <Button variant="yellow" onClick={onClear}>
+          CLEAR
+        </Button>
       </div>
     </div>
   )

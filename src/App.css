@@ -13,10 +13,10 @@ body {
   background-color: #fffef0;
   display: flex;
   justify-content: center;
-  align-items: center;
+  align-items: flex-start;
   min-height: 100vh;
   padding: 2vw;
-  overflow: hidden;
+  overflow-y: auto;
   position: relative;
 }
 
@@ -41,11 +41,11 @@ body::before {
   padding: 2.5vw;
   box-shadow: 0.8vw 0.8vw 0 #000;
   width: 95vw;
-  height: 90vh;
+  min-height: 90vh;
   max-width: none;
   display: flex;
   flex-direction: column;
-  justify-content: top;
+  justify-content: flex-start;
   align-items: center;
   gap: 2vh;
   position: relative;
@@ -55,7 +55,7 @@ body::before {
 @media (max-width: 768px) and (orientation: portrait) {
   .sequencer-container {
     width: 98vw;
-    height: 95vh;
+    min-height: 95vh;
     padding: 1.5vw;
   }
 
@@ -79,7 +79,7 @@ body::before {
 
   .sequencer-container {
     width: 99.5vw;
-    height: 99vh;
+    min-height: 99vh;
     padding: 0.2vh 0.3vw;
     gap: 0.3vh;
     border: 0.1vw solid #000;
@@ -490,9 +490,8 @@ input[type='range']::-moz-range-thumb {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  flex: 1;
   align-items: center;
-  min-height: 0;
+  width: 100%;
 }
 
 .track-labels {
