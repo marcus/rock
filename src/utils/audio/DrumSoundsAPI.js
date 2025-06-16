@@ -1,6 +1,7 @@
 import * as Tone from 'tone'
 import { audioEngine } from './AudioEngine.js'
 import { sampleLoader } from './SampleLoader.js'
+import { BitcrushNode } from './BitcrushNode.js'
 
 export class DrumSoundsAPI {
   constructor() {
@@ -679,6 +680,29 @@ export class DrumSoundsAPI {
     let dryChain = this.reverbInitialized ? this.dryGain : audioEngine.getDestination()
     let wetChain = this.reverbInitialized ? this.reverbSend : null
 
+    // Apply effects chain if provided
+    
+    // Apply bitcrush settings if provided
+    if (trackSettings?.bitcrush && (trackSettings.bitcrush.sample_rate !== 44100 || trackSettings.bitcrush.bit_depth !== 16)) {
+      const dryBitcrush = new BitcrushNode({
+        sampleRate: trackSettings.bitcrush.sample_rate,
+        bitDepth: trackSettings.bitcrush.bit_depth
+      }).connect(dryChain)
+      
+      dryChain = dryBitcrush
+      effectsToDispose.push(dryBitcrush)
+      
+      if (wetChain) {
+        const wetBitcrush = new BitcrushNode({
+          sampleRate: trackSettings.bitcrush.sample_rate,
+          bitDepth: trackSettings.bitcrush.bit_depth
+        }).connect(wetChain)
+        
+        wetChain = wetBitcrush
+        effectsToDispose.push(wetBitcrush)
+      }
+    }
+    
     // Apply filter settings if provided
     if (trackSettings?.filter && (trackSettings.filter.cutoff_hz !== 20000 || trackSettings.filter.resonance_q !== 0.7)) {
       const dryFilter = new Tone.Filter({
@@ -751,18 +775,47 @@ export class DrumSoundsAPI {
         const synth = new Tone.MembraneSynth(adjustedParams.config)
         synth.volume.value = Tone.gainToDb(volume)
         
+        // Build effects chain
+        const effectsToDispose = []
+        let dryChain = this.reverbInitialized ? this.dryGain : audioEngine.getDestination()
+        let wetChain = this.reverbInitialized ? this.reverbSend : null
+        
+        // Apply bitcrush if provided
+        if (trackSettings?.bitcrush && (trackSettings.bitcrush.sample_rate !== 44100 || trackSettings.bitcrush.bit_depth !== 16)) {
+          const dryBitcrush = new BitcrushNode({
+            sampleRate: trackSettings.bitcrush.sample_rate,
+            bitDepth: trackSettings.bitcrush.bit_depth
+          }).connect(dryChain)
+          
+          dryChain = dryBitcrush
+          effectsToDispose.push(dryBitcrush)
+          
+          if (wetChain) {
+            const wetBitcrush = new BitcrushNode({
+              sampleRate: trackSettings.bitcrush.sample_rate,
+              bitDepth: trackSettings.bitcrush.bit_depth
+            }).connect(wetChain)
+            
+            wetChain = wetBitcrush
+            effectsToDispose.push(wetBitcrush)
+          }
+        }
+        
         // Connect to dry and wet chains for reverb
         const reverbSend = trackSettings?.reverb_send || 0
-        if (this.reverbInitialized && reverbSend > 0) {
+        if (this.reverbInitialized && reverbSend > 0 && wetChain) {
           this.reverbSend.gain.setValueAtTime(reverbSend, time - 0.01)
-          synth.fan(this.dryGain, this.reverbSend)
+          synth.fan(dryChain, wetChain)
         } else {
-          synth.connect(this.reverbInitialized ? this.dryGain : audioEngine.getDestination())
+          synth.connect(dryChain)
         }
         
         // Schedule the attack at the exact time
         synth.triggerAttackRelease(adjustedParams.note, adjustedParams.duration, time)
-        setTimeout(() => synth.dispose(), adjustedParams.cleanup_delay)
+        setTimeout(() => {
+          synth.dispose()
+          effectsToDispose.forEach(effect => effect.dispose())
+        }, adjustedParams.cleanup_delay)
       } else if (adjustedParams.synthType === 'NoiseSynth') {
         const synth = new Tone.NoiseSynth(adjustedParams.config)
         synth.volume.value = Tone.gainToDb(volume)

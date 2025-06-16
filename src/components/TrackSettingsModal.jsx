@@ -13,6 +13,10 @@ function TrackSettingsModal({ trackId, trackName, trackSettings, onSave, onClose
       resonance_q: 0.7,
     },
     reverb_send: 0,
+    bitcrush: {
+      sample_rate: 44100,
+      bit_depth: 16,
+    },
     ...trackSettings,
   }))
 
@@ -24,6 +28,10 @@ function TrackSettingsModal({ trackId, trackName, trackSettings, onSave, onClose
       resonance_q: 0.7,
     },
     reverb_send: 0,
+    bitcrush: {
+      sample_rate: 44100,
+      bit_depth: 16,
+    },
     ...trackSettings,
   }))
 
@@ -38,6 +46,10 @@ function TrackSettingsModal({ trackId, trackName, trackSettings, onSave, onClose
           resonance_q: 0.7,
         },
         reverb_send: 0,
+        bitcrush: {
+          sample_rate: 44100,
+          bit_depth: 16,
+        },
         ...trackSettings,
       }
       setSettings(newSettings)
@@ -111,6 +123,28 @@ function TrackSettingsModal({ trackId, trackName, trackSettings, onSave, onClose
     updateSettingsAndApply(newSettings)
   }
 
+  const handleBitcrushSampleRateChange = value => {
+    const newSettings = {
+      ...settings,
+      bitcrush: {
+        ...settings.bitcrush,
+        sample_rate: parseFloat(value),
+      },
+    }
+    updateSettingsAndApply(newSettings)
+  }
+
+  const handleBitcrushBitDepthChange = value => {
+    const newSettings = {
+      ...settings,
+      bitcrush: {
+        ...settings.bitcrush,
+        bit_depth: parseFloat(value),
+      },
+    }
+    updateSettingsAndApply(newSettings)
+  }
+
   const handleReset = () => {
     const resetSettings = {
       gain_db: 0,
@@ -120,6 +154,10 @@ function TrackSettingsModal({ trackId, trackName, trackSettings, onSave, onClose
         resonance_q: 0.7,
       },
       reverb_send: 0,
+      bitcrush: {
+        sample_rate: 44100,
+        bit_depth: 16,
+      },
     }
     updateSettingsAndApply(resetSettings)
   }
@@ -252,6 +290,48 @@ function TrackSettingsModal({ trackId, trackName, trackSettings, onSave, onClose
           <span>0</span>
           <span>0.5</span>
           <span>1</span>
+        </div>
+      </div>
+
+      <div className='setting-group'>
+        <label>
+          Sample Rate (Hz)
+          <span className='setting-value'>{Math.round(settings.bitcrush.sample_rate)}</span>
+        </label>
+        <input
+          type='range'
+          min='1000'
+          max='44100'
+          step='100'
+          value={settings.bitcrush.sample_rate}
+          onChange={e => handleBitcrushSampleRateChange(e.target.value)}
+          className='setting-slider'
+        />
+        <div className='range-labels'>
+          <span>1k</span>
+          <span>22k</span>
+          <span>44k</span>
+        </div>
+      </div>
+
+      <div className='setting-group'>
+        <label>
+          Bit Depth
+          <span className='setting-value'>{Math.round(settings.bitcrush.bit_depth)}</span>
+        </label>
+        <input
+          type='range'
+          min='1'
+          max='16'
+          step='1'
+          value={settings.bitcrush.bit_depth}
+          onChange={e => handleBitcrushBitDepthChange(e.target.value)}
+          className='setting-slider'
+        />
+        <div className='range-labels'>
+          <span>1</span>
+          <span>8</span>
+          <span>16</span>
         </div>
       </div>
     </Modal>
