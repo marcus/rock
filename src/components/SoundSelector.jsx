@@ -122,10 +122,11 @@ function SoundSelector({ isOpen, onClose, onSelectSound, usedSounds = [] }) {
 
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase()
-      filtered = filtered.filter(sound => 
-        sound.name.toLowerCase().includes(query) ||
-        sound.drum_type.toLowerCase().includes(query) ||
-        (sound.prompt && sound.prompt.toLowerCase().includes(query))
+      filtered = filtered.filter(
+        sound =>
+          sound.name.toLowerCase().includes(query) ||
+          sound.drum_type.toLowerCase().includes(query) ||
+          (sound.prompt && sound.prompt.toLowerCase().includes(query))
       )
     }
 
@@ -137,8 +138,7 @@ function SoundSelector({ isOpen, onClose, onSelectSound, usedSounds = [] }) {
     setIsGenerationModalOpen(false)
   }
 
-
-  const playSound = async (sound) => {
+  const playSound = async sound => {
     try {
       // Stop any currently playing audio
       if (currentAudio) {
@@ -167,7 +167,7 @@ function SoundSelector({ isOpen, onClose, onSelectSound, usedSounds = [] }) {
       audio.preload = 'metadata'
       audio.volume = 0.3 // Lower volume for preview
       audio.src = sound.audio_url
-      
+
       console.log('Loading audio from:', sound.audio_url)
       setCurrentAudio(audio)
 
@@ -178,16 +178,16 @@ function SoundSelector({ isOpen, onClose, onSelectSound, usedSounds = [] }) {
           audio.removeEventListener('error', handleError)
           resolve()
         }
-        
-        const handleError = (e) => {
+
+        const handleError = e => {
           audio.removeEventListener('canplaythrough', handleLoad)
           audio.removeEventListener('error', handleError)
           reject(e)
         }
-        
+
         audio.addEventListener('canplaythrough', handleLoad, { once: true })
         audio.addEventListener('error', handleError, { once: true })
-        
+
         // Timeout after 3 seconds
         setTimeout(() => reject(new Error('Audio load timeout')), 3000)
       })
@@ -214,19 +214,18 @@ function SoundSelector({ isOpen, onClose, onSelectSound, usedSounds = [] }) {
 
       // Play with user gesture context
       await audio.play()
-      
     } catch (error) {
       console.log('Audio preview failed for sound:', sound.name, '-', error.message || error)
-      
+
       // Increment failure count and disable previews if too many failures
       const newFailureCount = failureCount + 1
       setFailureCount(newFailureCount)
-      
+
       if (newFailureCount >= 3) {
         setPreviewDisabled(true)
         console.log('Audio preview disabled due to repeated failures')
       }
-      
+
       setPlayingSound(null)
       setProgress(0)
       setCurrentAudio(null)
@@ -243,12 +242,12 @@ function SoundSelector({ isOpen, onClose, onSelectSound, usedSounds = [] }) {
     setCurrentAudio(null)
   }
 
-  const handleSoundHover = (sound) => {
+  const handleSoundHover = sound => {
     // Stop any currently playing sound
     if (currentAudio) {
       stopSound()
     }
-    
+
     // Play sound immediately on hover
     playSound(sound)
   }
@@ -262,12 +261,12 @@ function SoundSelector({ isOpen, onClose, onSelectSound, usedSounds = [] }) {
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title="Add Sound"
-      size="large"
-      className="sound-selector-modal"
+      title='Add Sound'
+      size='large'
+      className='sound-selector-modal'
     >
       <div className='sound-selector-actions'>
-        <Button variant="secondary" onClick={() => setIsGenerationModalOpen(true)}>
+        <Button variant='secondary' onClick={() => setIsGenerationModalOpen(true)}>
           + Create New Sound
         </Button>
       </div>
@@ -314,18 +313,15 @@ function SoundSelector({ isOpen, onClose, onSelectSound, usedSounds = [] }) {
         {!loading && !error && (
           <div className='sounds-grid'>
             {getFilteredSounds().map(sound => (
-              <div 
-                key={sound.id} 
-                className='sound-item' 
+              <div
+                key={sound.id}
+                className='sound-item'
                 onClick={() => handleSoundSelect(sound)}
                 onMouseEnter={() => handleSoundHover(sound)}
                 onMouseLeave={handleSoundLeave}
               >
                 {playingSound === sound.id && (
-                  <div 
-                    className='sound-progress-bar' 
-                    style={{ width: `${progress}%` }}
-                  />
+                  <div className='sound-progress-bar' style={{ width: `${progress}%` }} />
                 )}
                 <div className='sound-name'>{sound.name}</div>
                 {!sound.audio_url && (
@@ -336,15 +332,13 @@ function SoundSelector({ isOpen, onClose, onSelectSound, usedSounds = [] }) {
                 )}
                 <div className='sound-details'>
                   <span className='sound-type'>{sound.drum_type.replace('_', ' ')}</span>
-                  <span 
-                    className='sound-meta' 
-                    data-type={sound.is_generated ? 'ai' : sound.type === 'sample' ? 'sample' : 'synth'}
+                  <span
+                    className='sound-meta'
+                    data-type={
+                      sound.is_generated ? 'ai' : sound.type === 'sample' ? 'sample' : 'synth'
+                    }
                   >
-                    {sound.is_generated
-                      ? 'AI'
-                      : sound.type === 'sample'
-                        ? 'Sample'
-                        : 'Synth'}
+                    {sound.is_generated ? 'AI' : sound.type === 'sample' ? 'Sample' : 'Synth'}
                   </span>
                 </div>
               </div>

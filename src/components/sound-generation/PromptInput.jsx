@@ -4,9 +4,7 @@ function PromptInput({ value, onChange, disabled = false }) {
 
   return (
     <div className='form-group'>
-      <label htmlFor='prompt-input'>
-        SOUND DESCRIPTION:
-      </label>
+      <label htmlFor='prompt-input'>SOUND DESCRIPTION:</label>
       <textarea
         id='prompt-input'
         value={value}

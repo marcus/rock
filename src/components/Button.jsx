@@ -1,6 +1,6 @@
 import './Button.css'
 
-function Button({ 
+function Button({
   variant = 'default', // 'default', 'primary', 'secondary', 'danger', 'success', 'warning', 'yellow', 'red', 'pink'
   size = 'medium', // 'small', 'medium', 'large'
   disabled = false,
@@ -10,9 +10,9 @@ function Button({
   children,
   className = '',
   type = 'button',
-  ...props 
+  ...props
 }) {
-  const handleClick = (e) => {
+  const handleClick = e => {
     if (disabled || loading) return
     onClick?.(e)
   }
@@ -24,8 +24,10 @@ function Button({
     disabled && 'button-disabled',
     loading && 'button-loading',
     active && 'active',
-    className
-  ].filter(Boolean).join(' ')
+    className,
+  ]
+    .filter(Boolean)
+    .join(' ')
 
   return (
     <button

@@ -97,9 +97,9 @@ function SoundGenerationModal({ isOpen, onClose, onAcceptSound }) {
     <Modal
       isOpen={isOpen}
       onClose={handleClose}
-      title="Create New Sound"
-      size="medium"
-      className="sound-generation-modal"
+      title='Create New Sound'
+      size='medium'
+      className='sound-generation-modal'
     >
       {error && (
         <div className='sound-generation-error'>
@@ -136,10 +136,10 @@ function SoundGenerationModal({ isOpen, onClose, onAcceptSound }) {
 
           <DurationSlider value={duration} onChange={setDuration} disabled={isLoading} />
 
-          <Button 
-            variant="primary" 
-            loading={isLoading} 
-            disabled={!canSubmit} 
+          <Button
+            variant='primary'
+            loading={isLoading}
+            disabled={!canSubmit}
             onClick={handleSubmit}
           >
             Generate Sound
@@ -166,13 +166,13 @@ function SoundGenerationModal({ isOpen, onClose, onAcceptSound }) {
           <AudioPreview audioUrl={generatedSound.audioUrl} />
 
           <div className='accept-reject-controls'>
-            <Button variant="warning" onClick={handleReject}>
+            <Button variant='warning' onClick={handleReject}>
               Try Again
             </Button>
-            <Button variant="default" onClick={handleClose}>
+            <Button variant='default' onClick={handleClose}>
               Cancel
             </Button>
-            <Button variant="success" onClick={handleAccept}>
+            <Button variant='success' onClick={handleAccept}>
               Accept
             </Button>
           </div>

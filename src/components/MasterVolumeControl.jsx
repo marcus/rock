@@ -14,8 +14,8 @@ function MasterVolumeControl({ masterVolume, masterMuted, onVolumeChange, onTogg
           className='master-volume-slider'
         />
         <Button
-          variant="pink"
-          size="small"
+          variant='pink'
+          size='small'
           className={`master-mute-button ${masterMuted ? 'muted' : ''}`}
           onClick={onToggleMute}
         >

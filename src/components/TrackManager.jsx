@@ -48,7 +48,7 @@ function TrackManager({
         {tracks.map((track, trackIndex) => (
           <div key={track.id || trackIndex} className='track-row'>
             <div className='track-info'>
-              <div 
+              <div
                 className='track-label clickable'
                 onClick={() => setActiveTrackIndex(trackIndex)}
                 title='Click to edit track settings'
@@ -56,8 +56,8 @@ function TrackManager({
                 {track.name || `Track ${trackIndex + 1}`}
               </div>
               <Button
-                variant="red"
-                size="small"
+                variant='red'
+                size='small'
                 className='remove-track-button'
                 onClick={() => onRemoveTrack(trackIndex)}
                 title='Remove track'
@@ -94,8 +94,8 @@ function TrackManager({
                 className='volume-slider'
               />
               <Button
-                variant="pink"
-                size="small"
+                variant='pink'
+                size='small'
                 className={`mute-button ${muted[trackIndex] ? 'muted' : ''}`}
                 onClick={() => onToggleMute(trackIndex)}
               >
@@ -107,9 +107,9 @@ function TrackManager({
 
         {canAddTrack && (
           <div className='add-track-row'>
-            <Button 
-              variant="yellow" 
-              className='add-track-button' 
+            <Button
+              variant='yellow'
+              className='add-track-button'
               onClick={() => setShowSoundSelector(true)}
             >
               + Add Sound

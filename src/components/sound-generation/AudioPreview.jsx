@@ -95,18 +95,12 @@ function AudioPreview({ audioUrl }) {
   }
 
   return (
-    <div className="audio-preview-container">
-      <label className="audio-preview-label">
-        Audio Preview:
-      </label>
+    <div className='audio-preview-container'>
+      <label className='audio-preview-label'>Audio Preview:</label>
 
-      {error && (
-        <div className="audio-preview-error">
-          {error}
-        </div>
-      )}
+      {error && <div className='audio-preview-error'>{error}</div>}
 
-      <div className="audio-preview-controls">
+      <div className='audio-preview-controls'>
         <button
           onClick={handleManualPlay}
           disabled={isLoading}
@@ -116,11 +110,7 @@ function AudioPreview({ audioUrl }) {
         </button>
       </div>
 
-      <audio
-        ref={audioRef}
-        onPlay={handlePlay}
-        style={{ display: 'none' }}
-      >
+      <audio ref={audioRef} onPlay={handlePlay} style={{ display: 'none' }}>
         <source src={actualAudioUrl} type='audio/mpeg' />
       </audio>
     </div>

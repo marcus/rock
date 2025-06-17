@@ -18,7 +18,7 @@ const useAppStore = create((set, get) => ({
   tempo: 120,
   masterVolume: 80,
   masterMuted: false,
-  
+
   // Initialization state
   isInitializing: false,
   isInitialized: false,
@@ -132,9 +132,7 @@ const useAppStore = create((set, get) => ({
   updateTrackSettings: (trackIndex, settings) => {
     const { tracks, saveState } = get()
     const newTracks = tracks.map((track, index) =>
-      index === trackIndex
-        ? { ...track, settings }
-        : track
+      index === trackIndex ? { ...track, settings } : track
     )
     set({ tracks: newTracks })
     saveState()
@@ -144,9 +142,7 @@ const useAppStore = create((set, get) => ({
     const { tracks } = get()
     // Update tracks without saving to localStorage (temporary for real-time preview)
     const newTracks = tracks.map((track, index) =>
-      index === trackIndex
-        ? { ...track, settings }
-        : track
+      index === trackIndex ? { ...track, settings } : track
     )
     set({ tracks: newTracks })
     // Don't call saveState() - these are temporary changes
@@ -179,17 +175,22 @@ const useAppStore = create((set, get) => ({
   // Initialize app with default tracks
   initializeApp: async () => {
     const state = get()
-    console.log('initializeApp called, isInitializing:', state.isInitializing, 'isInitialized:', state.isInitialized)
-    
+    console.log(
+      'initializeApp called, isInitializing:',
+      state.isInitializing,
+      'isInitialized:',
+      state.isInitialized
+    )
+
     // Prevent double initialization
     if (state.isInitializing || state.isInitialized) {
       console.log('App already initializing or initialized, skipping')
       return
     }
-    
+
     // Set initializing flag
     set({ isInitializing: true })
-    
+
     try {
       // Initialize drum sounds API early
       await drumSoundsInstance.initialize()
@@ -231,7 +232,7 @@ const useAppStore = create((set, get) => ({
 
       // If no saved state, create default setup
       const defaultSounds = drumSoundsInstance.getAllSounds()
-      
+
       // Check if we have sounds available
       if (defaultSounds.length === 0) {
         console.warn('No sounds available for initialization, this is expected on first load')
@@ -250,90 +251,90 @@ const useAppStore = create((set, get) => ({
         console.log('App initialized with empty state - no default sounds available')
         return
       }
-    
-    const initialTracks = defaultSounds.slice(0, 8) // Start with first 8 sounds
 
-    // Set up default pattern for initial tracks
-    const defaultPattern = {
-      steps: initialTracks.map(() => Array(16).fill(false)),
-      tempo: 120,
-      volumes: initialTracks.map(() => 0.8),
-      muted: initialTracks.map(() => false),
-    }
+      const initialTracks = defaultSounds.slice(0, 8) // Start with first 8 sounds
 
-    // Add some default beats
-    if (defaultPattern.steps.length > 0) {
-      defaultPattern.steps[0] = [
-        true,
-        false,
-        false,
-        false,
-        true,
-        false,
-        false,
-        false,
-        true,
-        false,
-        false,
-        false,
-        true,
-        false,
-        false,
-        false,
-      ]
-    }
-    if (defaultPattern.steps.length > 1) {
-      defaultPattern.steps[1] = [
-        false,
-        false,
-        false,
-        false,
-        true,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        true,
-        false,
-        false,
-        false,
-      ]
-    }
-    if (defaultPattern.steps.length > 2) {
-      defaultPattern.steps[2] = [
-        false,
-        false,
-        true,
-        false,
-        false,
-        false,
-        true,
-        false,
-        false,
-        false,
-        true,
-        false,
-        false,
-        false,
-        true,
-        false,
-      ]
-    }
+      // Set up default pattern for initial tracks
+      const defaultPattern = {
+        steps: initialTracks.map(() => Array(16).fill(false)),
+        tempo: 120,
+        volumes: initialTracks.map(() => 0.8),
+        muted: initialTracks.map(() => false),
+      }
 
-    console.log('Setting initial tracks:', initialTracks.length, 'tracks')
-    set({
-      tracks: initialTracks,
-      pattern: defaultPattern,
-      isInitializing: false,
-      isInitialized: true,
-    })
+      // Add some default beats
+      if (defaultPattern.steps.length > 0) {
+        defaultPattern.steps[0] = [
+          true,
+          false,
+          false,
+          false,
+          true,
+          false,
+          false,
+          false,
+          true,
+          false,
+          false,
+          false,
+          true,
+          false,
+          false,
+          false,
+        ]
+      }
+      if (defaultPattern.steps.length > 1) {
+        defaultPattern.steps[1] = [
+          false,
+          false,
+          false,
+          false,
+          true,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          true,
+          false,
+          false,
+          false,
+        ]
+      }
+      if (defaultPattern.steps.length > 2) {
+        defaultPattern.steps[2] = [
+          false,
+          false,
+          true,
+          false,
+          false,
+          false,
+          true,
+          false,
+          false,
+          false,
+          true,
+          false,
+          false,
+          false,
+          true,
+          false,
+        ]
+      }
 
-    // Save the initial state
-    get().saveState()
-    console.log('App initialization completed with', initialTracks.length, 'tracks')
+      console.log('Setting initial tracks:', initialTracks.length, 'tracks')
+      set({
+        tracks: initialTracks,
+        pattern: defaultPattern,
+        isInitializing: false,
+        isInitialized: true,
+      })
+
+      // Save the initial state
+      get().saveState()
+      console.log('App initialization completed with', initialTracks.length, 'tracks')
     } catch (error) {
       console.error('Failed to initialize app:', error)
       // Set minimal state to prevent app crash

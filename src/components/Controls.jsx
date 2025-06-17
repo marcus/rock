@@ -4,11 +4,11 @@ function Controls({ isPlaying, tempo, onTogglePlayback, onTempoChange, onClear }
   return (
     <div className='controls'>
       <div className='control-group'>
-        <Button 
-          variant="yellow" 
+        <Button
+          variant='yellow'
           active={isPlaying}
           onClick={onTogglePlayback}
-          className="play-stop-btn"
+          className='play-stop-btn'
         >
           {isPlaying ? 'STOP' : 'PLAY'}
         </Button>
@@ -30,7 +30,7 @@ function Controls({ isPlaying, tempo, onTogglePlayback, onTempoChange, onClear }
       </div>
 
       <div className='control-group'>
-        <Button variant="yellow" onClick={onClear}>
+        <Button variant='yellow' onClick={onClear}>
           CLEAR
         </Button>
       </div>

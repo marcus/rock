@@ -62,20 +62,20 @@ function addAudioUrls(sounds, req) {
   const protocol = req.secure || req.headers['x-forwarded-proto'] === 'https' ? 'https' : 'http'
   const host = req.headers.host
   const baseUrl = `${protocol}://${host}`
-  
+
   return sounds.map(sound => {
     if (!sound.file_path) return { ...sound, audio_url: null }
-    
+
     // Remove leading /audio/ if it exists in file_path to avoid duplication
-    const cleanPath = sound.file_path.startsWith('audio/') 
+    const cleanPath = sound.file_path.startsWith('audio/')
       ? sound.file_path.substring(6) // Remove 'audio/' prefix
-      : sound.file_path.startsWith('/audio/') 
+      : sound.file_path.startsWith('/audio/')
         ? sound.file_path.substring(7) // Remove '/audio/' prefix
         : sound.file_path
-    
+
     return {
       ...sound,
-      audio_url: `${baseUrl}/audio/${cleanPath}`
+      audio_url: `${baseUrl}/audio/${cleanPath}`,
     }
   })
 }
@@ -129,7 +129,7 @@ app.get('/api/sound-packs/:id/sounds', async (req, res) => {
     `,
       [id]
     )
-    
+
     const soundsWithUrls = addAudioUrls(sounds, req)
     res.json(soundsWithUrls)
   } catch (error) {
@@ -145,7 +145,7 @@ app.get('/api/sounds', async (req, res) => {
       SELECT * FROM sounds 
       ORDER BY drum_type, name
     `)
-    
+
     const soundsWithUrls = addAudioUrls(sounds, req)
     res.json(soundsWithUrls)
   } catch (error) {
@@ -166,7 +166,7 @@ app.get('/api/sounds/default', async (req, res) => {
       ORDER BY s.drum_type
     `)
     console.log(`Found ${sounds.length} default sounds`)
-    
+
     const soundsWithUrls = addAudioUrls(sounds, req)
     res.json(soundsWithUrls)
   } catch (error) {
@@ -363,14 +363,18 @@ app.get('/api/debug', async (req, res) => {
       nodeEnv: process.env.NODE_ENV,
       port: PORT,
       hasElevenLabsKey: !!process.env.ELEVENLABS_API_KEY,
-      elevenLabsKeyLength: process.env.ELEVENLABS_API_KEY ? process.env.ELEVENLABS_API_KEY.length : 0,
-      elevenLabsKeyPrefix: process.env.ELEVENLABS_API_KEY ? process.env.ELEVENLABS_API_KEY.substring(0, 8) + '...' : 'none'
+      elevenLabsKeyLength: process.env.ELEVENLABS_API_KEY
+        ? process.env.ELEVENLABS_API_KEY.length
+        : 0,
+      elevenLabsKeyPrefix: process.env.ELEVENLABS_API_KEY
+        ? process.env.ELEVENLABS_API_KEY.substring(0, 8) + '...'
+        : 'none',
     },
     services: {
       soundGenerationService: !!soundGenerationService,
-      database: 'testing...'
+      database: 'testing...',
     },
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
   }
 
   // Test database
@@ -392,13 +396,13 @@ app.get('/api/health', async (req, res) => {
     services: {
       database: 'unknown',
       elevenlabs: 'unknown',
-      server: 'ok'
+      server: 'ok',
     },
     environment: {
       nodeEnv: process.env.NODE_ENV,
       port: PORT,
-      hasElevenLabsKey: !!process.env.ELEVENLABS_API_KEY
-    }
+      hasElevenLabsKey: !!process.env.ELEVENLABS_API_KEY,
+    },
   }
 
   // Test database connection
@@ -418,9 +422,9 @@ app.get('/api/health', async (req, res) => {
         method: 'GET',
         headers: {
           'Xi-Api-Key': process.env.ELEVENLABS_API_KEY,
-          'Accept': 'application/json'
+          Accept: 'application/json',
         },
-        timeout: 5000
+        timeout: 5000,
       })
 
       if (response.ok) {

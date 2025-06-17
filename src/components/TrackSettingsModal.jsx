@@ -3,7 +3,14 @@ import Modal from './Modal'
 import Button from './Button'
 import './TrackSettingsModal.css'
 
-function TrackSettingsModal({ trackId, trackName, trackSettings, onSave, onClose, onRealTimeUpdate }) {
+function TrackSettingsModal({
+  trackId,
+  trackName,
+  trackSettings,
+  onSave,
+  onClose,
+  onRealTimeUpdate,
+}) {
   // Store original settings for cancel functionality
   const [originalSettings] = useState(() => ({
     gain_db: 0,
@@ -69,7 +76,7 @@ function TrackSettingsModal({ trackId, trackName, trackSettings, onSave, onClose
     onClose()
   }
 
-  const updateSettingsAndApply = (newSettings) => {
+  const updateSettingsAndApply = newSettings => {
     setSettings(newSettings)
     // Apply changes in real-time if callback provided
     if (onRealTimeUpdate) {
@@ -164,14 +171,14 @@ function TrackSettingsModal({ trackId, trackName, trackSettings, onSave, onClose
 
   const footer = (
     <>
-      <Button variant="default" onClick={handleReset}>
+      <Button variant='default' onClick={handleReset}>
         Reset
       </Button>
       <div className='action-buttons'>
-        <Button variant="default" onClick={handleCancel}>
+        <Button variant='default' onClick={handleCancel}>
           Cancel
         </Button>
-        <Button variant="primary" onClick={handleSave}>
+        <Button variant='primary' onClick={handleSave}>
           Save
         </Button>
       </div>
@@ -182,11 +189,11 @@ function TrackSettingsModal({ trackId, trackName, trackSettings, onSave, onClose
     <Modal
       isOpen={true}
       onClose={handleCancel}
-      title="Track Settings"
+      title='Track Settings'
       subtitle={trackName}
       footer={footer}
-      size="medium"
-      className="track-settings-modal"
+      size='medium'
+      className='track-settings-modal'
     >
       <div className='setting-group'>
         <label>
@@ -253,8 +260,7 @@ function TrackSettingsModal({ trackId, trackName, trackSettings, onSave, onClose
 
       <div className='setting-group'>
         <label>
-          Filter Q
-          <span className='setting-value'>{settings.filter.resonance_q.toFixed(1)}</span>
+          Filter Q<span className='setting-value'>{settings.filter.resonance_q.toFixed(1)}</span>
         </label>
         <input
           type='range'
