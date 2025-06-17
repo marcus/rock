@@ -388,18 +388,20 @@ export class DrumSoundsAPI {
       const dryBitcrush = new BitcrushNode({
         sampleRate: trackSettings.bitcrush.sample_rate,
         bitDepth: trackSettings.bitcrush.bit_depth
-      }).connect(dryChain)
+      })
+      dryBitcrush.connect(dryChain)
       
-      dryChain = dryBitcrush
+      dryChain = dryBitcrush.input // Connect to bitcrush input
       effectsToDispose.push(dryBitcrush)
       
       if (wetChain) {
         const wetBitcrush = new BitcrushNode({
           sampleRate: trackSettings.bitcrush.sample_rate,
           bitDepth: trackSettings.bitcrush.bit_depth
-        }).connect(wetChain)
+        })
+        wetBitcrush.connect(wetChain)
         
-        wetChain = wetBitcrush
+        wetChain = wetBitcrush.input // Connect to bitcrush input
         effectsToDispose.push(wetBitcrush)
       }
     }
@@ -410,7 +412,8 @@ export class DrumSoundsAPI {
         frequency: trackSettings.filter.cutoff_hz,
         type: 'lowpass',
         Q: trackSettings.filter.resonance_q
-      }).connect(dryChain)
+      })
+      dryFilter.connect(dryChain)
       
       dryChain = dryFilter
       effectsToDispose.push(dryFilter)
@@ -420,7 +423,8 @@ export class DrumSoundsAPI {
           frequency: trackSettings.filter.cutoff_hz,
           type: 'lowpass',
           Q: trackSettings.filter.resonance_q
-        }).connect(wetChain)
+        })
+        wetFilter.connect(wetChain)
         
         wetChain = wetFilter
         effectsToDispose.push(wetFilter)
@@ -430,34 +434,66 @@ export class DrumSoundsAPI {
     // Store original connections to restore later
     const originalConnections = []
     
-    // Disconnect and connect through effects chain
-    nodes.forEach(node => {
-      node.disconnect()
-      originalConnections.push(node)
-    })
-    
-    // Connect to dry and wet chains for reverb
-    const reverbSend = trackSettings?.reverb_send || 0
-    if (this.reverbInitialized && reverbSend > 0 && wetChain) {
-      this.reverbSend.gain.setValueAtTime(reverbSend, time - 0.01)
-      nodes.forEach(node => node.fan(dryChain, wetChain))
-    } else {
-      nodes.forEach(node => node.connect(dryChain))
-    }
-    
-    // Execute the trigger callback
-    triggerCallback()
-    
-    // Clean up effects and restore connections after playing
-    if (effectsToDispose.length > 0) {
-      setTimeout(() => {
-        effectsToDispose.forEach(effect => effect.dispose())
-        // Reconnect to default destination
-        originalConnections.forEach(node => {
+    try {
+      // Disconnect and connect through effects chain
+      nodes.forEach(node => {
+        if (node && typeof node.disconnect === 'function') {
           node.disconnect()
-          node.connect(audioEngine.getDestination())
+          originalConnections.push(node)
+        }
+      })
+      
+      // Connect to dry and wet chains for reverb
+      const reverbSend = trackSettings?.reverb_send || 0
+      if (this.reverbInitialized && reverbSend > 0 && wetChain) {
+        this.reverbSend.gain.setValueAtTime(reverbSend, time - 0.01)
+        nodes.forEach(node => {
+          if (node && typeof node.fan === 'function') {
+            node.fan(dryChain, wetChain)
+          } else if (node && typeof node.connect === 'function') {
+            node.connect(dryChain)
+          }
         })
-      }, 3000) // 3 seconds should be enough for most synthesis
+      } else {
+        nodes.forEach(node => {
+          if (node && typeof node.connect === 'function') {
+            node.connect(dryChain)
+          }
+        })
+      }
+      
+      // Execute the trigger callback
+      triggerCallback()
+      
+      // Clean up effects and restore connections after playing
+      if (effectsToDispose.length > 0) {
+        setTimeout(() => {
+          try {
+            effectsToDispose.forEach(effect => {
+              if (effect && typeof effect.dispose === 'function') {
+                effect.dispose()
+              }
+            })
+            // Reconnect to default destination
+            originalConnections.forEach(node => {
+              if (node && typeof node.disconnect === 'function' && typeof node.connect === 'function') {
+                node.disconnect()
+                node.connect(audioEngine.getDestination())
+              }
+            })
+          } catch (cleanupError) {
+            console.error('Error during effects cleanup:', cleanupError)
+          }
+        }, 3000) // 3 seconds should be enough for most synthesis
+      }
+    } catch (connectionError) {
+      console.error('Error in connectPersistentSynthWithEffects:', connectionError)
+      // Fallback: try to execute trigger callback anyway
+      try {
+        triggerCallback()
+      } catch (triggerError) {
+        console.error('Error in trigger callback:', triggerError)
+      }
     }
   }
 
@@ -920,18 +956,20 @@ export class DrumSoundsAPI {
       const dryBitcrush = new BitcrushNode({
         sampleRate: trackSettings.bitcrush.sample_rate,
         bitDepth: trackSettings.bitcrush.bit_depth
-      }).connect(dryChain)
+      })
+      dryBitcrush.connect(dryChain)
       
-      dryChain = dryBitcrush
+      dryChain = dryBitcrush.input // Connect to bitcrush input
       effectsToDispose.push(dryBitcrush)
       
       if (wetChain) {
         const wetBitcrush = new BitcrushNode({
           sampleRate: trackSettings.bitcrush.sample_rate,
           bitDepth: trackSettings.bitcrush.bit_depth
-        }).connect(wetChain)
+        })
+        wetBitcrush.connect(wetChain)
         
-        wetChain = wetBitcrush
+        wetChain = wetBitcrush.input // Connect to bitcrush input
         effectsToDispose.push(wetBitcrush)
       }
     }
@@ -942,7 +980,8 @@ export class DrumSoundsAPI {
         frequency: trackSettings.filter.cutoff_hz,
         type: 'lowpass',
         Q: trackSettings.filter.resonance_q
-      }).connect(dryChain)
+      })
+      dryFilter.connect(dryChain)
       
       dryChain = dryFilter
       effectsToDispose.push(dryFilter)
@@ -952,7 +991,8 @@ export class DrumSoundsAPI {
           frequency: trackSettings.filter.cutoff_hz,
           type: 'lowpass',
           Q: trackSettings.filter.resonance_q
-        }).connect(wetChain)
+        })
+        wetFilter.connect(wetChain)
         
         wetChain = wetFilter
         effectsToDispose.push(wetFilter)
@@ -963,11 +1003,24 @@ export class DrumSoundsAPI {
     const reverbSend = trackSettings?.reverb_send || 0
     player.disconnect()
     
-    if (this.reverbInitialized && reverbSend > 0 && wetChain) {
-      wetChain.gain.setValueAtTime(reverbSend, time - 0.01)
-      player.fan(dryChain, wetChain)
-    } else {
-      player.connect(dryChain)
+    try {
+      if (this.reverbInitialized && reverbSend > 0 && wetChain) {
+        // Set reverb send level on the actual reverb send node, not the effects chain
+        if (this.reverbSend && this.reverbSend.gain) {
+          this.reverbSend.gain.setValueAtTime(reverbSend, time - 0.01)
+        }
+        player.fan(dryChain, wetChain)
+      } else {
+        player.connect(dryChain)
+      }
+    } catch (connectionError) {
+      console.error('Error connecting player with effects:', connectionError)
+      // Fallback: connect directly to destination
+      try {
+        player.connect(audioEngine.getDestination())
+      } catch (fallbackError) {
+        console.error('Fallback connection also failed:', fallbackError)
+      }
     }
 
     // Set volume just before scheduled time to avoid clicks
