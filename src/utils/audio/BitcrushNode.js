@@ -78,7 +78,11 @@ export class BitcrushNode {
   }
   
   connect(destination) {
-    return this.output.connect(destination)
+    // Connect the output node to the destination
+    this.output.connect(destination)
+    
+    // Return the instance itself to allow for proper chaining
+    return this
   }
   
   static getDefaults() {

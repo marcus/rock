@@ -5,7 +5,8 @@ import { BitcrushNode } from './BitcrushNode.js'
 
 export class DrumSoundsAPI {
   constructor() {
-    this.instruments = new Map()
+    this.instruments = new Map() // Now stores actual synth instances, not functions
+    this.synthFilters = new Map() // Store filters separately for complex synths
     this.soundsData = []
     this.soundsLoaded = false
     this.isInitialized = false
@@ -126,15 +127,107 @@ export class DrumSoundsAPI {
   }
 
   initializeInstruments() {
-    // Create synthesis functions for each sound
+    // Create persistent synthesis instances for each sound
     this.soundsData.forEach(sound => {
       if (sound.type === 'synthesis' && sound.synthesis_params) {
         const drumKey = this.getDrumKey(sound.drum_type, sound.id)
         const synthParams = JSON.parse(sound.synthesis_params)
 
-        this.instruments.set(drumKey, () => this.createSynthesisInstrument(synthParams))
+        this.createPersistentSynth(drumKey, synthParams)
       }
     })
+  }
+
+  createPersistentSynth(drumKey, synthParams) {
+    try {
+      if (synthParams.synthType === 'MembraneSynth') {
+        const synth = new Tone.MembraneSynth(synthParams.config).connect(audioEngine.getDestination())
+        this.instruments.set(drumKey, {
+          synth,
+          type: 'MembraneSynth',
+          params: synthParams
+        })
+      } else if (synthParams.synthType === 'NoiseSynth') {
+        const synth = new Tone.NoiseSynth(synthParams.config).connect(audioEngine.getDestination())
+        
+        let filter = null
+        if (synthParams.filter) {
+          // Fix invalid Q parameter - Q should be positive
+          const filterQ = synthParams.filter.Q && synthParams.filter.Q > 0 ? synthParams.filter.Q : 1
+          
+          // Fix invalid rolloff parameter
+          let rolloff = synthParams.filter.rolloff || -12
+          if (![-12, -24, -48, -96].includes(rolloff)) {
+            rolloff = -12
+          }
+          
+          filter = new Tone.Filter({
+            frequency: synthParams.filter.frequency,
+            type: synthParams.filter.type,
+            Q: filterQ,
+            rolloff: rolloff,
+          }).connect(audioEngine.getDestination())
+          
+          synth.disconnect()
+          synth.connect(filter)
+        }
+        
+        this.instruments.set(drumKey, {
+          synth,
+          filter,
+          type: 'NoiseSynth',
+          params: synthParams
+        })
+      } else if (synthParams.synthType === 'Dual') {
+        const synth1 = new Tone.Synth(synthParams.synth1.config).connect(audioEngine.getDestination())
+        const synth2 = new Tone.Synth(synthParams.synth2.config).connect(audioEngine.getDestination())
+
+        // Fix Q parameters for filters
+        const filter1Q = synthParams.synth1.filter.Q && synthParams.synth1.filter.Q > 0 ? synthParams.synth1.filter.Q : 1
+        const filter2Q = synthParams.synth2.filter.Q && synthParams.synth2.filter.Q > 0 ? synthParams.synth2.filter.Q : 1
+
+        // Fix rolloff parameters
+        let filter1Rolloff = synthParams.synth1.filter.rolloff || -12
+        if (![-12, -24, -48, -96].includes(filter1Rolloff)) {
+          filter1Rolloff = -12
+        }
+
+        let filter2Rolloff = synthParams.synth2.filter.rolloff || -12
+        if (![-12, -24, -48, -96].includes(filter2Rolloff)) {
+          filter2Rolloff = -12
+        }
+
+        const filter1 = new Tone.Filter({
+          frequency: synthParams.synth1.filter.frequency,
+          type: synthParams.synth1.filter.type,
+          Q: filter1Q,
+          rolloff: filter1Rolloff,
+        }).connect(audioEngine.getDestination())
+
+        const filter2 = new Tone.Filter({
+          frequency: synthParams.synth2.filter.frequency,
+          type: synthParams.synth2.filter.type,
+          Q: filter2Q,
+          rolloff: filter2Rolloff,
+        }).connect(audioEngine.getDestination())
+
+        synth1.disconnect()
+        synth2.disconnect()
+        synth1.connect(filter1)
+        synth2.connect(filter2)
+
+        this.instruments.set(drumKey, {
+          synth1,
+          synth2,
+          filter1,
+          filter2,
+          type: 'Dual',
+          params: synthParams
+        })
+      }
+    } catch (error) {
+      console.error(`Error creating persistent synth for ${drumKey}:`, error)
+    }
   }
 
   getDrumKey(drumType, soundId = null) {
@@ -260,25 +353,8 @@ export class DrumSoundsAPI {
       // Play sample
       this.playSample(soundName, options)
     } else {
-      // Play synthesized sound
-      const instrument = this.instruments.get(soundName)
-      if (!instrument) {
-        console.warn(`Drum sound ${soundName} not found`)
-        return
-      }
-
-      // Apply volume if specified
-      if (options.volume !== undefined) {
-        const currentVolume = audioEngine.getMasterVolume()
-        audioEngine.setMasterVolume(options.volume)
-
-        // Reset volume after a short delay
-        setTimeout(() => {
-          audioEngine.setMasterVolume(currentVolume)
-        }, 100)
-      }
-
-      instrument()
+      // Play synthesized sound using persistent synth
+      this.playPersistentSynth(soundName, options)
     }
   }
 
@@ -286,8 +362,7 @@ export class DrumSoundsAPI {
     const player = this.samplePlayers.get(soundName)
     if (!player) {
       console.warn(`Sample player for ${soundName} not found, falling back to synthesis`)
-      const instrument = this.instruments.get(soundName)
-      if (instrument) instrument()
+      this.playPersistentSynth(soundName, options)
       return
     }
 
@@ -297,6 +372,137 @@ export class DrumSoundsAPI {
     }
 
     player.start()
+  }
+
+  connectPersistentSynthWithEffects(synthNodes, time, trackSettings, triggerCallback) {
+    // synthNodes can be a single synth or an array of synths with filters
+    const nodes = Array.isArray(synthNodes) ? synthNodes : [synthNodes]
+    
+    // Build effects chain
+    const effectsToDispose = []
+    let dryChain = this.reverbInitialized ? this.dryGain : audioEngine.getDestination()
+    let wetChain = this.reverbInitialized ? this.reverbSend : null
+    
+    // Apply bitcrush if provided
+    if (trackSettings?.bitcrush && (trackSettings.bitcrush.sample_rate !== 44100 || trackSettings.bitcrush.bit_depth !== 16)) {
+      const dryBitcrush = new BitcrushNode({
+        sampleRate: trackSettings.bitcrush.sample_rate,
+        bitDepth: trackSettings.bitcrush.bit_depth
+      }).connect(dryChain)
+      
+      dryChain = dryBitcrush
+      effectsToDispose.push(dryBitcrush)
+      
+      if (wetChain) {
+        const wetBitcrush = new BitcrushNode({
+          sampleRate: trackSettings.bitcrush.sample_rate,
+          bitDepth: trackSettings.bitcrush.bit_depth
+        }).connect(wetChain)
+        
+        wetChain = wetBitcrush
+        effectsToDispose.push(wetBitcrush)
+      }
+    }
+    
+    // Apply filter settings if provided (additional to built-in filters)
+    if (trackSettings?.filter && (trackSettings.filter.cutoff_hz !== 20000 || trackSettings.filter.resonance_q !== 0.7)) {
+      const dryFilter = new Tone.Filter({
+        frequency: trackSettings.filter.cutoff_hz,
+        type: 'lowpass',
+        Q: trackSettings.filter.resonance_q
+      }).connect(dryChain)
+      
+      dryChain = dryFilter
+      effectsToDispose.push(dryFilter)
+      
+      if (wetChain) {
+        const wetFilter = new Tone.Filter({
+          frequency: trackSettings.filter.cutoff_hz,
+          type: 'lowpass',
+          Q: trackSettings.filter.resonance_q
+        }).connect(wetChain)
+        
+        wetChain = wetFilter
+        effectsToDispose.push(wetFilter)
+      }
+    }
+
+    // Store original connections to restore later
+    const originalConnections = []
+    
+    // Disconnect and connect through effects chain
+    nodes.forEach(node => {
+      node.disconnect()
+      originalConnections.push(node)
+    })
+    
+    // Connect to dry and wet chains for reverb
+    const reverbSend = trackSettings?.reverb_send || 0
+    if (this.reverbInitialized && reverbSend > 0 && wetChain) {
+      this.reverbSend.gain.setValueAtTime(reverbSend, time - 0.01)
+      nodes.forEach(node => node.fan(dryChain, wetChain))
+    } else {
+      nodes.forEach(node => node.connect(dryChain))
+    }
+    
+    // Execute the trigger callback
+    triggerCallback()
+    
+    // Clean up effects and restore connections after playing
+    if (effectsToDispose.length > 0) {
+      setTimeout(() => {
+        effectsToDispose.forEach(effect => effect.dispose())
+        // Reconnect to default destination
+        originalConnections.forEach(node => {
+          node.disconnect()
+          node.connect(audioEngine.getDestination())
+        })
+      }, 3000) // 3 seconds should be enough for most synthesis
+    }
+  }
+
+  playPersistentSynth(soundName, options = {}) {
+    const instrumentData = this.instruments.get(soundName)
+    if (!instrumentData) {
+      console.warn(`Persistent synth ${soundName} not found`)
+      return
+    }
+
+    const { type, params } = instrumentData
+
+    try {
+      if (type === 'MembraneSynth') {
+        const { synth } = instrumentData
+        if (options.volume !== undefined) {
+          synth.volume.value = Tone.gainToDb(options.volume)
+        }
+        synth.triggerAttackRelease(params.note, params.duration)
+      } else if (type === 'NoiseSynth') {
+        const { synth } = instrumentData
+        if (options.volume !== undefined) {
+          synth.volume.value = Tone.gainToDb(options.volume)
+        }
+        
+        if (params.multiple_hits) {
+          // For clap - multiple hits
+          params.multiple_hits.forEach(delay => {
+            synth.triggerAttackRelease(params.duration, `+${delay}`)
+          })
+        } else {
+          synth.triggerAttackRelease(params.duration)
+        }
+      } else if (type === 'Dual') {
+        const { synth1, synth2 } = instrumentData
+        if (options.volume !== undefined) {
+          synth1.volume.value = Tone.gainToDb(options.volume)
+          synth2.volume.value = Tone.gainToDb(options.volume)
+        }
+        synth1.triggerAttackRelease(params.synth1.note, params.duration)
+        synth2.triggerAttackRelease(params.synth2.note, params.duration)
+      }
+    } catch (error) {
+      console.error(`Error playing persistent synth ${soundName}:`, error)
+    }
   }
 
   getSoundNames() {
@@ -329,7 +535,7 @@ export class DrumSoundsAPI {
     // Initialize instrument if it's a synthesis sound
     if (soundData.type === 'synthesis' && soundData.synthesis_params) {
       const synthParams = JSON.parse(soundData.synthesis_params)
-      this.instruments.set(drumKey, () => this.createSynthesisInstrument(synthParams))
+      this.createPersistentSynth(drumKey, synthParams)
     }
 
     // Load sample if it's a sample sound
@@ -374,6 +580,8 @@ export class DrumSoundsAPI {
 
     // Clean up instrument if it exists
     if (this.instruments.has(drumKey)) {
+      const instrumentData = this.instruments.get(drumKey)
+      this.disposePersistentSynth(instrumentData)
       this.instruments.delete(drumKey)
     }
 
@@ -402,8 +610,33 @@ export class DrumSoundsAPI {
     return [...this.soundsData]
   }
 
+  disposePersistentSynth(instrumentData) {
+    try {
+      const { type } = instrumentData
+      
+      if (type === 'MembraneSynth') {
+        instrumentData.synth.dispose()
+      } else if (type === 'NoiseSynth') {
+        instrumentData.synth.dispose()
+        if (instrumentData.filter) {
+          instrumentData.filter.dispose()
+        }
+      } else if (type === 'Dual') {
+        instrumentData.synth1.dispose()
+        instrumentData.synth2.dispose()
+        instrumentData.filter1.dispose()
+        instrumentData.filter2.dispose()
+      }
+    } catch (error) {
+      console.error('Error disposing persistent synth:', error)
+    }
+  }
+
   dispose() {
-    // Individual instruments are disposed after playing
+    // Dispose persistent synthesis instruments
+    this.instruments.forEach(instrumentData => {
+      this.disposePersistentSynth(instrumentData)
+    })
     this.instruments.clear()
 
     // Dispose persistent sample players
@@ -754,116 +987,33 @@ export class DrumSoundsAPI {
   }
 
   createSynthesisInstrumentScheduled(soundName, volume, time, trackSettings = null) {
-    const soundData = this.soundsData.find(
-      sound =>
-        this.getDrumKey(sound.drum_type, sound.id) === soundName ||
-        this.getDrumKey(sound.drum_type) === soundName
-    )
-
-    if (!soundData || !soundData.synthesis_params) {
-      console.warn(`No synthesis params for ${soundName}`)
+    const instrumentData = this.instruments.get(soundName)
+    if (!instrumentData) {
+      console.warn(`Persistent synth ${soundName} not found`)
       return
     }
 
     try {
-      const synthParams = JSON.parse(soundData.synthesis_params)
-      
       // Apply track settings to synthesis parameters
-      const adjustedParams = this.applySynthTrackSettings(synthParams, trackSettings)
+      const adjustedParams = this.applySynthTrackSettings(instrumentData.params, trackSettings)
 
-      if (adjustedParams.synthType === 'MembraneSynth') {
-        const synth = new Tone.MembraneSynth(adjustedParams.config)
+      if (instrumentData.type === 'MembraneSynth') {
+        const { synth } = instrumentData
         synth.volume.value = Tone.gainToDb(volume)
         
-        // Build effects chain
-        const effectsToDispose = []
-        let dryChain = this.reverbInitialized ? this.dryGain : audioEngine.getDestination()
-        let wetChain = this.reverbInitialized ? this.reverbSend : null
-        
-        // Apply bitcrush if provided
-        if (trackSettings?.bitcrush && (trackSettings.bitcrush.sample_rate !== 44100 || trackSettings.bitcrush.bit_depth !== 16)) {
-          const dryBitcrush = new BitcrushNode({
-            sampleRate: trackSettings.bitcrush.sample_rate,
-            bitDepth: trackSettings.bitcrush.bit_depth
-          }).connect(dryChain)
-          
-          dryChain = dryBitcrush
-          effectsToDispose.push(dryBitcrush)
-          
-          if (wetChain) {
-            const wetBitcrush = new BitcrushNode({
-              sampleRate: trackSettings.bitcrush.sample_rate,
-              bitDepth: trackSettings.bitcrush.bit_depth
-            }).connect(wetChain)
-            
-            wetChain = wetBitcrush
-            effectsToDispose.push(wetBitcrush)
-          }
-        }
-        
-        // Connect to dry and wet chains for reverb
-        const reverbSend = trackSettings?.reverb_send || 0
-        if (this.reverbInitialized && reverbSend > 0 && wetChain) {
-          this.reverbSend.gain.setValueAtTime(reverbSend, time - 0.01)
-          synth.fan(dryChain, wetChain)
-        } else {
-          synth.connect(dryChain)
-        }
-        
-        // Schedule the attack at the exact time
-        synth.triggerAttackRelease(adjustedParams.note, adjustedParams.duration, time)
-        setTimeout(() => {
-          synth.dispose()
-          effectsToDispose.forEach(effect => effect.dispose())
-        }, adjustedParams.cleanup_delay)
-      } else if (adjustedParams.synthType === 'NoiseSynth') {
-        const synth = new Tone.NoiseSynth(adjustedParams.config)
-        synth.volume.value = Tone.gainToDb(volume)
-
-        // Connect to dry and wet chains for reverb
-        const reverbSend = trackSettings?.reverb_send || 0
-
-        if (adjustedParams.filter) {
-          // Fix invalid Q parameter - Q should be positive
-          const filterQ =
-            adjustedParams.filter.Q && adjustedParams.filter.Q > 0 ? adjustedParams.filter.Q : 1
-
-          // Fix invalid rolloff parameter - must be -12, -24, -48, or -96
-          let rolloff = adjustedParams.filter.rolloff || -12
-          if (![-12, -24, -48, -96].includes(rolloff)) {
-            rolloff = -12
-          }
-
-          const filter = new Tone.Filter({
-            frequency: adjustedParams.filter.frequency,
-            type: adjustedParams.filter.type,
-            Q: filterQ,
-            rolloff: rolloff,
-          })
-          
-          synth.connect(filter)
-          if (this.reverbInitialized && reverbSend > 0) {
-            this.reverbSend.gain.setValueAtTime(reverbSend, time - 0.01)
-            filter.fan(this.dryGain, this.reverbSend)
-          } else {
-            filter.connect(this.reverbInitialized ? this.dryGain : audioEngine.getDestination())
-          }
-
+        // Handle effects routing with persistent synth
+        this.connectPersistentSynthWithEffects([synth], time, trackSettings, () => {
           // Schedule the attack at the exact time
-          synth.triggerAttackRelease(adjustedParams.duration, time)
+          synth.triggerAttackRelease(adjustedParams.note, adjustedParams.duration, time)
+        })
+      } else if (instrumentData.type === 'NoiseSynth') {
+        const { synth, filter } = instrumentData
+        synth.volume.value = Tone.gainToDb(volume)
 
-          setTimeout(() => {
-            synth.dispose()
-            filter.dispose()
-          }, adjustedParams.cleanup_delay)
-        } else {
-          if (this.reverbInitialized && reverbSend > 0) {
-            this.reverbSend.gain.setValueAtTime(reverbSend, time - 0.01)
-            synth.fan(this.dryGain, this.reverbSend)
-          } else {
-            synth.connect(this.reverbInitialized ? this.dryGain : audioEngine.getDestination())
-          }
-          
+        // Determine which nodes to route through effects
+        const nodesToRoute = filter ? [filter] : [synth]
+        
+        this.connectPersistentSynthWithEffects(nodesToRoute, time, trackSettings, () => {
           if (adjustedParams.multiple_hits) {
             // For clap - multiple hits, all scheduled relative to the base time
             adjustedParams.multiple_hits.forEach(delay => {
@@ -873,77 +1023,18 @@ export class DrumSoundsAPI {
             // Schedule the attack at the exact time
             synth.triggerAttackRelease(adjustedParams.duration, time)
           }
-
-          setTimeout(() => synth.dispose(), adjustedParams.cleanup_delay)
-        }
-      } else if (adjustedParams.synthType === 'Dual') {
-        // For cowbell - dual synth setup
-        const synth1 = new Tone.Synth(adjustedParams.synth1.config)
-        const synth2 = new Tone.Synth(adjustedParams.synth2.config)
-
+        })
+      } else if (instrumentData.type === 'Dual') {
+        const { synth1, synth2, filter1, filter2 } = instrumentData
         synth1.volume.value = Tone.gainToDb(volume)
         synth2.volume.value = Tone.gainToDb(volume)
 
-        // Connect to dry and wet chains for reverb
-        const reverbSend = trackSettings?.reverb_send || 0
-
-        // Fix Q parameters for filters
-        const filter1Q =
-          adjustedParams.synth1.filter.Q && adjustedParams.synth1.filter.Q > 0
-            ? adjustedParams.synth1.filter.Q
-            : 1
-        const filter2Q =
-          adjustedParams.synth2.filter.Q && adjustedParams.synth2.filter.Q > 0
-            ? adjustedParams.synth2.filter.Q
-            : 1
-
-        // Fix rolloff parameters
-        let filter1Rolloff = adjustedParams.synth1.filter.rolloff || -12
-        if (![-12, -24, -48, -96].includes(filter1Rolloff)) {
-          filter1Rolloff = -12
-        }
-
-        let filter2Rolloff = adjustedParams.synth2.filter.rolloff || -12
-        if (![-12, -24, -48, -96].includes(filter2Rolloff)) {
-          filter2Rolloff = -12
-        }
-
-        const filter1 = new Tone.Filter({
-          frequency: adjustedParams.synth1.filter.frequency,
-          type: adjustedParams.synth1.filter.type,
-          Q: filter1Q,
-          rolloff: filter1Rolloff,
+        // Route both filter outputs through effects
+        this.connectPersistentSynthWithEffects([filter1, filter2], time, trackSettings, () => {
+          // Schedule both synths at the exact time
+          synth1.triggerAttackRelease(adjustedParams.synth1.note, adjustedParams.duration, time)
+          synth2.triggerAttackRelease(adjustedParams.synth2.note, adjustedParams.duration, time)
         })
-
-        const filter2 = new Tone.Filter({
-          frequency: adjustedParams.synth2.filter.frequency,
-          type: adjustedParams.synth2.filter.type,
-          Q: filter2Q,
-          rolloff: filter2Rolloff,
-        })
-
-        synth1.connect(filter1)
-        synth2.connect(filter2)
-        
-        if (this.reverbInitialized && reverbSend > 0) {
-          this.reverbSend.gain.setValueAtTime(reverbSend, time - 0.01)
-          filter1.fan(this.dryGain, this.reverbSend)
-          filter2.fan(this.dryGain, this.reverbSend)
-        } else {
-          filter1.connect(this.reverbInitialized ? this.dryGain : audioEngine.getDestination())
-          filter2.connect(this.reverbInitialized ? this.dryGain : audioEngine.getDestination())
-        }
-
-        // Schedule both synths at the exact time
-        synth1.triggerAttackRelease(adjustedParams.synth1.note, adjustedParams.duration, time)
-        synth2.triggerAttackRelease(adjustedParams.synth2.note, adjustedParams.duration, time)
-
-        setTimeout(() => {
-          synth1.dispose()
-          synth2.dispose()
-          filter1.dispose()
-          filter2.dispose()
-        }, adjustedParams.cleanup_delay)
       }
     } catch (error) {
       console.error(`Error creating synthesis instrument for ${soundName}:`, error)
