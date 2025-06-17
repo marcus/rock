@@ -2,6 +2,7 @@ import * as Tone from 'tone'
 import { audioEngine } from './AudioEngine.js'
 import { sampleLoader } from './SampleLoader.js'
 import { BitcrushNode } from './BitcrushNode.js'
+import { ReverbNode } from './ReverbNode.js'
 
 export class DrumSoundsAPI {
   constructor() {
@@ -13,10 +14,7 @@ export class DrumSoundsAPI {
     // Persistent Tone.Player instances for each loaded sample to avoid Safari scheduling latency
     this.samplePlayers = new Map()
     // Reverb system
-    this.reverbBuffer = null
-    this.convolver = null
-    this.reverbSend = null
-    this.dryGain = null
+    this.reverbNode = new ReverbNode()
     this.reverbInitialized = false
   }
 
@@ -24,39 +22,11 @@ export class DrumSoundsAPI {
     if (this.reverbInitialized) return
     
     try {
-      // Ensure audio context is started
-      await Tone.start()
-      
-      // Create impulse response buffer for reverb using current context sample rate
-      const sampleRate = Tone.getContext().sampleRate
-      const length = Math.floor(sampleRate * 2) // 2 seconds of reverb
-      const impulse = new Float32Array(length)
-      
-      // Create a decaying noise impulse response
-      for (let i = 0; i < length; i++) {
-        const decay = Math.pow(1 - i / length, 2)
-        impulse[i] = (Math.random() * 2 - 1) * decay
-      }
-      
-      // Create audio buffer with correct sample rate
-      this.reverbBuffer = Tone.getContext().createBuffer(1, length, sampleRate)
-      this.reverbBuffer.copyToChannel(impulse, 0)
-      
-      // Create convolver node
-      this.convolver = new Tone.Convolver()
-      this.convolver.buffer = this.reverbBuffer
-      
-      // Create gain nodes for wet/dry mix
-      this.reverbSend = new Tone.Gain(0) // Start with no reverb
-      this.dryGain = new Tone.Gain(1)
-      
-      // Connect reverb chain
-      this.reverbSend.connect(this.convolver)
-      this.convolver.connect(audioEngine.getDestination())
-      this.dryGain.connect(audioEngine.getDestination())
+      await this.reverbNode.initialize()
+      this.reverbNode.connect(audioEngine.getDestination())
       
       this.reverbInitialized = true
-      console.log('Reverb system initialized with sample rate:', sampleRate)
+      console.log('Reverb system initialized')
     } catch (error) {
       console.error('Failed to initialize reverb:', error)
     }
@@ -380,8 +350,8 @@ export class DrumSoundsAPI {
     
     // Build effects chain
     const effectsToDispose = []
-    let dryChain = this.reverbInitialized ? this.dryGain : audioEngine.getDestination()
-    let wetChain = this.reverbInitialized ? this.reverbSend : null
+    let dryChain = this.reverbInitialized ? this.reverbNode.getDryGain() : audioEngine.getDestination()
+    let wetChain = this.reverbInitialized ? this.reverbNode.getWetSend() : null
     
     // Apply bitcrush if provided
     if (trackSettings?.bitcrush && (trackSettings.bitcrush.sample_rate !== 44100 || trackSettings.bitcrush.bit_depth !== 16)) {
@@ -446,7 +416,7 @@ export class DrumSoundsAPI {
       // Connect to dry and wet chains for reverb
       const reverbSend = trackSettings?.reverb_send || 0
       if (this.reverbInitialized && reverbSend > 0 && wetChain) {
-        this.reverbSend.gain.setValueAtTime(reverbSend, time - 0.01)
+        this.reverbNode.setWetLevelAtTime(reverbSend, time - 0.01)
         nodes.forEach(node => {
           if (node && typeof node.fan === 'function') {
             node.fan(dryChain, wetChain)
@@ -680,19 +650,10 @@ export class DrumSoundsAPI {
     this.samplePlayers.clear()
     
     // Dispose reverb system
-    if (this.convolver) {
-      this.convolver.dispose()
-      this.convolver = null
+    if (this.reverbNode) {
+      this.reverbNode.dispose()
+      this.reverbNode = null
     }
-    if (this.reverbSend) {
-      this.reverbSend.dispose()
-      this.reverbSend = null
-    }
-    if (this.dryGain) {
-      this.dryGain.dispose()
-      this.dryGain = null
-    }
-    this.reverbBuffer = null
   }
 
   // Legacy-compatible method that accepts audioContext and gain for perfect timing
@@ -946,8 +907,8 @@ export class DrumSoundsAPI {
 
     // Create effects chain and reverb send
     const effectsToDispose = []
-    let dryChain = this.reverbInitialized ? this.dryGain : audioEngine.getDestination()
-    let wetChain = this.reverbInitialized ? this.reverbSend : null
+    let dryChain = this.reverbInitialized ? this.reverbNode.getDryGain() : audioEngine.getDestination()
+    let wetChain = this.reverbInitialized ? this.reverbNode.getWetSend() : null
 
     // Apply effects chain if provided
     
@@ -1005,10 +966,8 @@ export class DrumSoundsAPI {
     
     try {
       if (this.reverbInitialized && reverbSend > 0 && wetChain) {
-        // Set reverb send level on the actual reverb send node, not the effects chain
-        if (this.reverbSend && this.reverbSend.gain) {
-          this.reverbSend.gain.setValueAtTime(reverbSend, time - 0.01)
-        }
+        // Set reverb send level on the reverb node
+        this.reverbNode.setWetLevelAtTime(reverbSend, time - 0.01)
         player.fan(dryChain, wetChain)
       } else {
         player.connect(dryChain)
