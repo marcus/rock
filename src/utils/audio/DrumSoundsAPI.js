@@ -4,6 +4,7 @@ import { sampleLoader } from './SampleLoader.js'
 import { BitcrushNode } from './BitcrushNode.js'
 import { ReverbNode } from './ReverbNode.js'
 import { DelaySendNode } from './DelaySendNode.js'
+import { LFONode } from './LFONode.js'
 
 export class DrumSoundsAPI {
   constructor() {
@@ -20,6 +21,9 @@ export class DrumSoundsAPI {
     // Delay system
     this.delayNode = new DelaySendNode()
     this.delayInitialized = false
+    // LFO system
+    this.lfoNode = new LFONode()
+    this.lfoInitialized = false
   }
 
   async initializeReverb() {
@@ -46,6 +50,67 @@ export class DrumSoundsAPI {
       this.delayInitialized = true
     } catch (error) {
       console.error('❌ Failed to initialize delay:', error)
+    }
+  }
+
+  async initializeLFO() {
+    if (this.lfoInitialized) return
+
+    try {
+      await this.lfoNode.initialize()
+
+      this.lfoInitialized = true
+    } catch (error) {
+      console.error('❌ Failed to initialize LFO:', error)
+    }
+  }
+
+  connectLFOToTarget(node, target) {
+    if (!this.lfoInitialized || !node) {
+      console.warn('🚫 LFO connection failed: lfoInitialized =', this.lfoInitialized, 'node =', node)
+      return
+    }
+
+    const nodeType = node.constructor.name
+
+    try {
+      switch (target) {
+        case 'volume':
+          if (node.volume) {
+            this.lfoNode.connectParam(node.volume)
+          }
+          break
+          
+        case 'frequency':
+          // Different synth types have frequency in different places
+          if (nodeType === '_NoiseSynth') {
+            // NoiseSynth has no frequency parameter (it generates noise)
+          } else if (node.oscillator?.frequency) {
+            this.lfoNode.connectParam(node.oscillator.frequency)
+          } else if (node.frequency) {
+            this.lfoNode.connectParam(node.frequency)
+          }
+          break
+          
+        case 'detune':
+          if (node.oscillator?.detune) {
+            this.lfoNode.connectParam(node.oscillator.detune)
+          } else if (node.detune) {
+            this.lfoNode.connectParam(node.detune)
+          }
+          break
+          
+        case 'filter':
+          // For synths with built-in filters or external filter nodes
+          if (node.filter?.frequency) {
+            this.lfoNode.connectParam(node.filter.frequency)
+          } else if (node.frequency) { // For standalone filter nodes
+            this.lfoNode.connectParam(node.frequency)
+          }
+          break
+      }
+    } catch (error) {
+      console.error('Error connecting LFO to target:', error)
     }
   }
 
@@ -473,6 +538,25 @@ export class DrumSoundsAPI {
         if (wet_level !== undefined) {
           this.delayNode.wetLevel = wet_level
         }
+      }
+
+      // Apply LFO settings if active
+      if (this.lfoInitialized && trackSettings?.lfo) {
+        const { frequency, depth, type, target } = trackSettings.lfo
+        
+        
+        if (frequency !== undefined) {
+          this.lfoNode.frequency = frequency
+        }
+        if (depth !== undefined) {
+          this.lfoNode.depth = depth
+        }
+        if (type !== undefined) {
+          this.lfoNode.type = type
+        }
+        
+        // Connect LFO to appropriate parameter based on target
+        // Note: LFO connection is handled during synth creation for better parameter access
       }
 
       // Connect to dry and wet chains for reverb
@@ -929,6 +1013,11 @@ export class DrumSoundsAPI {
       await this.initializeDelay()
     }
 
+    // Ensure LFO is initialized if needed
+    if (!this.lfoInitialized && trackSettings?.lfo?.depth > 0) {
+      await this.initializeLFO()
+    }
+
 
     // Find the sound data - check both old and new key formats
     const soundData = this.soundsData.find(
@@ -1064,6 +1153,27 @@ export class DrumSoundsAPI {
       }
     }
 
+    // Apply LFO settings if active
+    if (this.lfoInitialized && trackSettings?.lfo) {
+      const { frequency, depth, type, target } = trackSettings.lfo
+      
+      
+      if (frequency !== undefined) {
+        this.lfoNode.frequency = frequency
+      }
+      if (depth !== undefined) {
+        this.lfoNode.depth = depth
+      }
+      if (type !== undefined) {
+        this.lfoNode.type = type
+      }
+      
+      // Connect LFO to sample player parameter based on target
+      if (target) {
+        this.connectLFOToTarget(player, target)
+      }
+    }
+
     // Apply reverb send level and connect player
     const reverbSend = trackSettings?.reverb_send || 0
     player.disconnect()
@@ -1119,6 +1229,11 @@ export class DrumSoundsAPI {
 
         // Handle effects routing with persistent synth
         this.connectPersistentSynthWithEffects([synth], time, trackSettings, () => {
+          // Connect LFO to synth if active
+          if (this.lfoInitialized && trackSettings?.lfo?.target) {
+            this.connectLFOToTarget(synth, trackSettings.lfo.target)
+          }
+          
           // Schedule the attack at the exact time
           synth.triggerAttackRelease(adjustedParams.note, adjustedParams.duration, time)
         })
@@ -1130,6 +1245,11 @@ export class DrumSoundsAPI {
         const nodesToRoute = filter ? [filter] : [synth]
 
         this.connectPersistentSynthWithEffects(nodesToRoute, time, trackSettings, () => {
+          // Connect LFO to synth if active
+          if (this.lfoInitialized && trackSettings?.lfo?.target) {
+            this.connectLFOToTarget(synth, trackSettings.lfo.target)
+          }
+          
           if (adjustedParams.multiple_hits) {
             // For clap - multiple hits, all scheduled relative to the base time
             adjustedParams.multiple_hits.forEach(delay => {
@@ -1147,6 +1267,12 @@ export class DrumSoundsAPI {
 
         // Route both filter outputs through effects
         this.connectPersistentSynthWithEffects([filter1, filter2], time, trackSettings, () => {
+          // Connect LFO to synths if active
+          if (this.lfoInitialized && trackSettings?.lfo?.target) {
+            this.connectLFOToTarget(synth1, trackSettings.lfo.target)
+            this.connectLFOToTarget(synth2, trackSettings.lfo.target)
+          }
+          
           // Schedule both synths at the exact time
           synth1.triggerAttackRelease(adjustedParams.synth1.note, adjustedParams.duration, time)
           synth2.triggerAttackRelease(adjustedParams.synth2.note, adjustedParams.duration, time)

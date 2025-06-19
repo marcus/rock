@@ -25,6 +25,12 @@ function TrackSettingsModal({
       feedback: 0.3,
       wet_level: 0,
     },
+    lfo: {
+      frequency: 2.0,
+      depth: 0.0,
+      type: 'sine',
+      target: 'volume',
+    },
     bitcrush: {
       sample_rate: 44100,
       bit_depth: 16,
@@ -44,6 +50,12 @@ function TrackSettingsModal({
       delay_time: 0.25,
       feedback: 0.3,
       wet_level: 0,
+    },
+    lfo: {
+      frequency: 2.0,
+      depth: 0.0,
+      type: 'sine',
+      target: 'volume',
     },
     bitcrush: {
       sample_rate: 44100,
@@ -67,6 +79,12 @@ function TrackSettingsModal({
           delay_time: 0.25,
           feedback: 0.3,
           wet_level: 0,
+        },
+        lfo: {
+          frequency: 2.0,
+          depth: 0.0,
+          type: 'sine',
+          target: 'volume',
         },
         bitcrush: {
           sample_rate: 44100,
@@ -193,6 +211,74 @@ function TrackSettingsModal({
     updateSettingsAndApply(newSettings)
   }
 
+  const handleLFOFrequencyChange = value => {
+    const currentLFO = settings.lfo || {
+      frequency: 2.0,
+      depth: 0.0,
+      type: 'sine',
+      target: 'volume',
+    }
+    const newSettings = {
+      ...settings,
+      lfo: {
+        ...currentLFO,
+        frequency: parseFloat(value),
+      },
+    }
+    updateSettingsAndApply(newSettings)
+  }
+
+  const handleLFODepthChange = value => {
+    const currentLFO = settings.lfo || {
+      frequency: 2.0,
+      depth: 0.0,
+      type: 'sine',
+      target: 'volume',
+    }
+    const newSettings = {
+      ...settings,
+      lfo: {
+        ...currentLFO,
+        depth: parseFloat(value),
+      },
+    }
+    updateSettingsAndApply(newSettings)
+  }
+
+  const handleLFOTypeChange = value => {
+    const currentLFO = settings.lfo || {
+      frequency: 2.0,
+      depth: 0.0,
+      type: 'sine',
+      target: 'volume',
+    }
+    const newSettings = {
+      ...settings,
+      lfo: {
+        ...currentLFO,
+        type: value,
+      },
+    }
+    updateSettingsAndApply(newSettings)
+  }
+
+  const handleLFOTargetChange = value => {
+    const currentLFO = settings.lfo || {
+      frequency: 2.0,
+      depth: 0.0,
+      type: 'sine',
+      target: 'volume',
+    }
+    const newSettings = {
+      ...settings,
+      lfo: {
+        ...currentLFO,
+        target: value,
+      },
+    }
+    updateSettingsAndApply(newSettings)
+  }
+
   const handleBitcrushSampleRateChange = value => {
     const newSettings = {
       ...settings,
@@ -228,6 +314,12 @@ function TrackSettingsModal({
         delay_time: 0.25,
         feedback: 0.3,
         wet_level: 0,
+      },
+      lfo: {
+        frequency: 2.0,
+        depth: 0.0,
+        type: 'sine',
+        target: 'volume',
       },
       bitcrush: {
         sample_rate: 44100,
@@ -428,6 +520,82 @@ function TrackSettingsModal({
           <span>0.5</span>
           <span>1</span>
         </div>
+      </div>
+
+      <div className='setting-group'>
+        <label>
+          LFO Frequency (Hz)
+          <span className='setting-value'>{settings.lfo?.frequency?.toFixed(1) || '2.0'}</span>
+        </label>
+        <input
+          type='range'
+          min='0.1'
+          max='20'
+          step='0.1'
+          value={settings.lfo?.frequency || 2.0}
+          onChange={e => handleLFOFrequencyChange(e.target.value)}
+          className='setting-slider'
+        />
+        <div className='range-labels'>
+          <span>0.1</span>
+          <span>10</span>
+          <span>20</span>
+        </div>
+      </div>
+
+      <div className='setting-group'>
+        <label>
+          LFO Depth
+          <span className='setting-value'>{settings.lfo?.depth?.toFixed(2) || '0.00'}</span>
+        </label>
+        <input
+          type='range'
+          min='0'
+          max='1'
+          step='0.01'
+          value={settings.lfo?.depth || 0}
+          onChange={e => handleLFODepthChange(e.target.value)}
+          className='setting-slider'
+        />
+        <div className='range-labels'>
+          <span>0</span>
+          <span>0.5</span>
+          <span>1</span>
+        </div>
+      </div>
+
+      <div className='setting-group'>
+        <label>
+          LFO Type
+          <span className='setting-value'>{settings.lfo?.type || 'sine'}</span>
+        </label>
+        <select
+          value={settings.lfo?.type || 'sine'}
+          onChange={e => handleLFOTypeChange(e.target.value)}
+          className='setting-select'
+        >
+          <option value='sine'>Sine</option>
+          <option value='triangle'>Triangle</option>
+          <option value='square'>Square</option>
+          <option value='sawtooth'>Sawtooth</option>
+        </select>
+      </div>
+
+      <div className='setting-group'>
+        <label>
+          LFO Target
+          <span className='setting-value'>{settings.lfo?.target || 'volume'}</span>
+        </label>
+        <select
+          value={settings.lfo?.target || 'volume'}
+          onChange={e => handleLFOTargetChange(e.target.value)}
+          className='setting-select'
+        >
+          <option value='volume'>Volume</option>
+          <option value='frequency'>Frequency</option>
+          <option value='detune'>Detune</option>
+          <option value='filter'>Filter</option>
+        </select>
       </div>
 
       <div className='setting-group'>
