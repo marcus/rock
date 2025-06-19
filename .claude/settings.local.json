@@ -18,7 +18,8 @@
       "Bash(NODE_ENV=production node server/index.js)",
       "Bash(./deploy.sh)",
       "Bash(chmod:*)",
-      "Bash(npx:*)"
+      "Bash(npx:*)",
+      "Bash(rg:*)"
     ],
     "deny": []
   }

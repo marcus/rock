@@ -15,12 +15,15 @@ export class DelaySendNode {
     this.dryGain = null
     this.isInitialized = false
 
+    // Handle both flat and nested 'delay_send' structures
+    const delayOpts = options.delay_send || {}
+
     // Default options
     this.options = {
-      delayTime: options.delayTime || 0.25, // seconds
-      feedback: options.feedback || 0.3, // 0-0.95
-      wetLevel: options.wetLevel || 0, // 0-1
-      dryLevel: options.dryLevel || 1, // 0-1
+      delayTime: delayOpts.delay_time ?? options.delayTime ?? 0.25,
+      feedback: delayOpts.feedback ?? options.feedback ?? 0.3,
+      wetLevel: delayOpts.wet_level ?? options.wetLevel ?? 0,
+      dryLevel: options.dryLevel || 1, // dryLevel seems to be flat already
       ...options,
     }
   }
@@ -79,18 +82,18 @@ export class DelaySendNode {
   set delayTime(value) {
     this.options.delayTime = Math.max(0, Math.min(1, value))
     if (this.delay) {
-      this.delay.delayTime.setValueAtTime(this.options.delayTime, Tone.now())
+      this.delay.delayTime.rampTo(this.options.delayTime, 0.02)
     }
   }
 
-  get feedbackLevel() {
+  get feedback() {
     return this.feedback ? this.feedback.gain.value : this.options.feedback
   }
 
-  set feedbackLevel(value) {
+  set feedback(value) {
     this.options.feedback = Math.max(0, Math.min(0.95, value))
     if (this.feedback) {
-      this.feedback.gain.setValueAtTime(this.options.feedback, Tone.now())
+      this.feedback.gain.rampTo(this.options.feedback, 0.02)
     }
   }
 
@@ -101,7 +104,7 @@ export class DelaySendNode {
   set wetLevel(value) {
     this.options.wetLevel = Math.max(0, Math.min(1, value))
     if (this.delaySend) {
-      this.delaySend.gain.setValueAtTime(this.options.wetLevel, Tone.now())
+      this.delaySend.gain.rampTo(this.options.wetLevel, 0.02)
     }
   }
 
@@ -112,7 +115,7 @@ export class DelaySendNode {
   set dryLevel(value) {
     this.options.dryLevel = Math.max(0, Math.min(1, value))
     if (this.dryGain) {
-      this.dryGain.gain.setValueAtTime(this.options.dryLevel, Tone.now())
+      this.dryGain.gain.rampTo(this.options.dryLevel, 0.02)
     }
   }
 
@@ -125,7 +128,7 @@ export class DelaySendNode {
   }
 
   // Set feedback level at a specific time (for precise scheduling)
-  setFeedbackLevelAtTime(value, time) {
+  setFeedbackAtTime(value, time) {
     this.options.feedback = Math.max(0, Math.min(0.95, value))
     if (this.feedback) {
       this.feedback.gain.setValueAtTime(this.options.feedback, time)

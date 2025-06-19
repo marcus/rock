@@ -63,6 +63,11 @@ function TrackSettingsModal({
           resonance_q: 0.7,
         },
         reverb_send: 0,
+        delay_send: {
+          delay_time: 0.25,
+          feedback: 0.3,
+          wet_level: 0,
+        },
         bitcrush: {
           sample_rate: 44100,
           bit_depth: 16,
