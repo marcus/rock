@@ -20,6 +20,11 @@ function TrackSettingsModal({
       resonance_q: 0.7,
     },
     reverb_send: 0,
+    delay_send: {
+      delay_time: 0.25,
+      feedback: 0.3,
+      wet_level: 0,
+    },
     bitcrush: {
       sample_rate: 44100,
       bit_depth: 16,
@@ -35,6 +40,11 @@ function TrackSettingsModal({
       resonance_q: 0.7,
     },
     reverb_send: 0,
+    delay_send: {
+      delay_time: 0.25,
+      feedback: 0.3,
+      wet_level: 0,
+    },
     bitcrush: {
       sample_rate: 44100,
       bit_depth: 16,
@@ -130,6 +140,54 @@ function TrackSettingsModal({
     updateSettingsAndApply(newSettings)
   }
 
+  const handleDelayTimeChange = value => {
+    const currentDelaySend = settings.delay_send || {
+      delay_time: 0.25,
+      feedback: 0.3,
+      wet_level: 0,
+    }
+    const newSettings = {
+      ...settings,
+      delay_send: {
+        ...currentDelaySend,
+        delay_time: parseFloat(value),
+      },
+    }
+    updateSettingsAndApply(newSettings)
+  }
+
+  const handleDelayFeedbackChange = value => {
+    const currentDelaySend = settings.delay_send || {
+      delay_time: 0.25,
+      feedback: 0.3,
+      wet_level: 0,
+    }
+    const newSettings = {
+      ...settings,
+      delay_send: {
+        ...currentDelaySend,
+        feedback: parseFloat(value),
+      },
+    }
+    updateSettingsAndApply(newSettings)
+  }
+
+  const handleDelayWetLevelChange = value => {
+    const currentDelaySend = settings.delay_send || {
+      delay_time: 0.25,
+      feedback: 0.3,
+      wet_level: 0,
+    }
+    const newSettings = {
+      ...settings,
+      delay_send: {
+        ...currentDelaySend,
+        wet_level: parseFloat(value),
+      },
+    }
+    updateSettingsAndApply(newSettings)
+  }
+
   const handleBitcrushSampleRateChange = value => {
     const newSettings = {
       ...settings,
@@ -161,6 +219,11 @@ function TrackSettingsModal({
         resonance_q: 0.7,
       },
       reverb_send: 0,
+      delay_send: {
+        delay_time: 0.25,
+        feedback: 0.3,
+        wet_level: 0,
+      },
       bitcrush: {
         sample_rate: 44100,
         bit_depth: 16,
@@ -290,6 +353,69 @@ function TrackSettingsModal({
           step='0.01'
           value={settings.reverb_send}
           onChange={e => handleReverbSendChange(e.target.value)}
+          className='setting-slider'
+        />
+        <div className='range-labels'>
+          <span>0</span>
+          <span>0.5</span>
+          <span>1</span>
+        </div>
+      </div>
+
+      <div className='setting-group'>
+        <label>
+          Delay Time (s)
+          <span className='setting-value'>{settings.delay_send?.delay_time?.toFixed(3) || '0.250'}</span>
+        </label>
+        <input
+          type='range'
+          min='0.01'
+          max='1.0'
+          step='0.01'
+          value={settings.delay_send?.delay_time || 0.25}
+          onChange={e => handleDelayTimeChange(e.target.value)}
+          className='setting-slider'
+        />
+        <div className='range-labels'>
+          <span>0.01</span>
+          <span>0.5</span>
+          <span>1.0</span>
+        </div>
+      </div>
+
+      <div className='setting-group'>
+        <label>
+          Delay Feedback
+          <span className='setting-value'>{settings.delay_send?.feedback?.toFixed(2) || '0.30'}</span>
+        </label>
+        <input
+          type='range'
+          min='0'
+          max='0.95'
+          step='0.01'
+          value={settings.delay_send?.feedback || 0.3}
+          onChange={e => handleDelayFeedbackChange(e.target.value)}
+          className='setting-slider'
+        />
+        <div className='range-labels'>
+          <span>0</span>
+          <span>0.5</span>
+          <span>0.95</span>
+        </div>
+      </div>
+
+      <div className='setting-group'>
+        <label>
+          Delay Send
+          <span className='setting-value'>{settings.delay_send?.wet_level?.toFixed(2) || '0.00'}</span>
+        </label>
+        <input
+          type='range'
+          min='0'
+          max='1'
+          step='0.01'
+          value={settings.delay_send?.wet_level || 0}
+          onChange={e => handleDelayWetLevelChange(e.target.value)}
           className='setting-slider'
         />
         <div className='range-labels'>
