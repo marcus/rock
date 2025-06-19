@@ -179,6 +179,53 @@
   margin-top: 0.3vh;
 }
 
+.track-settings-modal .effects-section {
+  margin-bottom: 3vh;
+  padding-bottom: 2vh;
+  border-bottom: 0.2vw solid #ddd;
+}
+
+.track-settings-modal .effects-section:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+.track-settings-modal .section-title {
+  margin: 0 0 1.5vh 0;
+  color: #ff0000;
+  font-family: 'Anton', sans-serif;
+  font-size: clamp(0.9rem, 1.2vw, 1.1rem);
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.track-settings-modal .setting-select {
+  width: 100%;
+  padding: 0.5vh 1vw;
+  border: 0.1vw solid #000;
+  background: #fffef0;
+  color: #333;
+  font-family: 'Roboto', sans-serif;
+  font-stretch: 75%;
+  font-size: clamp(0.8rem, 1vw, 0.95rem);
+  font-weight: 500;
+  border-radius: 0;
+  outline: none;
+  cursor: pointer;
+  transition: all 0.1s ease;
+}
+
+.track-settings-modal .setting-select:hover {
+  background: #ffd700;
+}
+
+.track-settings-modal .setting-select:focus {
+  background: #ffd700;
+  border-color: #0000ff;
+}
+
 .modal-footer {
   background: #fffef0;
   padding: 2vh 2vw;

@@ -355,288 +355,309 @@ function TrackSettingsModal({
       size='medium'
       className='track-settings-modal'
     >
-      <div className='setting-group'>
-        <label>
-          Gain (dB)
-          <span className='setting-value'>{settings.gain_db.toFixed(1)}</span>
-        </label>
-        <input
-          type='range'
-          min='-60'
-          max='12'
-          step='0.1'
-          value={settings.gain_db}
-          onChange={e => handleGainChange(e.target.value)}
-          className='setting-slider'
-        />
-        <div className='range-labels'>
-          <span>-60</span>
-          <span>0</span>
-          <span>+12</span>
+      {/* Basic Audio Controls */}
+      <div className='effects-section'>
+        <h4 className='section-title'>Audio</h4>
+        <div className='setting-group'>
+          <label>
+            Gain (dB)
+            <span className='setting-value'>{settings.gain_db.toFixed(1)}</span>
+          </label>
+          <input
+            type='range'
+            min='-60'
+            max='12'
+            step='0.1'
+            value={settings.gain_db}
+            onChange={e => handleGainChange(e.target.value)}
+            className='setting-slider'
+          />
+          <div className='range-labels'>
+            <span>-60</span>
+            <span>0</span>
+            <span>+12</span>
+          </div>
+        </div>
+
+        <div className='setting-group'>
+          <label>
+            Pitch (semitones)
+            <span className='setting-value'>{settings.pitch_semitones.toFixed(1)}</span>
+          </label>
+          <input
+            type='range'
+            min='-24'
+            max='24'
+            step='0.1'
+            value={settings.pitch_semitones}
+            onChange={e => handlePitchChange(e.target.value)}
+            className='setting-slider'
+          />
+          <div className='range-labels'>
+            <span>-24</span>
+            <span>0</span>
+            <span>+24</span>
+          </div>
         </div>
       </div>
 
-      <div className='setting-group'>
-        <label>
-          Pitch (semitones)
-          <span className='setting-value'>{settings.pitch_semitones.toFixed(1)}</span>
-        </label>
-        <input
-          type='range'
-          min='-24'
-          max='24'
-          step='0.1'
-          value={settings.pitch_semitones}
-          onChange={e => handlePitchChange(e.target.value)}
-          className='setting-slider'
-        />
-        <div className='range-labels'>
-          <span>-24</span>
-          <span>0</span>
-          <span>+24</span>
+      {/* Filter Section */}
+      <div className='effects-section'>
+        <h4 className='section-title'>Filter</h4>
+        <div className='setting-group'>
+          <label>
+            Cutoff (Hz)
+            <span className='setting-value'>{Math.round(settings.filter.cutoff_hz)}</span>
+          </label>
+          <input
+            type='range'
+            min='20'
+            max='20000'
+            step='10'
+            value={settings.filter.cutoff_hz}
+            onChange={e => handleCutoffChange(e.target.value)}
+            className='setting-slider'
+          />
+          <div className='range-labels'>
+            <span>20</span>
+            <span>1k</span>
+            <span>20k</span>
+          </div>
+        </div>
+
+        <div className='setting-group'>
+          <label>
+            Resonance (Q)
+            <span className='setting-value'>{settings.filter.resonance_q.toFixed(1)}</span>
+          </label>
+          <input
+            type='range'
+            min='0.1'
+            max='10.0'
+            step='0.1'
+            value={settings.filter.resonance_q}
+            onChange={e => handleResonanceChange(e.target.value)}
+            className='setting-slider'
+          />
+          <div className='range-labels'>
+            <span>0.1</span>
+            <span>1.0</span>
+            <span>10.0</span>
+          </div>
         </div>
       </div>
 
-      <div className='setting-group'>
-        <label>
-          Filter Cutoff (Hz)
-          <span className='setting-value'>{Math.round(settings.filter.cutoff_hz)}</span>
-        </label>
-        <input
-          type='range'
-          min='20'
-          max='20000'
-          step='10'
-          value={settings.filter.cutoff_hz}
-          onChange={e => handleCutoffChange(e.target.value)}
-          className='setting-slider'
-        />
-        <div className='range-labels'>
-          <span>20</span>
-          <span>1k</span>
-          <span>20k</span>
+      {/* Time-Based Effects */}
+      <div className='effects-section'>
+        <h4 className='section-title'>Time Effects</h4>
+        <div className='setting-group'>
+          <label>
+            Reverb Send
+            <span className='setting-value'>{settings.reverb_send.toFixed(2)}</span>
+          </label>
+          <input
+            type='range'
+            min='0'
+            max='1'
+            step='0.01'
+            value={settings.reverb_send}
+            onChange={e => handleReverbSendChange(e.target.value)}
+            className='setting-slider'
+          />
+          <div className='range-labels'>
+            <span>0</span>
+            <span>0.5</span>
+            <span>1</span>
+          </div>
+        </div>
+
+        <div className='setting-group'>
+          <label>
+            Delay Time (s)
+            <span className='setting-value'>{settings.delay_send?.delay_time?.toFixed(3) || '0.250'}</span>
+          </label>
+          <input
+            type='range'
+            min='0.01'
+            max='1.0'
+            step='0.01'
+            value={settings.delay_send?.delay_time || 0.25}
+            onChange={e => handleDelayTimeChange(e.target.value)}
+            className='setting-slider'
+          />
+          <div className='range-labels'>
+            <span>0.01</span>
+            <span>0.5</span>
+            <span>1.0</span>
+          </div>
+        </div>
+
+        <div className='setting-group'>
+          <label>
+            Delay Feedback
+            <span className='setting-value'>{settings.delay_send?.feedback?.toFixed(2) || '0.30'}</span>
+          </label>
+          <input
+            type='range'
+            min='0'
+            max='0.95'
+            step='0.01'
+            value={settings.delay_send?.feedback || 0.3}
+            onChange={e => handleDelayFeedbackChange(e.target.value)}
+            className='setting-slider'
+          />
+          <div className='range-labels'>
+            <span>0</span>
+            <span>0.5</span>
+            <span>0.95</span>
+          </div>
+        </div>
+
+        <div className='setting-group'>
+          <label>
+            Delay Send
+            <span className='setting-value'>{settings.delay_send?.wet_level?.toFixed(2) || '0.00'}</span>
+          </label>
+          <input
+            type='range'
+            min='0'
+            max='1'
+            step='0.01'
+            value={settings.delay_send?.wet_level || 0}
+            onChange={e => handleDelayWetLevelChange(e.target.value)}
+            className='setting-slider'
+          />
+          <div className='range-labels'>
+            <span>0</span>
+            <span>0.5</span>
+            <span>1</span>
+          </div>
         </div>
       </div>
 
-      <div className='setting-group'>
-        <label>
-          Filter Q<span className='setting-value'>{settings.filter.resonance_q.toFixed(1)}</span>
-        </label>
-        <input
-          type='range'
-          min='0.1'
-          max='10.0'
-          step='0.1'
-          value={settings.filter.resonance_q}
-          onChange={e => handleResonanceChange(e.target.value)}
-          className='setting-slider'
-        />
-        <div className='range-labels'>
-          <span>0.1</span>
-          <span>1.0</span>
-          <span>10.0</span>
+      {/* Modulation Section */}
+      <div className='effects-section'>
+        <h4 className='section-title'>Modulation</h4>
+        <div className='setting-group'>
+          <label>
+            LFO Frequency (Hz)
+            <span className='setting-value'>{settings.lfo?.frequency?.toFixed(1) || '2.0'}</span>
+          </label>
+          <input
+            type='range'
+            min='0.1'
+            max='20'
+            step='0.1'
+            value={settings.lfo?.frequency || 2.0}
+            onChange={e => handleLFOFrequencyChange(e.target.value)}
+            className='setting-slider'
+          />
+          <div className='range-labels'>
+            <span>0.1</span>
+            <span>10</span>
+            <span>20</span>
+          </div>
+        </div>
+
+        <div className='setting-group'>
+          <label>
+            LFO Depth
+            <span className='setting-value'>{settings.lfo?.depth?.toFixed(2) || '0.00'}</span>
+          </label>
+          <input
+            type='range'
+            min='0'
+            max='1'
+            step='0.01'
+            value={settings.lfo?.depth || 0}
+            onChange={e => handleLFODepthChange(e.target.value)}
+            className='setting-slider'
+          />
+          <div className='range-labels'>
+            <span>0</span>
+            <span>0.5</span>
+            <span>1</span>
+          </div>
+        </div>
+
+        <div className='setting-group'>
+          <label>
+            LFO Type
+            <span className='setting-value'>{settings.lfo?.type || 'sine'}</span>
+          </label>
+          <select
+            value={settings.lfo?.type || 'sine'}
+            onChange={e => handleLFOTypeChange(e.target.value)}
+            className='setting-select'
+          >
+            <option value='sine'>Sine</option>
+            <option value='triangle'>Triangle</option>
+            <option value='square'>Square</option>
+            <option value='sawtooth'>Sawtooth</option>
+          </select>
+        </div>
+
+        <div className='setting-group'>
+          <label>
+            LFO Target
+            <span className='setting-value'>{settings.lfo?.target || 'volume'}</span>
+          </label>
+          <select
+            value={settings.lfo?.target || 'volume'}
+            onChange={e => handleLFOTargetChange(e.target.value)}
+            className='setting-select'
+          >
+            <option value='volume'>Volume</option>
+            <option value='frequency'>Frequency</option>
+            <option value='detune'>Detune</option>
+            <option value='filter'>Filter</option>
+          </select>
         </div>
       </div>
 
-      <div className='setting-group'>
-        <label>
-          Reverb Send
-          <span className='setting-value'>{settings.reverb_send.toFixed(2)}</span>
-        </label>
-        <input
-          type='range'
-          min='0'
-          max='1'
-          step='0.01'
-          value={settings.reverb_send}
-          onChange={e => handleReverbSendChange(e.target.value)}
-          className='setting-slider'
-        />
-        <div className='range-labels'>
-          <span>0</span>
-          <span>0.5</span>
-          <span>1</span>
+      {/* Distortion Section */}
+      <div className='effects-section'>
+        <h4 className='section-title'>Distortion</h4>
+        <div className='setting-group'>
+          <label>
+            Sample Rate (Hz)
+            <span className='setting-value'>{Math.round(settings.bitcrush.sample_rate)}</span>
+          </label>
+          <input
+            type='range'
+            min='1000'
+            max='44100'
+            step='100'
+            value={settings.bitcrush.sample_rate}
+            onChange={e => handleBitcrushSampleRateChange(e.target.value)}
+            className='setting-slider'
+          />
+          <div className='range-labels'>
+            <span>1k</span>
+            <span>22k</span>
+            <span>44k</span>
+          </div>
         </div>
-      </div>
 
-      <div className='setting-group'>
-        <label>
-          Delay Time (s)
-          <span className='setting-value'>{settings.delay_send?.delay_time?.toFixed(3) || '0.250'}</span>
-        </label>
-        <input
-          type='range'
-          min='0.01'
-          max='1.0'
-          step='0.01'
-          value={settings.delay_send?.delay_time || 0.25}
-          onChange={e => handleDelayTimeChange(e.target.value)}
-          className='setting-slider'
-        />
-        <div className='range-labels'>
-          <span>0.01</span>
-          <span>0.5</span>
-          <span>1.0</span>
-        </div>
-      </div>
-
-      <div className='setting-group'>
-        <label>
-          Delay Feedback
-          <span className='setting-value'>{settings.delay_send?.feedback?.toFixed(2) || '0.30'}</span>
-        </label>
-        <input
-          type='range'
-          min='0'
-          max='0.95'
-          step='0.01'
-          value={settings.delay_send?.feedback || 0.3}
-          onChange={e => handleDelayFeedbackChange(e.target.value)}
-          className='setting-slider'
-        />
-        <div className='range-labels'>
-          <span>0</span>
-          <span>0.5</span>
-          <span>0.95</span>
-        </div>
-      </div>
-
-      <div className='setting-group'>
-        <label>
-          Delay Send
-          <span className='setting-value'>{settings.delay_send?.wet_level?.toFixed(2) || '0.00'}</span>
-        </label>
-        <input
-          type='range'
-          min='0'
-          max='1'
-          step='0.01'
-          value={settings.delay_send?.wet_level || 0}
-          onChange={e => handleDelayWetLevelChange(e.target.value)}
-          className='setting-slider'
-        />
-        <div className='range-labels'>
-          <span>0</span>
-          <span>0.5</span>
-          <span>1</span>
-        </div>
-      </div>
-
-      <div className='setting-group'>
-        <label>
-          LFO Frequency (Hz)
-          <span className='setting-value'>{settings.lfo?.frequency?.toFixed(1) || '2.0'}</span>
-        </label>
-        <input
-          type='range'
-          min='0.1'
-          max='20'
-          step='0.1'
-          value={settings.lfo?.frequency || 2.0}
-          onChange={e => handleLFOFrequencyChange(e.target.value)}
-          className='setting-slider'
-        />
-        <div className='range-labels'>
-          <span>0.1</span>
-          <span>10</span>
-          <span>20</span>
-        </div>
-      </div>
-
-      <div className='setting-group'>
-        <label>
-          LFO Depth
-          <span className='setting-value'>{settings.lfo?.depth?.toFixed(2) || '0.00'}</span>
-        </label>
-        <input
-          type='range'
-          min='0'
-          max='1'
-          step='0.01'
-          value={settings.lfo?.depth || 0}
-          onChange={e => handleLFODepthChange(e.target.value)}
-          className='setting-slider'
-        />
-        <div className='range-labels'>
-          <span>0</span>
-          <span>0.5</span>
-          <span>1</span>
-        </div>
-      </div>
-
-      <div className='setting-group'>
-        <label>
-          LFO Type
-          <span className='setting-value'>{settings.lfo?.type || 'sine'}</span>
-        </label>
-        <select
-          value={settings.lfo?.type || 'sine'}
-          onChange={e => handleLFOTypeChange(e.target.value)}
-          className='setting-select'
-        >
-          <option value='sine'>Sine</option>
-          <option value='triangle'>Triangle</option>
-          <option value='square'>Square</option>
-          <option value='sawtooth'>Sawtooth</option>
-        </select>
-      </div>
-
-      <div className='setting-group'>
-        <label>
-          LFO Target
-          <span className='setting-value'>{settings.lfo?.target || 'volume'}</span>
-        </label>
-        <select
-          value={settings.lfo?.target || 'volume'}
-          onChange={e => handleLFOTargetChange(e.target.value)}
-          className='setting-select'
-        >
-          <option value='volume'>Volume</option>
-          <option value='frequency'>Frequency</option>
-          <option value='detune'>Detune</option>
-          <option value='filter'>Filter</option>
-        </select>
-      </div>
-
-      <div className='setting-group'>
-        <label>
-          Sample Rate (Hz)
-          <span className='setting-value'>{Math.round(settings.bitcrush.sample_rate)}</span>
-        </label>
-        <input
-          type='range'
-          min='1000'
-          max='44100'
-          step='100'
-          value={settings.bitcrush.sample_rate}
-          onChange={e => handleBitcrushSampleRateChange(e.target.value)}
-          className='setting-slider'
-        />
-        <div className='range-labels'>
-          <span>1k</span>
-          <span>22k</span>
-          <span>44k</span>
-        </div>
-      </div>
-
-      <div className='setting-group'>
-        <label>
-          Bit Depth
-          <span className='setting-value'>{Math.round(settings.bitcrush.bit_depth)}</span>
-        </label>
-        <input
-          type='range'
-          min='1'
-          max='16'
-          step='1'
-          value={settings.bitcrush.bit_depth}
-          onChange={e => handleBitcrushBitDepthChange(e.target.value)}
-          className='setting-slider'
-        />
-        <div className='range-labels'>
-          <span>1</span>
-          <span>8</span>
-          <span>16</span>
+        <div className='setting-group'>
+          <label>
+            Bit Depth
+            <span className='setting-value'>{Math.round(settings.bitcrush.bit_depth)}</span>
+          </label>
+          <input
+            type='range'
+            min='1'
+            max='16'
+            step='1'
+            value={settings.bitcrush.bit_depth}
+            onChange={e => handleBitcrushBitDepthChange(e.target.value)}
+            className='setting-slider'
+          />
+          <div className='range-labels'>
+            <span>1</span>
+            <span>8</span>
+            <span>16</span>
+          </div>
         </div>
       </div>
     </Modal>
