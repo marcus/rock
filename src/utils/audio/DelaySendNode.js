@@ -11,7 +11,7 @@ export class DelaySendNode {
     // Delay system components
     this.delay = null
     this.delaySend = null
-    this.feedback = null
+    this.feedbackGain = null
     this.dryGain = null
     this.isInitialized = false
 
@@ -39,7 +39,7 @@ export class DelaySendNode {
       this.delay = new Tone.Delay(this.options.delayTime)
 
       // Create feedback gain node
-      this.feedback = new Tone.Gain(this.options.feedback)
+      this.feedbackGain = new Tone.Gain(this.options.feedback)
 
       // Create gain nodes for wet/dry mix
       this.delaySend = new Tone.Gain(this.options.wetLevel)
@@ -55,23 +55,17 @@ export class DelaySendNode {
 
       // Delay connects to output and feedback
       this.delay.connect(this.output)
-      this.delay.connect(this.feedback)
+      this.delay.connect(this.feedbackGain)
 
       // Feedback connects back to delay input
-      this.feedback.connect(this.delay)
+      this.feedbackGain.connect(this.delay)
 
       // Dry path connects to output
       this.dryGain.connect(this.output)
 
       this.isInitialized = true
-      console.log(
-        'DelaySendNode initialized with delay time:',
-        this.options.delayTime,
-        'feedback:',
-        this.options.feedback
-      )
     } catch (error) {
-      console.error('Failed to initialize DelaySendNode:', error)
+      console.error('❌ Failed to initialize DelaySendNode:', error)
     }
   }
 
@@ -87,13 +81,13 @@ export class DelaySendNode {
   }
 
   get feedback() {
-    return this.feedback ? this.feedback.gain.value : this.options.feedback
+    return this.feedbackGain ? this.feedbackGain.gain.value : this.options.feedback
   }
 
   set feedback(value) {
     this.options.feedback = Math.max(0, Math.min(0.95, value))
-    if (this.feedback) {
-      this.feedback.gain.rampTo(this.options.feedback, 0.02)
+    if (this.feedbackGain) {
+      this.feedbackGain.gain.rampTo(this.options.feedback, 0.02)
     }
   }
 
@@ -130,8 +124,8 @@ export class DelaySendNode {
   // Set feedback level at a specific time (for precise scheduling)
   setFeedbackAtTime(value, time) {
     this.options.feedback = Math.max(0, Math.min(0.95, value))
-    if (this.feedback) {
-      this.feedback.gain.setValueAtTime(this.options.feedback, time)
+    if (this.feedbackGain) {
+      this.feedbackGain.gain.setValueAtTime(this.options.feedback, time)
     }
   }
 
@@ -158,9 +152,9 @@ export class DelaySendNode {
       this.delay.dispose()
       this.delay = null
     }
-    if (this.feedback) {
-      this.feedback.dispose()
-      this.feedback = null
+    if (this.feedbackGain) {
+      this.feedbackGain.dispose()
+      this.feedbackGain = null
     }
     if (this.delaySend) {
       this.delaySend.dispose()

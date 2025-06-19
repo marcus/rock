@@ -3,6 +3,7 @@ import { audioEngine } from './AudioEngine.js'
 import { sampleLoader } from './SampleLoader.js'
 import { BitcrushNode } from './BitcrushNode.js'
 import { ReverbNode } from './ReverbNode.js'
+import { DelaySendNode } from './DelaySendNode.js'
 
 export class DrumSoundsAPI {
   constructor() {
@@ -16,6 +17,9 @@ export class DrumSoundsAPI {
     // Reverb system
     this.reverbNode = new ReverbNode()
     this.reverbInitialized = false
+    // Delay system
+    this.delayNode = new DelaySendNode()
+    this.delayInitialized = false
   }
 
   async initializeReverb() {
@@ -29,6 +33,19 @@ export class DrumSoundsAPI {
       console.log('Reverb system initialized')
     } catch (error) {
       console.error('Failed to initialize reverb:', error)
+    }
+  }
+
+  async initializeDelay() {
+    if (this.delayInitialized) return
+
+    try {
+      await this.delayNode.initialize()
+      this.delayNode.connect(audioEngine.getDestination())
+
+      this.delayInitialized = true
+    } catch (error) {
+      console.error('❌ Failed to initialize delay:', error)
     }
   }
 
@@ -363,9 +380,18 @@ export class DrumSoundsAPI {
 
     // Build effects chain
     const effectsToDispose = []
+    
+    // Set up delay and reverb routing
+    let finalDestination = audioEngine.getDestination()
+    
+    // If delay is active, route through delay first
+    if (this.delayInitialized && trackSettings?.delay_send?.wet_level > 0) {
+      finalDestination = this.delayNode.input
+    }
+    
     let dryChain = this.reverbInitialized
       ? this.reverbNode.getDryGain()
-      : audioEngine.getDestination()
+      : finalDestination
     let wetChain = this.reverbInitialized ? this.reverbNode.getWetSend() : null
 
     // Apply bitcrush if provided
@@ -433,6 +459,21 @@ export class DrumSoundsAPI {
           originalConnections.push(node)
         }
       })
+
+      // Apply delay settings if active
+      if (this.delayInitialized && trackSettings?.delay_send) {
+        const { delay_time, feedback, wet_level } = trackSettings.delay_send
+        
+        if (delay_time !== undefined) {
+          this.delayNode.delayTime = delay_time
+        }
+        if (feedback !== undefined) {
+          this.delayNode.feedback = feedback
+        }
+        if (wet_level !== undefined) {
+          this.delayNode.wetLevel = wet_level
+        }
+      }
 
       // Connect to dry and wet chains for reverb
       const reverbSend = trackSettings?.reverb_send || 0
@@ -883,6 +924,12 @@ export class DrumSoundsAPI {
       await this.initializeReverb()
     }
 
+    // Ensure delay is initialized if needed
+    if (!this.delayInitialized && trackSettings?.delay_send?.wet_level > 0) {
+      await this.initializeDelay()
+    }
+
+
     // Find the sound data - check both old and new key formats
     const soundData = this.soundsData.find(
       sound =>
@@ -932,9 +979,18 @@ export class DrumSoundsAPI {
 
     // Create effects chain and reverb send
     const effectsToDispose = []
+    
+    // Set up delay and reverb routing for samples
+    let finalDestination = audioEngine.getDestination()
+    
+    // If delay is active, route through delay first
+    if (this.delayInitialized && trackSettings?.delay_send?.wet_level > 0) {
+      finalDestination = this.delayNode.input
+    }
+    
     let dryChain = this.reverbInitialized
       ? this.reverbNode.getDryGain()
-      : audioEngine.getDestination()
+      : finalDestination
     let wetChain = this.reverbInitialized ? this.reverbNode.getWetSend() : null
 
     // Apply effects chain if provided
@@ -990,6 +1046,21 @@ export class DrumSoundsAPI {
 
         wetChain = wetFilter
         effectsToDispose.push(wetFilter)
+      }
+    }
+
+    // Apply delay settings if active
+    if (this.delayInitialized && trackSettings?.delay_send) {
+      const { delay_time, feedback, wet_level } = trackSettings.delay_send
+      
+      if (delay_time !== undefined) {
+        this.delayNode.delayTime = delay_time
+      }
+      if (feedback !== undefined) {
+        this.delayNode.feedback = feedback
+      }
+      if (wet_level !== undefined) {
+        this.delayNode.wetLevel = wet_level
       }
     }
 

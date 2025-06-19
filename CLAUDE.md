@@ -44,6 +44,7 @@ The audio architecture uses Tone.js for cross-browser compatibility and precise 
 - **Dynamic Sound Loading**: All drum sounds are loaded from `/api/sounds` and `/api/sounds/default` endpoints
 - **API-Based Audio**: `DrumSoundsAPI` class manages sound initialization, loading, and playback from database configurations
 - **Sample Management**: MP3 files are loaded via API configuration with automatic fallback to synthesis if samples fail to load
+- **Effects System**: Integrated audio effects chain supporting reverb, delay, bitcrush, and filtering with real-time parameter control
 
 ### Sound Configuration
 
@@ -132,12 +133,122 @@ The application uses SQLite with the following key tables:
 
 **IMPORTANT**: The `sounds` table does NOT have a `sound_pack_id` column. Sound pack relationships are managed via the `sound_packs_sounds` join table.
 
+### Audio Effects System
+
+The application features a comprehensive effects chain system for per-track audio processing:
+
+#### Effects Architecture
+
+- **Dual Signal Path**: Maintains separate dry/wet signal chains for effect routing
+- **Lazy Initialization**: Effects are only initialized when first used (when parameters are non-default)
+- **Real-time Parameter Control**: All effect parameters can be adjusted in real-time during playback
+- **Smooth Transitions**: Uses `rampTo()` instead of `setValueAtTime()` for zipper-noise-free parameter changes
+- **Automatic Cleanup**: Temporary effect instances are properly disposed after use
+
+#### Available Effects
+
+1. **Gain Control**: 
+   - Range: -60dB to +12dB
+   - Applied as linear gain multiplier to track volume
+
+2. **Pitch Shifting**:
+   - Range: -24 to +24 semitones
+   - Applied as playback rate modification for samples, frequency adjustment for synthesis
+
+3. **Low-pass Filter**:
+   - Cutoff: 20Hz to 20kHz
+   - Resonance (Q): 0.1 to 10.0
+   - Applied to both dry and wet signal paths
+
+4. **Reverb Send**:
+   - Send Level: 0.0 to 1.0
+   - Uses `ReverbNode` class with impulse response convolution
+   - Shared reverb bus for all tracks
+
+5. **Delay Send**:
+   - Delay Time: 0.01 to 1.0 seconds
+   - Feedback: 0.0 to 0.95
+   - Send Level: 0.0 to 1.0
+   - Uses `DelaySendNode` class with feedback loop
+
+6. **Bitcrush**:
+   - Sample Rate: 1kHz to 44.1kHz
+   - Bit Depth: 1 to 16 bits
+   - Applied when values differ from 44.1kHz/16-bit defaults
+
+#### Effects Implementation Pattern
+
+**For adding new effects, follow this established pattern:**
+
+1. **Create Effect Node Class** (`src/utils/audio/EffectNode.js`):
+   ```javascript
+   export class EffectNode {
+     constructor(options = {}) {
+       this.input = new Tone.Gain(1)
+       this.output = new Tone.Gain(1)
+       // Handle nested settings structure
+       const effectOpts = options.effect_name || {}
+       this.options = {
+         param1: effectOpts.param1 ?? options.param1 ?? defaultValue,
+         // ... other parameters
+       }
+     }
+     
+     async initialize() { /* setup audio nodes */ }
+     
+     // Getters/setters with rampTo for smooth transitions
+     set param1(value) {
+       this.options.param1 = clampValue(value)
+       if (this.audioNode) {
+         this.audioNode.param.rampTo(this.options.param1, 0.02)
+       }
+     }
+     
+     dispose() { /* cleanup */ }
+     connect(destination) { /* chaining */ }
+   }
+   ```
+
+2. **Integrate into DrumSoundsAPI**:
+   - Import the effect class
+   - Add instance and initialization flag to constructor
+   - Create `initializeEffect()` method
+   - Add lazy initialization check in `playSoundScheduled()`
+   - Integrate into both `connectPersistentSynthWithEffects()` and `playSampleScheduled()` effects chains
+
+3. **Add UI Controls** in `TrackSettingsModal.jsx`:
+   - Add effect parameters to default settings objects
+   - Create handler functions following existing pattern
+   - Add UI sliders and controls
+   - Ensure proper null checking with optional chaining
+
+4. **Settings Data Structure**:
+   ```javascript
+   trackSettings = {
+     gain_db: 0,
+     pitch_semitones: 0,
+     filter: { cutoff_hz: 20000, resonance_q: 0.7 },
+     reverb_send: 0,
+     delay_send: { delay_time: 0.25, feedback: 0.3, wet_level: 0 },
+     bitcrush: { sample_rate: 44100, bit_depth: 16 },
+     // new_effect: { param1: defaultValue, param2: defaultValue }
+   }
+   ```
+
+#### Effects Chain Routing
+
+- **Sample Path**: `Tone.Player → Effects Chain → Delay → Reverb → Master Output`
+- **Synthesis Path**: `Synth → Effects Chain → Delay → Reverb → Master Output`
+- **Dry/Wet Routing**: Effects support parallel dry/wet processing for reverb integration
+- **Effect Order**: Bitcrush → Filter → Delay → Reverb (in effects chain)
+
 ### Performance Considerations
 
 - **Lazy Loading**: Sounds are only loaded when added to the sequencer
 - **Memory Management**: Proper cleanup of Tone.js objects and event listeners
 - **Efficient Rendering**: Uses React keys and memoization where appropriate
 - **Audio Optimization**: Persistent Tone.Player instances for samples to avoid latency
+- **Effects Optimization**: Effects are only created when needed and automatically cleaned up
 
 
 ## Component Architecture Analysis
@@ -148,7 +259,7 @@ The application uses SQLite with the following key tables:
 - **App.jsx**: Core sequencer logic, audio initialization, state management via Zustand
 - **TrackManager.jsx**: Dynamic track list with step grids, track controls, and modal integration
 - **SoundSelector.jsx**: Modal for sound selection with filtering and AI generation integration
-- **TrackSettingsModal.jsx**: Per-track audio effect settings (gain, pitch, filter)
+- **TrackSettingsModal.jsx**: Per-track audio effect settings (gain, pitch, filter, reverb send, delay send, bitcrush)
 - **SoundGenerationModal.jsx**: AI sound creation interface
 - **Controls.jsx**: Transport controls (play/stop, tempo, clear)
 - **MasterVolumeControl.jsx**: Global volume and mute controls
